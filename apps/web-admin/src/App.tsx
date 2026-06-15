@@ -4,6 +4,8 @@ import { I18nProvider, useT } from './i18n/I18nProvider';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
+import { Tournament } from './pages/Tournament';
+import { Schedule } from './pages/Schedule';
 import { Placeholder } from './pages/Placeholder';
 
 function FullScreenMessage({ text }: { text: string }) {
@@ -39,13 +41,13 @@ function AppRoutes() {
         <Route path="/live" element={<Placeholder titleKey="nav.live" />} />
       </Route>
       <Route element={<Layout title="nav.schedule" />}>
-        <Route path="/schedule" element={<Placeholder titleKey="nav.schedule" />} />
+        <Route path="/schedule" element={<Schedule />} />
       </Route>
       <Route element={<Layout title="nav.teams" />}>
         <Route path="/teams" element={<Placeholder titleKey="nav.teams" />} />
       </Route>
       <Route element={<Layout title="nav.tournament" />}>
-        <Route path="/tournament" element={<Placeholder titleKey="nav.tournament" />} />
+        <Route path="/tournament" element={<Tournament />} />
       </Route>
       <Route element={<Layout title="nav.sponsors" />}>
         <Route path="/sponsors" element={<Placeholder titleKey="nav.sponsors" />} />

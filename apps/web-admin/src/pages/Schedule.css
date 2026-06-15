@@ -1,0 +1,121 @@
+/* Schedule.css — raspored i auto-satnica (po hifi_web_schedule, dvostupčano). */
+
+.sched {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: var(--sp-xl);
+  align-items: start;
+}
+.sched__left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
+}
+.sched__note {
+  color: var(--mut);
+  font-size: 13px;
+}
+
+.sched__right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
+}
+.sched__right-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.sched__auto {
+  color: var(--mut);
+  font-size: 12px;
+}
+.sched__day-title {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--sp-sm);
+}
+.sched__day + .sched__day {
+  margin-top: var(--sp-md);
+}
+.sched__day-empty {
+  color: var(--mut);
+  font-size: 14px;
+  padding: var(--sp-sm) 0;
+}
+.sched__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+/* Red utakmice */
+.mrow {
+  display: grid;
+  grid-template-columns: 56px 28px 1fr auto 1fr 28px auto;
+  align-items: center;
+  gap: var(--sp-md);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: var(--sp-sm) var(--sp-md);
+}
+.mrow--final {
+  border-color: var(--gold);
+}
+.mrow__time {
+  font-family: var(--font-head);
+  font-weight: 600;
+  color: var(--sub);
+}
+.mrow__team {
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mrow__team--away {
+  text-align: right;
+}
+.mrow__team.is-ph {
+  color: var(--mut);
+  font-style: italic;
+  font-weight: 400;
+}
+.mrow__mid {
+  text-align: center;
+  min-width: 64px;
+}
+.mrow__score {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 16px;
+}
+.mrow__vs {
+  color: var(--mut);
+  font-size: 13px;
+}
+.mrow__live {
+  display: inline-block;
+  background: var(--red);
+  color: #fff;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: var(--r-chip);
+  white-space: nowrap;
+}
+.mrow__stage {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--mut);
+  letter-spacing: 0.5px;
+}

@@ -1,0 +1,103 @@
+/* DaysEditor.css — lista dana turnira (po hifi_admin_days). */
+
+.days__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--sp-md);
+}
+.days__hint {
+  color: var(--mut);
+  font-size: 13px;
+}
+.days__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+  margin-bottom: var(--sp-md);
+}
+.days__empty {
+  color: var(--sub);
+  padding: var(--sp-lg) 0;
+  margin-bottom: var(--sp-md);
+}
+
+.day-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: var(--sp-md) var(--sp-lg);
+}
+.day-row__badge {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-chip);
+  background: var(--card2);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--red);
+  flex: none;
+}
+.day-row__main {
+  flex: 1;
+  min-width: 0;
+}
+.day-row__title {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 18px;
+}
+.day-row__sub {
+  color: var(--sub);
+  font-size: 14px;
+  margin-top: 2px;
+}
+.day-row__edit {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  margin-top: var(--sp-sm);
+}
+.day-row__time {
+  width: 130px;
+}
+.day-row__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  flex: none;
+}
+.day-row__del {
+  background: none;
+  border: none;
+  color: var(--sub);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 var(--sp-xs);
+}
+.day-row__del:hover {
+  color: var(--red);
+}
+
+.days__add {
+  width: 100%;
+  min-height: var(--touch);
+  border: 1px dashed var(--red);
+  background: transparent;
+  color: var(--red);
+  border-radius: var(--r-card);
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+}
+.days__add:hover {
+  background: rgba(225, 29, 42, 0.08);
+}

@@ -1,0 +1,121 @@
+/* DatePickerModal.css — skočni kalendar (po hifi_admin_datepicker). */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+  padding: var(--sp-lg);
+}
+.modal {
+  width: 100%;
+  max-width: 460px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: var(--sp-xl);
+}
+.modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-lg);
+}
+.modal__title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 22px;
+}
+.modal__close {
+  background: none;
+  border: none;
+  color: var(--sub);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  padding: var(--sp-xs) var(--sp-sm);
+}
+.modal__close:hover {
+  color: var(--txt);
+}
+
+.cal__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-md);
+}
+.cal__month {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 18px;
+}
+.cal__arrow {
+  background: none;
+  border: none;
+  color: var(--txt);
+  font-size: 22px;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-chip);
+}
+.cal__arrow:hover {
+  background: var(--card2);
+}
+
+.cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--sp-xs);
+}
+.cal__grid--head {
+  margin-bottom: var(--sp-xs);
+}
+.cal__wd {
+  text-align: center;
+  color: var(--sub);
+  font-size: 12px;
+  font-weight: 600;
+  padding: var(--sp-xs) 0;
+}
+.cal__day {
+  position: relative;
+  aspect-ratio: 1;
+  min-height: 40px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  color: var(--txt);
+  font-size: 15px;
+  cursor: pointer;
+}
+.cal__day:hover:not(:disabled) {
+  border-color: var(--line);
+}
+.cal__day.is-selected {
+  background: var(--red);
+  color: #fff;
+}
+.cal__day.is-taken {
+  color: var(--mut);
+  cursor: not-allowed;
+}
+.cal__dot {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: var(--r-pill);
+  background: var(--red);
+}
+.cal__selected {
+  margin: var(--sp-lg) 0 var(--sp-md);
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 15px;
+}
