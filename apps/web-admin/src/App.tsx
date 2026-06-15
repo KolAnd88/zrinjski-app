@@ -11,7 +11,8 @@ import { Live } from './pages/Live';
 import { Tv } from './pages/Tv';
 import { Sponsors } from './pages/Sponsors';
 import { Registrations } from './pages/Registrations';
-import { Placeholder } from './pages/Placeholder';
+import { Notices } from './pages/Notices';
+import { Promo } from './pages/Promo';
 
 function FullScreenMessage({ text }: { text: string }) {
   return (
@@ -61,10 +62,10 @@ function AppRoutes() {
         <Route path="/sponsors" element={<Sponsors />} />
       </Route>
       <Route element={<Layout title="nav.notices" />}>
-        <Route path="/notices" element={<Placeholder titleKey="nav.notices" />} />
+        <Route path="/notices" element={<Notices />} />
       </Route>
       <Route element={<Layout title="nav.promo" />}>
-        <Route path="/promo" element={<Placeholder titleKey="nav.promo" />} />
+        <Route path="/promo" element={<Promo />} />
       </Route>
       <Route element={<Layout title="nav.registrations" />}>
         <Route path="/registrations" element={<Registrations />} />

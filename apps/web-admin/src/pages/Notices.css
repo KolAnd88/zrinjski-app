@@ -1,0 +1,117 @@
+/* Notices.css — Obavijesti (po hifi_admin_notices). */
+
+.notices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+  max-width: 720px;
+}
+
+/* Segmentirani izbor (Svi / Po ekipi / Pratitelji) */
+.seg-group {
+  display: flex;
+  gap: var(--sp-sm);
+  margin-bottom: var(--sp-md);
+}
+.seg {
+  flex: 1;
+  min-height: var(--touch);
+  border-radius: var(--r-chip);
+  border: 1px solid var(--line);
+  background: var(--card2);
+  color: var(--sub);
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+.seg.is-on {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+
+.notices__team {
+  margin-bottom: var(--sp-md);
+}
+.notices__title {
+  margin-bottom: var(--sp-sm);
+}
+.notices__body {
+  width: 100%;
+  padding: var(--sp-md);
+  resize: vertical;
+  line-height: 1.4;
+  margin-bottom: var(--sp-md);
+}
+.notices__pushnote {
+  color: var(--mut);
+  font-size: 12px;
+  margin: var(--sp-sm) 0 0;
+}
+.notices__empty {
+  color: var(--sub);
+  padding: var(--sp-sm) 0;
+}
+
+/* Poslano */
+.notices__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+.notice-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-lg);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: var(--sp-md) var(--sp-lg);
+}
+.notice-row__time {
+  font-family: var(--font-head);
+  font-weight: 600;
+  color: var(--sub);
+  min-width: 48px;
+}
+.notice-row__title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 17px;
+}
+.notice-row__aud {
+  color: var(--sub);
+  font-size: 13px;
+}
+
+/* Automatski podsjetnici */
+.notices__autohead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-md);
+  margin-top: var(--sp-sm);
+}
+.notices__autohint {
+  color: var(--mut);
+  font-size: 13px;
+}
+.notices__toggles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: var(--sp-md) var(--sp-lg);
+}
+.toggle-row__label {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 17px;
+}

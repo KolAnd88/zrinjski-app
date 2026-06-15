@@ -5,6 +5,7 @@ import type {
   Grp,
   Match,
   MatchEvent,
+  NotificationLog,
   Player,
   Registration,
   RegistrationStatus,
@@ -246,6 +247,18 @@ export async function fetchEnterableMatches(tournamentId: string): Promise<Match
   return data ?? [];
 }
 
+export async function fetchFinishedMatches(tournamentId: string): Promise<Match[]> {
+  const { data, error } = await client()
+    .from('match')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .eq('status', 'finished')
+    .order('scheduled_time', { ascending: false, nullsFirst: false })
+    .order('sort_order', { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function fetchPlayersByTeams(teamIds: string[]): Promise<Player[]> {
   if (teamIds.length === 0) return [];
   const { data, error } = await client()
@@ -309,6 +322,26 @@ export async function updateSponsor(id: string, patch: TablesUpdate<'sponsor'>):
 export async function deleteSponsor(id: string): Promise<void> {
   const { error } = await client().from('sponsor').delete().eq('id', id);
   if (error) throw error;
+}
+
+// ── Obavijesti ─────────────────────────────────────────────────────────────
+export async function fetchNotifications(tournamentId: string): Promise<NotificationLog[]> {
+  const { data, error } = await client()
+    .from('notification_log')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .order('sent_at', { ascending: false })
+    .limit(50);
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function insertNotification(
+  row: TablesInsert<'notification_log'>
+): Promise<NotificationLog> {
+  const { data, error } = await client().from('notification_log').insert(row).select('*').single();
+  if (error) throw error;
+  return data;
 }
 
 // ── Prijave ────────────────────────────────────────────────────────────────

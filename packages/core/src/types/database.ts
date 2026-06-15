@@ -26,7 +26,14 @@ export type NotificationType =
   | 'team_goal'
   | 'match_end'
   | 'schedule_change'
-  | 'program';
+  | 'program'
+  | 'custom';
+
+export type ReminderPrefs = {
+  day_before_18: boolean;
+  thirty_min_before: boolean;
+  schedule_change: boolean;
+};
 
 export type NotificationPrefs = {
   team_playing_soon: boolean;
@@ -50,6 +57,7 @@ export type Database = {
           points_draw: number;
           points_loss: number;
           advance_per_group: number;
+          reminder_prefs: ReminderPrefs;
           created_at: string;
           updated_at: string;
         };
@@ -63,6 +71,7 @@ export type Database = {
           points_draw?: number;
           points_loss?: number;
           advance_per_group?: number;
+          reminder_prefs?: ReminderPrefs;
           created_at?: string;
           updated_at?: string;
         };
