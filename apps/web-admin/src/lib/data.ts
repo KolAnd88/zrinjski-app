@@ -4,6 +4,7 @@ import type {
   Gender,
   Grp,
   Match,
+  MatchEvent,
   Player,
   Team,
   Tournament,
@@ -218,4 +219,61 @@ export async function insertMatches(rows: TablesInsert<'match'>[]): Promise<numb
   const { error, count } = await client().from('match').insert(rows, { count: 'exact' });
   if (error) throw error;
   return count ?? rows.length;
+}
+
+// ── Unos uživo ─────────────────────────────────────────────────────────────
+export async function fetchMatch(id: string): Promise<Match | null> {
+  const { data, error } = await client().from('match').select('*').eq('id', id).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+/** Utakmice koje se mogu unositi (najavljene + uživo), s vremenom — za izbornik. */
+export async function fetchEnterableMatches(tournamentId: string): Promise<Match[]> {
+  const { data, error } = await client()
+    .from('match')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .in('status', ['scheduled', 'live'])
+    .order('scheduled_time', { ascending: true, nullsFirst: false })
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchPlayersByTeams(teamIds: string[]): Promise<Player[]> {
+  if (teamIds.length === 0) return [];
+  const { data, error } = await client()
+    .from('player')
+    .select('*')
+    .in('team_id', teamIds)
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchEvents(matchId: string): Promise<MatchEvent[]> {
+  const { data, error } = await client()
+    .from('match_event')
+    .select('*')
+    .eq('match_id', matchId)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function insertEvent(row: TablesInsert<'match_event'>): Promise<MatchEvent> {
+  const { data, error } = await client().from('match_event').insert(row).select('*').single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteEvent(id: string): Promise<void> {
+  const { error } = await client().from('match_event').delete().eq('id', id);
+  if (error) throw error;
+}
+
+export async function updateMatch(id: string, patch: TablesUpdate<'match'>): Promise<void> {
+  const { error } = await client().from('match').update(patch).eq('id', id);
+  if (error) throw error;
 }

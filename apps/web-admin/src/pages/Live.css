@@ -1,0 +1,331 @@
+/* Live.css — unos uživo (zapisničar), po hifi_web_live (3 stupca). */
+
+.live {
+  display: grid;
+  grid-template-columns: 360px 1fr 320px;
+  gap: var(--sp-lg);
+  align-items: start;
+}
+.live__control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+}
+
+/* Status + sat */
+.live__status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-md);
+}
+.live__livebadge {
+  color: var(--red);
+}
+.live__schedbadge {
+  color: var(--sub);
+}
+.live__clock {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--sub);
+}
+
+/* Rezultat */
+.live__scorerow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+.live__side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-xs);
+}
+.live__sidename {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  text-align: center;
+}
+.live__score {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 44px;
+  white-space: nowrap;
+}
+
+/* Ručna korekcija */
+.live__adjust {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-md);
+  margin-top: var(--sp-md);
+}
+.live__adjust-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-sm);
+}
+.live__adjust-group span {
+  color: var(--mut);
+  font-size: 11px;
+  min-width: 34px;
+  text-align: center;
+}
+.live__adjust-group button {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-chip);
+  border: 1px solid var(--line);
+  background: var(--card2);
+  color: var(--txt);
+  font-size: 20px;
+  cursor: pointer;
+}
+.live__adjust-group button:hover {
+  border-color: var(--mut);
+}
+
+.live__startfinish {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-md);
+  margin-top: var(--sp-md);
+}
+
+.live__tvline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.live__jersey {
+  border-radius: var(--r-chip);
+  padding: var(--sp-sm) var(--sp-md);
+  font-size: 13px;
+  font-weight: 600;
+}
+.live__jersey.is-ok {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid var(--green);
+  color: #c9f3d6;
+}
+.live__jersey.is-clash {
+  background: rgba(225, 29, 42, 0.12);
+  border: 1px solid var(--red);
+  color: #ffd7da;
+}
+
+/* Vrsta događaja */
+.live__events {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-sm);
+}
+.evchip {
+  min-height: 44px;
+  border-radius: var(--r-chip);
+  border: 1px solid var(--line);
+  background: var(--card2);
+  color: var(--sub);
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+.evchip.is-on {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+
+.live__next {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+.live__next-row {
+  display: flex;
+  gap: var(--sp-md);
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-chip);
+  padding: var(--sp-sm) var(--sp-md);
+  cursor: pointer;
+  color: var(--txt);
+  text-align: left;
+  font-size: 13px;
+}
+.live__next-row span:first-child {
+  font-family: var(--font-head);
+  font-weight: 600;
+  color: var(--red);
+}
+.live__next-row:hover {
+  border-color: var(--mut);
+}
+
+/* Sastavi */
+.live__rosters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-md);
+}
+.roster {
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  overflow: hidden;
+  background: var(--card);
+}
+.roster__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  padding: var(--sp-sm) var(--sp-md);
+}
+.roster__name {
+  font-family: var(--font-head);
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.roster__empty {
+  padding: var(--sp-md);
+  color: var(--sub);
+  font-size: 13px;
+}
+.proster {
+  display: grid;
+  grid-template-columns: 32px 1fr 44px;
+  align-items: center;
+  gap: var(--sp-sm);
+  padding: 6px var(--sp-md);
+  border-top: 1px solid var(--line);
+}
+.proster__num {
+  color: var(--sub);
+  font-family: var(--font-head);
+  font-weight: 600;
+  text-align: center;
+}
+.proster__name {
+  font-size: 14px;
+}
+.proster__plus {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-chip);
+  border: none;
+  background: var(--red);
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+}
+.proster__plus:hover {
+  filter: brightness(1.1);
+}
+
+/* Tijek */
+.live__feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+.live__feed-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.feedlist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+}
+.feedrow {
+  display: grid;
+  grid-template-columns: 32px auto 1fr auto;
+  align-items: center;
+  gap: var(--sp-sm);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-chip);
+  padding: 6px var(--sp-md);
+  font-size: 13px;
+}
+.feedrow__min {
+  font-family: var(--font-head);
+  font-weight: 600;
+  color: var(--sub);
+}
+.feedrow__type {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.feedrow__type--goal {
+  color: var(--red);
+}
+.feedrow__type--red_card {
+  color: var(--red);
+}
+.feedrow__type--suspension_2min {
+  color: var(--gold);
+}
+.feedrow__type--save {
+  color: var(--blue);
+}
+.feedrow__player {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.feedrow__score {
+  font-family: var(--font-head);
+  font-weight: 700;
+}
+
+/* Picker */
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+.picker__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-chip);
+  padding: var(--sp-md);
+  cursor: pointer;
+  color: var(--txt);
+  text-align: left;
+}
+.picker__row:hover {
+  border-color: var(--mut);
+}
+.picker__time {
+  font-family: var(--font-head);
+  font-weight: 600;
+  color: var(--red);
+  min-width: 48px;
+}
+.picker__teams {
+  flex: 1;
+  font-weight: 600;
+}
+.picker__live {
+  color: #fff;
+  background: var(--red);
+  padding: 2px 8px;
+  border-radius: var(--r-chip);
+}

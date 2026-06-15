@@ -7,6 +7,8 @@ import { Dashboard } from './pages/Dashboard';
 import { Tournament } from './pages/Tournament';
 import { Schedule } from './pages/Schedule';
 import { Teams } from './pages/Teams';
+import { Live } from './pages/Live';
+import { Tv } from './pages/Tv';
 import { Placeholder } from './pages/Placeholder';
 
 function FullScreenMessage({ text }: { text: string }) {
@@ -35,11 +37,14 @@ function AppRoutes() {
 
   return (
     <Routes>
+      {/* TV / semafor — preko cijelog ekrana, bez sidebar layouta */}
+      <Route path="/tv" element={<Tv />} />
+
       <Route element={<Layout title="dash.title" />}>
         <Route index element={<Dashboard />} />
       </Route>
       <Route element={<Layout title="nav.live" />}>
-        <Route path="/live" element={<Placeholder titleKey="nav.live" />} />
+        <Route path="/live" element={<Live />} />
       </Route>
       <Route element={<Layout title="nav.schedule" />}>
         <Route path="/schedule" element={<Schedule />} />
