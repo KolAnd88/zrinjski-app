@@ -1,0 +1,244 @@
+/* Teams.css — Ekipe i igrači (master-detail). */
+
+.teams {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: var(--sp-xl);
+  align-items: start;
+}
+.teams__left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
+}
+.teams__empty,
+.teams__hint {
+  color: var(--sub);
+  padding: var(--sp-lg) 0;
+}
+
+/* M/Ž toggle */
+.gender-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-chip);
+  padding: 4px;
+  gap: 4px;
+}
+.gender-toggle__btn {
+  min-height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--sub);
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.gender-toggle__btn.is-active {
+  background: var(--red);
+  color: #fff;
+}
+
+/* Grupe */
+.groups-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+.group-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.group-chip__del {
+  background: none;
+  border: none;
+  color: var(--sub);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+}
+.group-chip__del:hover {
+  color: var(--red);
+}
+.group-chip--add {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--red);
+  color: var(--red);
+  cursor: pointer;
+}
+
+/* Dodaj ekipu */
+.add-team {
+  display: flex;
+  gap: var(--sp-sm);
+}
+.add-team .input {
+  flex: 1;
+}
+
+/* Popis ekipa */
+.team-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+.team-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: var(--sp-sm) var(--sp-md);
+  cursor: pointer;
+  text-align: left;
+  color: var(--txt);
+}
+.team-row:hover {
+  border-color: var(--mut);
+}
+.team-row.is-active {
+  border-color: var(--red);
+}
+.team-row__main {
+  flex: 1;
+  min-width: 0;
+}
+.team-row__name {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 17px;
+}
+.team-row__group {
+  color: var(--sub);
+  font-size: 12px;
+}
+.team-row__count {
+  color: var(--sub);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* ── Editor ─────────────────────────────────────────────────────────────── */
+.teditor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
+}
+.teditor__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+}
+.teditor__title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 22px;
+}
+.teditor__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-lg);
+}
+.teditor__delete {
+  align-self: flex-start;
+  color: var(--red);
+  margin-top: var(--sp-sm);
+}
+
+/* Swatches boje */
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-sm);
+}
+.swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-chip);
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+}
+.swatch.is-on {
+  border-color: var(--txt);
+}
+.swatch--custom {
+  background: var(--card2);
+  border: 1px dashed var(--line);
+}
+
+/* Igrači */
+.plist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+  margin-bottom: var(--sp-sm);
+}
+.prow {
+  display: grid;
+  grid-template-columns: 64px 1fr 44px 36px;
+  gap: var(--sp-sm);
+  align-items: center;
+}
+.prow--add {
+  grid-template-columns: 64px 1fr auto;
+}
+.prow__num {
+  text-align: center;
+  padding: 0 var(--sp-sm);
+}
+.prow__cap {
+  height: 44px;
+  border-radius: var(--r-chip);
+  border: 1px solid var(--line);
+  background: var(--card2);
+  color: var(--sub);
+  font-family: var(--font-head);
+  font-weight: 700;
+  cursor: pointer;
+}
+.prow__cap.is-on {
+  background: var(--red);
+  color: #fff;
+  border-color: var(--red);
+}
+.prow__del {
+  background: none;
+  border: none;
+  color: var(--sub);
+  font-size: 22px;
+  cursor: pointer;
+}
+.prow__del:hover {
+  color: var(--red);
+}
+.prow__add {
+  height: 44px;
+  padding: 0 var(--sp-lg);
+  border: 1px dashed var(--red);
+  background: transparent;
+  color: var(--red);
+  border-radius: var(--r-chip);
+  font-family: var(--font-head);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.prow__add:hover {
+  background: rgba(225, 29, 42, 0.08);
+}

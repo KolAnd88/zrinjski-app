@@ -12,3 +12,4 @@ export * from './domain/schedule';
 export * from './domain/standings';
 export * from './domain/bracket';
 export * from './domain/stats';
+export * from './domain/fixtures';

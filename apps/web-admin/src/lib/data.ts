@@ -1,5 +1,15 @@
 // data.ts — upiti prema Supabase za turnir, dane i utakmice (web admin).
-import type { Day, Match, Tournament, TablesUpdate } from '@zrinjski/core';
+import type {
+  Day,
+  Gender,
+  Grp,
+  Match,
+  Player,
+  Team,
+  Tournament,
+  TablesInsert,
+  TablesUpdate,
+} from '@zrinjski/core';
 import { supabase } from './supabase';
 
 export class NotConfiguredError extends Error {
@@ -88,4 +98,124 @@ export async function applyScheduledTimes(
   );
   const firstErr = results.find((r) => r.error)?.error;
   if (firstErr) throw firstErr;
+}
+
+// ── Grupe ────────────────────────────────────────────────────────────────
+export async function fetchGroups(tournamentId: string, gender: Gender): Promise<Grp[]> {
+  const { data, error } = await client()
+    .from('grp')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .eq('gender', gender)
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function createGroup(
+  tournamentId: string,
+  gender: Gender,
+  name: string,
+  sortOrder: number
+): Promise<Grp> {
+  const { data, error } = await client()
+    .from('grp')
+    .insert({ tournament_id: tournamentId, gender, name, sort_order: sortOrder })
+    .select('*')
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteGroup(id: string): Promise<void> {
+  const { error } = await client().from('grp').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ── Ekipe ────────────────────────────────────────────────────────────────
+export async function fetchTeams(tournamentId: string, gender: Gender): Promise<Team[]> {
+  const { data, error } = await client()
+    .from('team')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .eq('gender', gender)
+    .order('name', { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function createTeam(row: TablesInsert<'team'>): Promise<Team> {
+  const { data, error } = await client().from('team').insert(row).select('*').single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateTeam(id: string, patch: TablesUpdate<'team'>): Promise<void> {
+  const { error } = await client().from('team').update(patch).eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteTeam(id: string): Promise<void> {
+  const { error } = await client().from('team').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ── Igrači ───────────────────────────────────────────────────────────────
+export async function fetchPlayers(teamId: string): Promise<Player[]> {
+  const { data, error } = await client()
+    .from('player')
+    .select('*')
+    .eq('team_id', teamId)
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function createPlayer(row: TablesInsert<'player'>): Promise<Player> {
+  const { data, error } = await client().from('player').insert(row).select('*').single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updatePlayer(id: string, patch: TablesUpdate<'player'>): Promise<void> {
+  const { error } = await client().from('player').update(patch).eq('id', id);
+  if (error) throw error;
+}
+
+export async function deletePlayer(id: string): Promise<void> {
+  const { error } = await client().from('player').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ── Generiranje grupnih utakmica ───────────────────────────────────────────
+/** ID-evi grupa koje već imaju barem jednu utakmicu (da ne dupliramo). */
+export async function fetchGroupsWithMatches(tournamentId: string): Promise<Set<string>> {
+  const { data, error } = await client()
+    .from('match')
+    .select('grp_id')
+    .eq('tournament_id', tournamentId)
+    .eq('stage', 'group')
+    .not('grp_id', 'is', null);
+  if (error) throw error;
+  return new Set((data ?? []).map((r) => r.grp_id).filter((x): x is string => !!x));
+}
+
+/** Najveći postojeći sort_order za utakmice (za nastavak numeracije). */
+export async function maxMatchSortOrder(tournamentId: string): Promise<number> {
+  const { data, error } = await client()
+    .from('match')
+    .select('sort_order')
+    .eq('tournament_id', tournamentId)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.sort_order ?? -1;
+}
+
+export async function insertMatches(rows: TablesInsert<'match'>[]): Promise<number> {
+  if (rows.length === 0) return 0;
+  const { error, count } = await client().from('match').insert(rows, { count: 'exact' });
+  if (error) throw error;
+  return count ?? rows.length;
 }
