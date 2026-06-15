@@ -1,0 +1,74 @@
+/* Login.css — ekran prijave (skriveni ulaz). Dijagonalna crvena lenta = potpis. */
+
+.login {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: var(--sp-xl);
+}
+
+/* Dijagonalna lenta */
+.login::before {
+  content: '';
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  top: 18%;
+  height: 130px;
+  background: linear-gradient(90deg, var(--red-dk), var(--red));
+  transform: rotate(-12deg);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.login__box {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
+}
+
+.login__brand {
+  text-align: center;
+  margin-bottom: var(--sp-sm);
+}
+.login__logo {
+  width: 84px;
+  height: 84px;
+  border-radius: 18px;
+  background: var(--red);
+  display: grid;
+  place-items: center;
+  margin: 0 auto var(--sp-md);
+  font-family: var(--font-head);
+  font-weight: 700;
+  color: #fff;
+  font-size: 26px;
+}
+.login__title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: 0.5px;
+}
+.login__subtitle {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-top: var(--sp-xs);
+}
+.login__note {
+  text-align: center;
+  color: var(--mut);
+  font-size: 13px;
+}
+.login__magic {
+  text-align: center;
+}

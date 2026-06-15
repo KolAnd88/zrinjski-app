@@ -1,0 +1,110 @@
+/* index.css — bazni stilovi + dizajn tokeni kao CSS varijable.
+   Izvor istine za vrijednosti: @zrinjski/ui-tokens i DIZAJN.md.
+   Tamna tema je jedina tema. Crvena = jedini akcent; zlatna samo za finale/zlatnog sponzora. */
+
+:root {
+  /* Boje */
+  --red: #e11d2a;
+  --red-dk: #9c0c18;
+  --blue: #2d6cdf;
+  --gold: #d9b24a;
+  --bg: #0b0b0e;
+  --card: #15161b;
+  --card2: #1c1d24;
+  --line: #2a2b33;
+  --txt: #f4f4f5;
+  --sub: #9aa0aa;
+  --mut: #6b7079;
+  --green: #22c55e;
+
+  /* Razmaci (8pt) */
+  --sp-xs: 4px;
+  --sp-sm: 8px;
+  --sp-md: 12px;
+  --sp-lg: 16px;
+  --sp-xl: 24px;
+  --sp-xxl: 32px;
+
+  /* Radijusi */
+  --r-card: 12px;
+  --r-chip: 8px;
+  --r-pill: 999px;
+
+  /* Tipografija */
+  --font-head: 'Oswald', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  --touch: 44px;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--txt);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-head);
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+}
+
+a {
+  color: var(--blue);
+  text-decoration: none;
+}
+
+input {
+  font-family: inherit;
+}
+
+/* Naslovi sekcija (H2 uppercase iz DIZAJN.md) */
+.section-label {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--sub);
+  margin: 0;
+}
+
+/* Oznaka / badge */
+.badge {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Scrollbar (suptilno) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: var(--r-pill);
+}

@@ -1,0 +1,122 @@
+/* Layout.css — sidebar shell web admina (1280×800 landscape). */
+
+.shell {
+  display: grid;
+  grid-template-columns: 232px 1fr;
+  height: 100vh;
+  min-width: 1024px;
+}
+
+/* ── Sidebar ──────────────────────────────────────────────────────────────── */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border-right: 1px solid var(--line);
+  padding: var(--sp-lg);
+}
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  padding: var(--sp-sm) var(--sp-sm) var(--sp-lg);
+}
+.sidebar__logo {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-chip);
+  background: var(--red);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-head);
+  font-weight: 700;
+  color: #fff;
+  font-size: 13px;
+}
+.sidebar__name {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.1;
+}
+.sidebar__sub {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--mut);
+}
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  flex: 1;
+}
+.navlink {
+  display: flex;
+  align-items: center;
+  min-height: var(--touch);
+  padding: 0 var(--sp-md);
+  border-radius: var(--r-chip);
+  color: var(--sub);
+  font-weight: 500;
+  font-size: 14px;
+}
+.navlink:hover {
+  background: var(--card2);
+  color: var(--txt);
+}
+.navlink.is-active {
+  background: var(--red);
+  color: #fff;
+}
+.sidebar__footer {
+  padding-top: var(--sp-md);
+  border-top: 1px solid var(--line);
+}
+
+/* ── Glavni sadržaj ─────────────────────────────────────────────────────────── */
+.main {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-lg) var(--sp-xl);
+  border-bottom: 1px solid var(--line);
+}
+.topbar__title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 22px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.content {
+  padding: var(--sp-xl);
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Mali jezik-preklopnik */
+.lang-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+.lang-toggle button {
+  background: transparent;
+  border: none;
+  color: var(--sub);
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+.lang-toggle button.is-active {
+  background: var(--card2);
+  color: var(--txt);
+}
