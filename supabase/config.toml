@@ -1,0 +1,25 @@
+# Supabase lokalni razvoj — minimalna konfiguracija.
+# `supabase init` će ovo proširiti; ovdje su ključne postavke za projekt.
+project_id = "zrinjski-app"
+
+[db]
+port = 54322
+major_version = 15
+
+[api]
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public"]
+
+[studio]
+port = 54323
+
+[auth]
+# Magic-link / email login za admin/delegate/rep.
+enable_signup = true
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+[realtime]
+enabled = true

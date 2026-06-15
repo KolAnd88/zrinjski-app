@@ -1,0 +1,18 @@
+{
+  "name": "zrinjski-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VHMRK Zrinjski Cup — mobilna + web aplikacija za rukometni turnir veterana",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "typecheck": "tsc -b packages/core packages/ui-tokens",
+    "db:types": "supabase gen types typescript --local > packages/core/src/types/database.ts",
+    "test": "node --test packages/core/dist/**/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
