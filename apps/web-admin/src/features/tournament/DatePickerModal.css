@@ -1,45 +1,5 @@
-/* DatePickerModal.css — skočni kalendar (po hifi_admin_datepicker). */
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: grid;
-  place-items: center;
-  z-index: 50;
-  padding: var(--sp-lg);
-}
-.modal {
-  width: 100%;
-  max-width: 460px;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--r-card);
-  padding: var(--sp-xl);
-}
-.modal__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--sp-lg);
-}
-.modal__title {
-  font-family: var(--font-head);
-  font-weight: 700;
-  font-size: 22px;
-}
-.modal__close {
-  background: none;
-  border: none;
-  color: var(--sub);
-  font-size: 26px;
-  line-height: 1;
-  cursor: pointer;
-  padding: var(--sp-xs) var(--sp-sm);
-}
-.modal__close:hover {
-  color: var(--txt);
-}
+/* DatePickerModal.css — skočni kalendar (po hifi_admin_datepicker).
+   Generički modal stilovi (.modal-overlay/.modal/.modal__*) su u components/ui.css. */
 
 .cal__nav {
   display: flex;

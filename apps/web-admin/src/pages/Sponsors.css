@@ -1,0 +1,198 @@
+/* Sponsors.css — sponzori (po hifi_admin_sponsors). */
+
+.sponsors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+  max-width: 820px;
+}
+.sponsors__goldhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+/* Veća specifičnost da nadjača .section-label bez obzira na redoslijed učitavanja CSS-a. */
+.sponsors .sponsors__goldlabel {
+  color: var(--gold);
+}
+.sponsors__empty {
+  color: var(--sub);
+  padding: var(--sp-md) 0;
+}
+
+/* Logo pločica */
+.slogo {
+  width: 96px;
+  height: 64px;
+  border-radius: var(--r-chip);
+  background: #fff;
+  display: grid;
+  place-items: center;
+  flex: none;
+  overflow: hidden;
+}
+.slogo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.slogo span {
+  color: #9aa0aa;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+/* Zlatna kartica */
+.gold-card {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-lg);
+  border: 1px solid var(--gold);
+  border-radius: var(--r-card);
+  padding: var(--sp-lg);
+  background: linear-gradient(90deg, rgba(217, 178, 74, 0.08), transparent);
+}
+.gold-card__main {
+  flex: 1;
+}
+.gold-card__name {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 24px;
+}
+.gold-card__hint {
+  color: var(--sub);
+  font-size: 14px;
+}
+.gold-card__edit {
+  background: none;
+  border: none;
+  color: var(--red);
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+/* Ostali — red */
+.sponsor-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+}
+.sponsor-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-lg);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: var(--sp-md) var(--sp-lg);
+}
+.sponsor-row__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sponsor-row__name {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 20px;
+}
+.sponsor-row__del {
+  background: none;
+  border: none;
+  color: var(--sub);
+  font-size: 22px;
+  cursor: pointer;
+}
+.sponsor-row__del:hover {
+  color: var(--red);
+}
+
+/* Tier badge — zlatna rezervirana za zlatni tier; ostale neutralne/orange/blue */
+.tier-badge {
+  align-self: flex-start;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: var(--r-chip);
+}
+.tier-badge--gold {
+  background: rgba(217, 178, 74, 0.15);
+  color: var(--gold);
+}
+.tier-badge--silver {
+  background: var(--card2);
+  color: var(--sub);
+}
+.tier-badge--bronze {
+  background: rgba(194, 65, 12, 0.18);
+  color: #e08a5a;
+}
+.tier-badge--partner {
+  background: rgba(45, 108, 223, 0.15);
+  color: var(--blue);
+}
+
+/* Dodaj */
+.sponsors__add {
+  width: 100%;
+  min-height: 56px;
+  border-radius: var(--r-card);
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+}
+.sponsors__add--gold {
+  border: 1px dashed var(--gold);
+  background: transparent;
+  color: var(--gold);
+}
+.sponsors__add--gold:hover {
+  background: rgba(217, 178, 74, 0.08);
+}
+
+/* Switch (prekidač) */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 30px;
+  cursor: pointer;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.switch__track {
+  position: absolute;
+  inset: 0;
+  background: var(--line);
+  border-radius: var(--r-pill);
+  transition: background 0.15s;
+}
+.switch__track::before {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  left: 4px;
+  top: 4px;
+  background: #fff;
+  border-radius: var(--r-pill);
+  transition: transform 0.15s;
+}
+.switch input:checked + .switch__track {
+  background: var(--red);
+}
+.switch input:checked + .switch__track::before {
+  transform: translateX(22px);
+}

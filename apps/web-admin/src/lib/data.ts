@@ -6,12 +6,15 @@ import type {
   Match,
   MatchEvent,
   Player,
+  Sponsor,
   Team,
   Tournament,
   TablesInsert,
   TablesUpdate,
 } from '@zrinjski/core';
 import { supabase } from './supabase';
+
+const ASSETS_BUCKET = 'public-assets';
 
 export class NotConfiguredError extends Error {
   constructor() {
@@ -276,4 +279,45 @@ export async function deleteEvent(id: string): Promise<void> {
 export async function updateMatch(id: string, patch: TablesUpdate<'match'>): Promise<void> {
   const { error } = await client().from('match').update(patch).eq('id', id);
   if (error) throw error;
+}
+
+// ── Sponzori ───────────────────────────────────────────────────────────────
+export async function fetchSponsors(tournamentId: string): Promise<Sponsor[]> {
+  const { data, error } = await client()
+    .from('sponsor')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .order('tier', { ascending: true })
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function createSponsor(row: TablesInsert<'sponsor'>): Promise<Sponsor> {
+  const { data, error } = await client().from('sponsor').insert(row).select('*').single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateSponsor(id: string, patch: TablesUpdate<'sponsor'>): Promise<void> {
+  const { error } = await client().from('sponsor').update(patch).eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteSponsor(id: string): Promise<void> {
+  const { error } = await client().from('sponsor').delete().eq('id', id);
+  if (error) throw error;
+}
+
+/** Upload datoteke u javni bucket; vraća javni URL. `folder` npr. 'sponsors'. */
+export async function uploadPublicAsset(file: File, folder: string): Promise<string> {
+  const c = client();
+  const ext = file.name.split('.').pop() || 'png';
+  const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await c.storage.from(ASSETS_BUCKET).upload(path, file, {
+    cacheControl: '3600',
+    upsert: false,
+  });
+  if (error) throw error;
+  return c.storage.from(ASSETS_BUCKET).getPublicUrl(path).data.publicUrl;
 }

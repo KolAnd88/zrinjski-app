@@ -9,6 +9,7 @@ import { Schedule } from './pages/Schedule';
 import { Teams } from './pages/Teams';
 import { Live } from './pages/Live';
 import { Tv } from './pages/Tv';
+import { Sponsors } from './pages/Sponsors';
 import { Placeholder } from './pages/Placeholder';
 
 function FullScreenMessage({ text }: { text: string }) {
@@ -56,7 +57,7 @@ function AppRoutes() {
         <Route path="/tournament" element={<Tournament />} />
       </Route>
       <Route element={<Layout title="nav.sponsors" />}>
-        <Route path="/sponsors" element={<Placeholder titleKey="nav.sponsors" />} />
+        <Route path="/sponsors" element={<Sponsors />} />
       </Route>
       <Route element={<Layout title="nav.notices" />}>
         <Route path="/notices" element={<Placeholder titleKey="nav.notices" />} />
