@@ -6,6 +6,8 @@ import type {
   Match,
   MatchEvent,
   Player,
+  Registration,
+  RegistrationStatus,
   Sponsor,
   Team,
   Tournament,
@@ -306,6 +308,25 @@ export async function updateSponsor(id: string, patch: TablesUpdate<'sponsor'>):
 
 export async function deleteSponsor(id: string): Promise<void> {
   const { error } = await client().from('sponsor').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ── Prijave ────────────────────────────────────────────────────────────────
+export async function fetchRegistrations(tournamentId: string): Promise<Registration[]> {
+  const { data, error } = await client()
+    .from('registration')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function updateRegistrationStatus(
+  id: string,
+  status: RegistrationStatus
+): Promise<void> {
+  const { error } = await client().from('registration').update({ status }).eq('id', id);
   if (error) throw error;
 }
 

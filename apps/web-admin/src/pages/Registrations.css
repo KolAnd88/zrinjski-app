@@ -1,0 +1,140 @@
+/* Registrations.css — prijave (po hifi_admin_prijave). */
+
+.regs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+  max-width: 760px;
+}
+.regs__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+}
+.regs__count {
+  background: var(--red);
+  color: #fff;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 14px;
+  min-width: 28px;
+  height: 28px;
+  border-radius: var(--r-chip);
+  display: inline-grid;
+  place-items: center;
+  padding: 0 6px;
+}
+.regs__empty {
+  color: var(--sub);
+  padding: var(--sp-sm) 0;
+}
+.regs__pending {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+}
+
+/* Kartica prijave */
+.regcard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+}
+.regcard__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+}
+.regcard__name {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 22px;
+}
+.regcard__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  color: var(--sub);
+  font-size: 14px;
+  margin-top: 4px;
+}
+.gender-badge {
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 1px 8px;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--sub);
+}
+.regcard__rep {
+  color: var(--sub);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.regcard__email {
+  color: var(--mut);
+}
+.regcard__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-md);
+}
+.btn-approve,
+.btn-reject {
+  min-height: var(--touch);
+  border-radius: var(--r-chip);
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+.btn-approve {
+  background: var(--green);
+  border: none;
+  color: #06210f;
+}
+.btn-approve:hover {
+  filter: brightness(1.05);
+}
+.btn-reject {
+  background: transparent;
+  border: 1px solid var(--red);
+  color: var(--red);
+}
+.btn-reject:hover {
+  background: rgba(225, 29, 42, 0.08);
+}
+
+/* Odobrene ekipe */
+.regs__approved {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+.approved-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: var(--sp-sm) var(--sp-md);
+}
+.approved-row__name {
+  flex: 1;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 18px;
+}
+.approved-row__check {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-chip);
+  background: var(--green);
+  color: #06210f;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}

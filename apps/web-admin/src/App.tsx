@@ -10,6 +10,7 @@ import { Teams } from './pages/Teams';
 import { Live } from './pages/Live';
 import { Tv } from './pages/Tv';
 import { Sponsors } from './pages/Sponsors';
+import { Registrations } from './pages/Registrations';
 import { Placeholder } from './pages/Placeholder';
 
 function FullScreenMessage({ text }: { text: string }) {
@@ -66,7 +67,7 @@ function AppRoutes() {
         <Route path="/promo" element={<Placeholder titleKey="nav.promo" />} />
       </Route>
       <Route element={<Layout title="nav.registrations" />}>
-        <Route path="/registrations" element={<Placeholder titleKey="nav.registrations" />} />
+        <Route path="/registrations" element={<Registrations />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

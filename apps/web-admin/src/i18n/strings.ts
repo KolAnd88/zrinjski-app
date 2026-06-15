@@ -191,6 +191,17 @@ export const strings = {
     'sponsors.deleteConfirm': 'Obrisati sponzora?',
     'sponsors.logoPlaceholder': 'LOGO',
 
+    // Prijave
+    'reg.pendingTitle': 'Čekaju odobrenje',
+    'reg.approvedTitle': 'Odobrene ekipe',
+    'reg.players': 'igrača',
+    'reg.rep': 'Predstavnik',
+    'reg.approve': 'Odobri',
+    'reg.reject': 'Odbij',
+    'reg.noPending': 'Nema prijava na čekanju.',
+    'reg.noApproved': 'Još nema odobrenih ekipa.',
+    'reg.rejectConfirm': 'Odbiti ovu prijavu?',
+
     // Općenito
     'common.soon': 'Uskoro',
     'common.soonNote': 'Ovaj dio gradimo u sljedećem koraku.',
@@ -376,6 +387,16 @@ export const strings = {
     'sponsors.uploading': 'Uploading…',
     'sponsors.deleteConfirm': 'Delete sponsor?',
     'sponsors.logoPlaceholder': 'LOGO',
+
+    'reg.pendingTitle': 'Awaiting approval',
+    'reg.approvedTitle': 'Approved teams',
+    'reg.players': 'players',
+    'reg.rep': 'Representative',
+    'reg.approve': 'Approve',
+    'reg.reject': 'Reject',
+    'reg.noPending': 'No pending registrations.',
+    'reg.noApproved': 'No approved teams yet.',
+    'reg.rejectConfirm': 'Reject this registration?',
 
     'common.soon': 'Coming soon',
     'common.soonNote': 'We are building this part in the next step.',
