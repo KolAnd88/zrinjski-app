@@ -1,8 +1,11 @@
+import { useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DarkTheme, NavigationContainer, type Theme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useT } from '../i18n/I18nProvider';
+import { isOnboarded } from '../lib/onboarding';
 import { C, F } from '../theme';
 import type { RootStackParamList, TabParamList } from './types';
 import { HomeScreen } from '../screens/HomeScreen';
@@ -15,6 +18,7 @@ import { LiveScreen } from '../screens/LiveScreen';
 import { TeamScreen } from '../screens/TeamScreen';
 import { SearchScreen } from '../screens/SearchScreen';
 import { NotifSettingsScreen } from '../screens/NotifSettingsScreen';
+import { OnboardingScreen } from '../screens/OnboardingScreen';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -76,9 +80,21 @@ function Tabs() {
 }
 
 export function RootNavigator() {
+  const [onboarded, setOnboardedState] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    void isOnboarded().then(setOnboardedState);
+  }, []);
+
+  // Dok ne znamo status onboardinga, prazni tamni ekran (sprječava bljesak).
+  if (onboarded === null) {
+    return <View style={{ flex: 1, backgroundColor: C.bg }} />;
+  }
+
   return (
     <NavigationContainer theme={navTheme}>
       <Stack.Navigator
+        initialRouteName={onboarded ? 'Tabs' : 'Onboarding'}
         screenOptions={{
           headerStyle: { backgroundColor: C.card },
           headerTintColor: C.txt,
@@ -86,6 +102,7 @@ export function RootNavigator() {
           contentStyle: { backgroundColor: C.bg },
         }}
       >
+        <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
         <Stack.Screen name="Live" component={LiveScreen} options={{ title: '' }} />
         <Stack.Screen name="Team" component={TeamScreen} options={{ title: '' }} />
