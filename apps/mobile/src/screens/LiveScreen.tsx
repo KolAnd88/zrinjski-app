@@ -143,6 +143,7 @@ export function LiveScreen() {
                   score={score}
                   last={i === feed.length - 1}
                   isHome={e.team_id === m.home_team_id}
+                  color={d.teamById(e.team_id)?.color ?? C.line}
                   playerName={playerName}
                   teamCode={teamCode}
                 />
@@ -187,6 +188,7 @@ function FeedRow({
   score,
   last,
   isHome,
+  color,
   playerName,
   teamCode,
 }: {
@@ -194,15 +196,20 @@ function FeedRow({
   score: string | null;
   last: boolean;
   isHome: boolean;
+  color: string;
   playerName: (id: string | null) => string;
   teamCode: (id: string) => string;
 }) {
   const { t } = useT();
   const meta = EV[e.type];
   const align = isHome ? 'flex-end' : 'flex-start';
+  // Traka u boji ekipe na vanjskom rubu (domaći: lijevo, gosti: desno).
+  const stripe = isHome
+    ? { borderLeftWidth: 3, borderLeftColor: color }
+    : { borderRightWidth: 3, borderRightColor: color };
 
   const card = (
-    <View style={[styles.evCard, { alignItems: align }]}>
+    <View style={[styles.evCard, { alignItems: align }, stripe]}>
       <Txt style={[styles.feedName, !isHome && { textAlign: 'left' }, isHome && { textAlign: 'right' }]}>
         {playerName(e.player_id)}
       </Txt>
