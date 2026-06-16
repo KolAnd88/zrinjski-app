@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "VHMRK Zrinjski",
+    "slug": "vhmrk-zrinjski",
+    "scheme": "vhmrkzrinjski",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B0B0E",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ba.vhmrkzrinjski.app"
+    },
+    "android": {
+      "package": "ba.vhmrkzrinjski.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0B0E",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-asset"
+    ]
+  }
+}
