@@ -136,7 +136,17 @@ export function LiveScreen() {
             {feed.length === 0 ? (
               <Txt color={C.sub}>{m.status === 'scheduled' ? t('live.scheduledMsg') : t('live.noEvents')}</Txt>
             ) : (
-              feed.map(({ e, score }, i) => <FeedRow key={e.id} e={e} score={score} last={i === feed.length - 1} playerName={playerName} teamCode={teamCode} />)
+              feed.map(({ e, score }, i) => (
+                <FeedRow
+                  key={e.id}
+                  e={e}
+                  score={score}
+                  last={i === feed.length - 1}
+                  isHome={e.team_id === m.home_team_id}
+                  playerName={playerName}
+                  teamCode={teamCode}
+                />
+              ))
             )}
           </>
         )}
@@ -176,37 +186,48 @@ function FeedRow({
   e,
   score,
   last,
+  isHome,
   playerName,
   teamCode,
 }: {
   e: MatchEvent;
   score: string | null;
   last: boolean;
+  isHome: boolean;
   playerName: (id: string | null) => string;
   teamCode: (id: string) => string;
 }) {
   const { t } = useT();
   const meta = EV[e.type];
-  return (
-    <View style={styles.feedRow}>
-      <Txt style={styles.feedMin}>{e.minute}'</Txt>
-      <View style={styles.feedLine}>
-        <View style={[styles.feedBadge, { backgroundColor: meta.color }]}>
-          <Txt style={styles.feedBadgeTxt}>{meta.letter}</Txt>
-        </View>
-        {!last && <View style={styles.feedBar} />}
-      </View>
-      <View style={{ flex: 1, paddingBottom: S.lg }}>
-        <Txt style={styles.feedName}>{playerName(e.player_id)}</Txt>
-        <Txt variant="caption">
-          {t(meta.label)} · {teamCode(e.team_id)}
-        </Txt>
-      </View>
+  const align = isHome ? 'flex-end' : 'flex-start';
+
+  const card = (
+    <View style={[styles.evCard, { alignItems: align }]}>
+      <Txt style={[styles.feedName, !isHome && { textAlign: 'left' }, isHome && { textAlign: 'right' }]}>
+        {playerName(e.player_id)}
+      </Txt>
+      <Txt variant="caption" style={isHome ? { textAlign: 'right' } : { textAlign: 'left' }}>
+        {t(meta.label)} · {teamCode(e.team_id)}
+      </Txt>
       {score && (
         <View style={styles.feedScore}>
           <Txt style={styles.feedScoreTxt}>{score}</Txt>
         </View>
       )}
+    </View>
+  );
+
+  return (
+    <View style={styles.feedRow}>
+      <View style={styles.sideLeft}>{isHome ? card : null}</View>
+      <View style={styles.center}>
+        <Txt style={styles.feedMin}>{e.minute}'</Txt>
+        <View style={[styles.feedBadge, { backgroundColor: meta.color }]}>
+          <Txt style={styles.feedBadgeTxt}>{meta.letter}</Txt>
+        </View>
+        {!last && <View style={styles.feedBar} />}
+      </View>
+      <View style={styles.sideRight}>{!isHome ? card : null}</View>
     </View>
   );
 }
@@ -254,15 +275,27 @@ const styles = StyleSheet.create({
   tab: { flex: 1, alignItems: 'center', paddingVertical: S.md },
   tabTxt: { fontFamily: F.headSemi, fontSize: 15, color: C.sub },
   tabUnderline: { height: 2, backgroundColor: C.red, alignSelf: 'stretch', marginTop: 8 },
-  feedRow: { flexDirection: 'row', alignItems: 'flex-start', gap: S.md },
-  feedMin: { width: 36, fontFamily: F.headSemi, color: C.sub, paddingTop: 8 },
-  feedLine: { width: 36, alignItems: 'center', alignSelf: 'stretch' },
+  feedRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  sideLeft: { flex: 1, alignItems: 'flex-end', paddingRight: S.sm, paddingBottom: S.lg },
+  sideRight: { flex: 1, alignItems: 'flex-start', paddingLeft: S.sm, paddingBottom: S.lg },
+  center: { width: 44, alignItems: 'center', alignSelf: 'stretch' },
+  feedMin: { fontFamily: F.headSemi, color: C.sub, fontSize: 12, marginBottom: 4 },
   feedBadge: { width: 36, height: 36, borderRadius: R.chip, alignItems: 'center', justifyContent: 'center' },
   feedBadgeTxt: { fontFamily: F.head, color: '#fff', fontSize: 14 },
   feedBar: { flex: 1, width: 2, backgroundColor: C.line, marginTop: 2 },
-  feedName: { fontFamily: F.bodySemi, fontSize: 16 },
-  feedScore: { backgroundColor: C.card2, borderRadius: R.chip, paddingHorizontal: S.md, paddingVertical: 6, marginTop: 4 },
-  feedScoreTxt: { fontFamily: F.head, color: C.red, fontSize: 15 },
+  evCard: {
+    backgroundColor: C.card,
+    borderWidth: 1,
+    borderColor: C.line,
+    borderRadius: R.card,
+    paddingVertical: S.sm,
+    paddingHorizontal: S.md,
+    gap: 2,
+    maxWidth: '100%',
+  },
+  feedName: { fontFamily: F.bodySemi, fontSize: 15 },
+  feedScore: { backgroundColor: C.card2, borderRadius: R.chip, paddingHorizontal: S.sm, paddingVertical: 3, marginTop: 4 },
+  feedScoreTxt: { fontFamily: F.head, color: C.red, fontSize: 14 },
   rosters: { gap: S.md },
   roster: { borderWidth: 1, borderColor: C.line, borderRadius: R.card, overflow: 'hidden' },
   rosterHead: { flexDirection: 'row', alignItems: 'center', gap: S.sm, padding: S.sm },
