@@ -28,6 +28,31 @@ export function shortDayLabel(isoDate: string, locale: Locale): string {
   return `${weekdayLong(isoDate, locale).slice(0, 3)} ${d.getUTCDate()}.${d.getUTCMonth() + 1}.`;
 }
 
+/** Oznaka taba: "Sub 10." (kratki dan + datum). */
+export function tabLabel(isoDate: string, locale: Locale): string {
+  const d = parseIsoDate(isoDate);
+  return `${weekdayLong(isoDate, locale).slice(0, 3)} ${String(d.getUTCDate()).padStart(2, '0')}.`;
+}
+
+const MONTH_GEN_HR = [
+  'siječnja', 'veljače', 'ožujka', 'travnja', 'svibnja', 'lipnja',
+  'srpnja', 'kolovoza', 'rujna', 'listopada', 'studenoga', 'prosinca',
+];
+const MONTH_EN = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+/** Naslov dana: "SUBOTA · 7. lipnja" / "Saturday · July 7". */
+export function dayTitle(isoDate: string, locale: Locale): string {
+  const d = parseIsoDate(isoDate);
+  const wd = weekdayLong(isoDate, locale);
+  if (locale === 'hr') {
+    return `${wd.toUpperCase()} · ${d.getUTCDate()}. ${MONTH_GEN_HR[d.getUTCMonth()]}`;
+  }
+  return `${wd} · ${MONTH_EN[d.getUTCMonth()]} ${d.getUTCDate()}`;
+}
+
 /** "HH:MM" iz ISO timestampa (neovisno o zoni preglednika). */
 export function isoToHHMM(iso: string | null | undefined): string {
   if (!iso) return '';
