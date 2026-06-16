@@ -19,6 +19,10 @@ import { TeamScreen } from '../screens/TeamScreen';
 import { SearchScreen } from '../screens/SearchScreen';
 import { NotifSettingsScreen } from '../screens/NotifSettingsScreen';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
+import { AdminLoginScreen } from '../screens/AdminLoginScreen';
+import { AdminHomeScreen } from '../screens/AdminHomeScreen';
+import { AdminLiveScreen } from '../screens/AdminLiveScreen';
+import { AdminTvScreen } from '../screens/AdminTvScreen';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -108,6 +112,10 @@ export function RootNavigator() {
         <Stack.Screen name="Team" component={TeamScreen} options={{ title: '' }} />
         <Stack.Screen name="Search" component={SearchScreen} options={{ title: '' }} />
         <Stack.Screen name="NotifSettings" component={NotifSettingsScreen} options={{ title: '' }} />
+        <Stack.Screen name="AdminLogin" component={AdminLoginScreen} options={{ title: '' }} />
+        <Stack.Screen name="AdminHome" component={AdminHomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="AdminLive" component={AdminLiveScreen} options={{ title: '' }} />
+        <Stack.Screen name="AdminTv" component={AdminTvScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

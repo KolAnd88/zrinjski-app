@@ -6,6 +6,11 @@ export type RootStackParamList = {
   Team: { teamId: string };
   Search: undefined;
   NotifSettings: undefined;
+  // Mobilni admin (skriveni ulaz)
+  AdminLogin: undefined;
+  AdminHome: undefined;
+  AdminLive: { matchId: string };
+  AdminTv: { matchId: string };
 };
 
 export type TabParamList = {

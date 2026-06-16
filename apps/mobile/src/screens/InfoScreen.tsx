@@ -1,4 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { LocationRow } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import type { StringKey } from '../i18n/strings';
@@ -6,6 +8,7 @@ import { useData } from '../lib/useData';
 import { openMaps } from '../lib/maps';
 import { C, F, R, S } from '../theme';
 import { Card, Screen, Txt } from '../components/base';
+import type { RootStackParamList } from '../navigation/types';
 
 function LocRow({ loc }: { loc: LocationRow }) {
   const { t } = useT();
@@ -42,6 +45,7 @@ function Section({ titleKey, body }: { titleKey: StringKey; body: string }) {
 
 export function InfoScreen() {
   const { t } = useT();
+  const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const d = useData();
   const venues = d.locations.filter((l) => l.type !== 'hotel');
   const hotels = d.locations.filter((l) => l.type === 'hotel');
@@ -78,6 +82,12 @@ export function InfoScreen() {
       </Card>
 
       <Section titleKey="info.rules" body={t('info.rulesBody')} />
+
+      <Pressable onPress={() => nav.navigate('AdminLogin')} style={styles.org}>
+        <Txt variant="caption" color={C.mut}>
+          {t('admin.organizer')} →
+        </Txt>
+      </Pressable>
     </Screen>
   );
 }
@@ -86,4 +96,5 @@ const styles = StyleSheet.create({
   locRow: { flexDirection: 'row', alignItems: 'center', gap: S.md, padding: S.md },
   divided: { borderTopWidth: 1, borderTopColor: C.line },
   mapBtn: { borderWidth: 1, borderColor: C.blue, borderRadius: R.chip, paddingVertical: 8, paddingHorizontal: S.md },
+  org: { alignItems: 'center', paddingVertical: S.lg, marginTop: S.sm },
 });
