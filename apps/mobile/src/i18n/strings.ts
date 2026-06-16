@@ -107,6 +107,19 @@ export const strings = {
     'team.captain': 'kapetan',
     'team.group': 'Grupa',
     'team.points': 'bodova',
+    'team.title': 'Ekipa',
+    'team.players': 'Igrači',
+    'team.coachLabel': 'Trener',
+    'team.results': 'Rezultati na turniru',
+    'team.place': 'mjesto',
+    'team.pts': 'boda',
+    'team.w': 'pob',
+    'team.d': 'ner',
+    'team.l': 'por',
+    'team.resWin': 'Pobjeda',
+    'team.resLoss': 'Poraz',
+    'team.resDraw': 'Neriješeno',
+    'team.noMatches': 'Nema utakmica.',
 
     // Info
     'info.about': 'O klubu',
@@ -115,6 +128,12 @@ export const strings = {
     'info.hotels': 'Hoteli',
     'info.rules': 'Pravila',
     'info.openMap': 'Otvori kartu',
+    'info.aboutBody':
+      'VHMRK Zrinjski Mostar — Veterani Hrvatskog muškog rukometnog kluba. Turnir okuplja veteranske ekipe iz regije u prijateljskom natjecanju.',
+    'info.aboutTournamentBody':
+      'Turnir se igra u jednoj dvorani, slijedno (jedna utakmica u isto vrijeme). Format: grupe → završnica. Bodovanje 2/1/0; prve dvije ekipe iz grupe prolaze u završnicu.',
+    'info.rulesBody':
+      'Utakmica traje jedno poluvrijeme (15 min). Neriješeno u grupi se boduje; u završnici se razbija prema pravilniku turnira.',
 
     // Galerija
     'gallery.title': 'Galerija',
@@ -232,6 +251,19 @@ export const strings = {
     'team.captain': 'captain',
     'team.group': 'Group',
     'team.points': 'points',
+    'team.title': 'Team',
+    'team.players': 'Players',
+    'team.coachLabel': 'Coach',
+    'team.results': 'Tournament results',
+    'team.place': 'place',
+    'team.pts': 'pts',
+    'team.w': 'W',
+    'team.d': 'D',
+    'team.l': 'L',
+    'team.resWin': 'Win',
+    'team.resLoss': 'Loss',
+    'team.resDraw': 'Draw',
+    'team.noMatches': 'No matches.',
 
     'info.about': 'About the club',
     'info.aboutTournament': 'About the tournament',
@@ -239,6 +271,12 @@ export const strings = {
     'info.hotels': 'Hotels',
     'info.rules': 'Rules',
     'info.openMap': 'Open map',
+    'info.aboutBody':
+      'VHMRK Zrinjski Mostar — veterans of the Croatian men’s handball club. The tournament gathers veteran teams from the region in a friendly competition.',
+    'info.aboutTournamentBody':
+      'Played in a single hall, sequentially (one match at a time). Format: groups → knockout. Scoring 2/1/0; top two per group advance to the knockout.',
+    'info.rulesBody':
+      'A match is one half (15 min). Group draws score points; knockout ties are broken per the tournament rules.',
 
     'gallery.title': 'Gallery',
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Gender, Grp, Match } from '@zrinjski/core';
 import { buildBracket, computeStandings, type StandingRow } from '@zrinjski/core';
@@ -73,7 +73,7 @@ export function StandingsScreen() {
                   <Txt style={styles.cNum}>{t('standings.pts')}</Txt>
                 </View>
                 {rows.map((r) => (
-                  <View key={r.teamId} style={styles.trow}>
+                  <Pressable key={r.teamId} style={styles.trow} onPress={() => nav.navigate('Team', { teamId: r.teamId })}>
                     <Txt style={[styles.cRank, r.qualifies && { color: C.green }]}>{r.rank}</Txt>
                     <View style={[styles.cName, styles.nameCell]}>
                       <Crest code={d.teamById(r.teamId)?.short_code} color={d.teamById(r.teamId)?.color} size={22} />
@@ -84,7 +84,7 @@ export function StandingsScreen() {
                     <Txt style={styles.cNum}>{r.played}</Txt>
                     <Txt style={styles.cNum}>{r.goalDiff > 0 ? `+${r.goalDiff}` : r.goalDiff}</Txt>
                     <Txt style={[styles.cNum, styles.pts]}>{r.points}</Txt>
-                  </View>
+                  </Pressable>
                 ))}
               </View>
               <Txt variant="caption" color={C.green} style={{ marginTop: 4 }}>

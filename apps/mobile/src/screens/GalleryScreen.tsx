@@ -1,7 +1,49 @@
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useT } from '../i18n/I18nProvider';
-import { PlaceholderScreen } from './Placeholder';
+import { useData } from '../lib/useData';
+import { formatDayLabel } from '../lib/dates';
+import { C, R, S } from '../theme';
+import { Screen, Txt } from '../components/base';
 
 export function GalleryScreen() {
-  const { t } = useT();
-  return <PlaceholderScreen title={t('nav.gallery')} />;
+  const { t, locale } = useT();
+  const d = useData();
+  const { width } = useWindowDimensions();
+  const cols = 3;
+  const gap = S.sm;
+  const tile = (Math.min(width, 720) - S.lg * 2 - gap * (cols - 1)) / cols;
+
+  return (
+    <Screen>
+      <Txt variant="h1" style={{ marginBottom: S.md }}>
+        {t('gallery.title').toUpperCase()}
+      </Txt>
+
+      {d.days.map((day) => {
+        const photos = d.gallery.filter((g) => g.day_id === day.id);
+        if (photos.length === 0) return null;
+        return (
+          <View key={day.id} style={{ marginBottom: S.lg }}>
+            <Txt variant="label" style={{ marginBottom: S.sm }}>
+              {formatDayLabel(day.date, locale)}
+            </Txt>
+            <View style={[styles.grid, { gap }]}>
+              {photos.map((p) => (
+                <View
+                  key={p.id}
+                  style={{ width: tile, height: tile, borderRadius: R.chip, backgroundColor: p.color, opacity: 0.85 }}
+                />
+              ))}
+            </View>
+          </View>
+        );
+      })}
+
+      {d.gallery.length === 0 && <Txt color={C.sub}>{t('common.empty')}</Txt>}
+    </Screen>
+  );
 }
+
+const styles = StyleSheet.create({
+  grid: { flexDirection: 'row', flexWrap: 'wrap' },
+});
