@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Day, Tournament, TablesUpdate } from '@zrinjski/core';
-import { isSupabaseConfigured } from '../../lib/supabase';
+import { HAS_DATA } from '../../lib/supabase';
 import {
   createDay,
   deleteDay,
@@ -24,13 +24,13 @@ export type TournamentData = {
 };
 
 export function useTournamentData(): TournamentData {
-  const [loading, setLoading] = useState(isSupabaseConfigured);
+  const [loading, setLoading] = useState(HAS_DATA);
   const [error, setError] = useState<string | null>(null);
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [days, setDays] = useState<Day[]>([]);
 
   const reload = useCallback(async () => {
-    if (!isSupabaseConfigured) {
+    if (!HAS_DATA) {
       setLoading(false);
       return;
     }
@@ -82,7 +82,7 @@ export function useTournamentData(): TournamentData {
 
   return {
     loading,
-    configured: isSupabaseConfigured,
+    configured: HAS_DATA,
     error,
     tournament,
     days,

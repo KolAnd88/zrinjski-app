@@ -1,13 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../auth/AuthProvider';
 import { useT } from '../i18n/I18nProvider';
+import { DEMO } from '../lib/supabase';
 import { Button } from '../components/ui';
 import './Login.css';
 
 export function Login() {
   const { t } = useT();
   const { configured, signInWithPassword, signInWithMagicLink } = useAuth();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(DEMO ? 'demo@zrinjski.ba' : '');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -53,6 +54,7 @@ export function Login() {
         </div>
 
         {!configured && <div className="banner banner--info">{t('login.notConfigured')}</div>}
+        {DEMO && <div className="banner banner--info">DEMO — klikni „Prijava" za ulazak (bez prave baze).</div>}
         {error && <div className="banner banner--error">{error}</div>}
         {info && <div className="banner banner--ok">{info}</div>}
 

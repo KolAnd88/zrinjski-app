@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Match } from '@zrinjski/core';
-import { isSupabaseConfigured, supabase } from '../../lib/supabase';
-import { fetchFinishedMatches } from '../../lib/data';
+import { HAS_DATA } from '../../lib/supabase';
+import { fetchAllTeams, fetchFinishedMatches, fetchSponsors } from '../../lib/data';
 import type { TeamLite } from '../schedule/useScheduleMatches';
 
 export type PromoData = {
@@ -13,34 +13,28 @@ export type PromoData = {
 };
 
 export function usePromo(tournamentId: string | null): PromoData {
-  const [loading, setLoading] = useState(isSupabaseConfigured && !!tournamentId);
+  const [loading, setLoading] = useState(HAS_DATA && !!tournamentId);
   const [matches, setMatches] = useState<Match[]>([]);
   const [teamsById, setTeamsById] = useState<Map<string, TeamLite>>(new Map());
   const [goldSponsor, setGoldSponsor] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
-    if (!supabase || !tournamentId) {
+    if (!tournamentId) {
       setLoading(false);
       return;
     }
     setLoading(true);
-    const [ms, teamsRes, goldRes] = await Promise.all([
+    const [ms, teams, sponsors] = await Promise.all([
       fetchFinishedMatches(tournamentId),
-      supabase.from('team').select('id, name, short_code, color').eq('tournament_id', tournamentId),
-      supabase
-        .from('sponsor')
-        .select('name')
-        .eq('tournament_id', tournamentId)
-        .eq('tier', 'gold')
-        .eq('is_active', true)
-        .limit(1)
-        .maybeSingle(),
+      fetchAllTeams(tournamentId),
+      fetchSponsors(tournamentId),
     ]);
     setMatches(ms);
     const map = new Map<string, TeamLite>();
-    for (const tm of (teamsRes.data ?? []) as TeamLite[]) map.set(tm.id, tm);
+    for (const tm of teams) map.set(tm.id, tm);
     setTeamsById(map);
-    setGoldSponsor(goldRes.data?.name ?? null);
+    const gold = sponsors.find((s) => s.tier === 'gold' && s.is_active);
+    setGoldSponsor(gold?.name ?? null);
     setLoading(false);
   }, [tournamentId]);
 
@@ -48,5 +42,5 @@ export function usePromo(tournamentId: string | null): PromoData {
     void reload();
   }, [reload]);
 
-  return { loading, configured: isSupabaseConfigured, matches, teamsById, goldSponsor };
+  return { loading, configured: HAS_DATA, matches, teamsById, goldSponsor };
 }

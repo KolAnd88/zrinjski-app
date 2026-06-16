@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { NotificationLog, Team } from '@zrinjski/core';
-import { isSupabaseConfigured, supabase } from '../../lib/supabase';
-import { fetchNotifications, insertNotification } from '../../lib/data';
+import { HAS_DATA } from '../../lib/supabase';
+import { fetchAllTeams, fetchNotifications, insertNotification } from '../../lib/data';
 
 export type NoticesData = {
   loading: boolean;
@@ -13,25 +13,25 @@ export type NoticesData = {
 };
 
 export function useNotices(tournamentId: string | null): NoticesData {
-  const [loading, setLoading] = useState(isSupabaseConfigured && !!tournamentId);
+  const [loading, setLoading] = useState(HAS_DATA && !!tournamentId);
   const [error, setError] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<NotificationLog[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
 
   const reload = useCallback(async () => {
-    if (!supabase || !tournamentId) {
+    if (!tournamentId) {
       setLoading(false);
       return;
     }
     setLoading(true);
     setError(null);
     try {
-      const [notes, teamsRes] = await Promise.all([
+      const [notes, ts] = await Promise.all([
         fetchNotifications(tournamentId),
-        supabase.from('team').select('*').eq('tournament_id', tournamentId).order('name'),
+        fetchAllTeams(tournamentId),
       ]);
       setNotifications(notes);
-      setTeams((teamsRes.data ?? []) as Team[]);
+      setTeams([...ts].sort((a, b) => a.name.localeCompare(b.name, 'hr')));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -60,7 +60,7 @@ export function useNotices(tournamentId: string | null): NoticesData {
 
   return {
     loading,
-    configured: isSupabaseConfigured,
+    configured: HAS_DATA,
     error,
     notifications,
     teams,

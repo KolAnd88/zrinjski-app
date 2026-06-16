@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Sponsor, SponsorTier } from '@zrinjski/core';
-import { isSupabaseConfigured } from '../../lib/supabase';
+import { HAS_DATA } from '../../lib/supabase';
 import {
   createSponsor,
   deleteSponsor,
@@ -30,12 +30,12 @@ export type SponsorsData = {
 };
 
 export function useSponsors(tournamentId: string | null): SponsorsData {
-  const [loading, setLoading] = useState(isSupabaseConfigured && !!tournamentId);
+  const [loading, setLoading] = useState(HAS_DATA && !!tournamentId);
   const [error, setError] = useState<string | null>(null);
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
 
   const reload = useCallback(async () => {
-    if (!isSupabaseConfigured || !tournamentId) {
+    if (!HAS_DATA || !tournamentId) {
       setLoading(false);
       return;
     }
@@ -104,7 +104,7 @@ export function useSponsors(tournamentId: string | null): SponsorsData {
 
   return {
     loading,
-    configured: isSupabaseConfigured,
+    configured: HAS_DATA,
     error,
     gold,
     others,

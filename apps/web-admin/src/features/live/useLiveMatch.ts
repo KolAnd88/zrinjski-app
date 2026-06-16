@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { EventType, Match, MatchEvent, Player } from '@zrinjski/core';
-import { isSupabaseConfigured, supabase } from '../../lib/supabase';
+import { HAS_DATA, supabase } from '../../lib/supabase';
 import {
   deleteEvent,
   fetchEvents,
   fetchMatch,
   fetchPlayersByTeams,
+  fetchTeam,
   insertEvent,
   updateMatch,
 } from '../../lib/data';
@@ -42,10 +43,16 @@ export type LiveMatchState = {
 };
 
 async function loadTeam(id: string | null, players: Player[]): Promise<LiveTeam | null> {
-  if (!id || !supabase) return null;
-  const { data } = await supabase.from('team').select('id, name, short_code, color').eq('id', id).single();
+  if (!id) return null;
+  const data = await fetchTeam(id);
   if (!data) return null;
-  return { ...data, players: players.filter((p) => p.team_id === id) };
+  return {
+    id: data.id,
+    name: data.name,
+    short_code: data.short_code,
+    color: data.color,
+    players: players.filter((p) => p.team_id === id),
+  };
 }
 
 /** Tijek s tekućim rezultatom (golovi se zbrajaju kronološki). */
@@ -64,7 +71,7 @@ function buildFeed(events: MatchEvent[], homeId: string | null, awayId: string |
 }
 
 export function useLiveMatch(matchId: string | null): LiveMatchState {
-  const [loading, setLoading] = useState(isSupabaseConfigured && !!matchId);
+  const [loading, setLoading] = useState(HAS_DATA && !!matchId);
   const [error, setError] = useState<string | null>(null);
   const [match, setMatch] = useState<Match | null>(null);
   const [home, setHome] = useState<LiveTeam | null>(null);
@@ -74,7 +81,7 @@ export function useLiveMatch(matchId: string | null): LiveMatchState {
   matchRef.current = match;
 
   const reload = useCallback(async () => {
-    if (!supabase || !matchId) {
+    if (!matchId) {
       setLoading(false);
       return;
     }
@@ -212,7 +219,7 @@ export function useLiveMatch(matchId: string | null): LiveMatchState {
 
   return {
     loading,
-    configured: isSupabaseConfigured,
+    configured: HAS_DATA,
     error,
     match,
     home,

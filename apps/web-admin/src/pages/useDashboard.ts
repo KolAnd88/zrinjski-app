@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
-import type { Gender, MatchStatus, Stage } from '@zrinjski/core';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import type { Stage } from '@zrinjski/core';
+import { HAS_DATA } from '../lib/supabase';
+import {
+  fetchActiveTournament,
+  fetchAllTeams,
+  fetchMatchesForSchedule,
+  fetchRegistrations,
+  fetchSponsors,
+  fetchTeam,
+} from '../lib/data';
 
 export type LiveMatch = {
   id: string;
@@ -30,55 +38,41 @@ const EMPTY: Omit<DashboardData, 'loading' | 'configured' | 'error'> = {
   todo: { pendingRegistrations: 0, finishedNoBestPlayer: 0 },
 };
 
-async function fetchTeamLite(id: string | null) {
-  if (!id || !supabase) return null;
-  const { data } = await supabase.from('team').select('name, short_code, color').eq('id', id).single();
-  return data;
-}
-
 export function useDashboard(): DashboardData {
   const [state, setState] = useState<DashboardData>({
-    loading: isSupabaseConfigured,
-    configured: isSupabaseConfigured,
+    loading: HAS_DATA,
+    configured: HAS_DATA,
     error: false,
     ...EMPTY,
   });
 
   useEffect(() => {
-    if (!supabase) return;
+    if (!HAS_DATA) return;
     let active = true;
 
     (async () => {
       try {
-        const [teamsRes, matchesRes, sponsorsRes, liveRes, regRes] = await Promise.all([
-          supabase.from('team').select('gender'),
-          supabase.from('match').select('status, best_player_id'),
-          supabase.from('sponsor').select('id', { count: 'exact', head: true }),
-          supabase
-            .from('match')
-            .select('id, stage, home_team_id, away_team_id, home_score, away_score')
-            .eq('status', 'live' satisfies MatchStatus)
-            .limit(1)
-            .maybeSingle(),
-          supabase
-            .from('registration')
-            .select('id', { count: 'exact', head: true })
-            .eq('status', 'pending'),
+        const t = await fetchActiveTournament();
+        if (!t) {
+          if (active) setState((s) => ({ ...s, loading: false }));
+          return;
+        }
+        const [teams, matches, sponsors, regs] = await Promise.all([
+          fetchAllTeams(t.id),
+          fetchMatchesForSchedule(t.id),
+          fetchSponsors(t.id),
+          fetchRegistrations(t.id),
         ]);
 
-        const teams = (teamsRes.data ?? []) as { gender: Gender }[];
-        const matches = (matchesRes.data ?? []) as { status: MatchStatus; best_player_id: string | null }[];
         const played = matches.filter((m) => m.status === 'finished').length;
-        const finishedNoBestPlayer = matches.filter(
-          (m) => m.status === 'finished' && !m.best_player_id
-        ).length;
+        const finishedNoBestPlayer = matches.filter((m) => m.status === 'finished' && !m.best_player_id).length;
 
+        const lm = matches.find((m) => m.status === 'live') ?? null;
         let live: LiveMatch | null = null;
-        if (liveRes.data) {
-          const lm = liveRes.data;
+        if (lm) {
           const [home, away] = await Promise.all([
-            fetchTeamLite(lm.home_team_id),
-            fetchTeamLite(lm.away_team_id),
+            lm.home_team_id ? fetchTeam(lm.home_team_id) : Promise.resolve(null),
+            lm.away_team_id ? fetchTeam(lm.away_team_id) : Promise.resolve(null),
           ]);
           live = {
             id: lm.id,
@@ -102,14 +96,14 @@ export function useDashboard(): DashboardData {
           live,
           counts: {
             teams: teams.length,
-            teamsM: teams.filter((t) => t.gender === 'm').length,
-            teamsZ: teams.filter((t) => t.gender === 'z').length,
+            teamsM: teams.filter((tm) => tm.gender === 'm').length,
+            teamsZ: teams.filter((tm) => tm.gender === 'z').length,
             played,
             total: matches.length,
-            sponsors: sponsorsRes.count ?? 0,
+            sponsors: sponsors.length,
           },
           todo: {
-            pendingRegistrations: regRes.count ?? 0,
+            pendingRegistrations: regs.filter((r) => r.status === 'pending').length,
             finishedNoBestPlayer,
           },
         });

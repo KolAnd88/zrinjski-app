@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Registration } from '@zrinjski/core';
-import { isSupabaseConfigured } from '../../lib/supabase';
+import { HAS_DATA } from '../../lib/supabase';
 import {
   createTeam,
   fetchRegistrations,
@@ -20,12 +20,12 @@ export type RegistrationsData = {
 };
 
 export function useRegistrations(tournamentId: string | null): RegistrationsData {
-  const [loading, setLoading] = useState(isSupabaseConfigured && !!tournamentId);
+  const [loading, setLoading] = useState(HAS_DATA && !!tournamentId);
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<Registration[]>([]);
 
   const reload = useCallback(async () => {
-    if (!isSupabaseConfigured || !tournamentId) {
+    if (!HAS_DATA || !tournamentId) {
       setLoading(false);
       return;
     }
@@ -67,7 +67,7 @@ export function useRegistrations(tournamentId: string | null): RegistrationsData
 
   return {
     loading,
-    configured: isSupabaseConfigured,
+    configured: HAS_DATA,
     error,
     pending: items.filter((r) => r.status === 'pending'),
     approved: items.filter((r) => r.status === 'approved'),

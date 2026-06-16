@@ -1,6 +1,9 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { DEMO, isSupabaseConfigured, supabase } from '../lib/supabase';
+
+/** Lažna sesija za DEMO mod (preskakanje prave prijave). */
+const demoSession = { user: { id: 'demo', email: 'demo@zrinjski.ba' } } as unknown as Session;
 
 type AuthContextValue = {
   session: Session | null;
@@ -19,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!supabase) {
-      setLoading(false);
+      setLoading(false); // DEMO: bez sesije → prikaže se login (klik Prijava ulazi)
       return;
     }
     let active = true;
@@ -42,13 +45,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       session,
       loading,
-      configured: isSupabaseConfigured,
+      configured: isSupabaseConfigured || DEMO,
       async signInWithPassword(email, password) {
+        if (DEMO) {
+          setSession(demoSession);
+          return { error: null };
+        }
         if (!supabase) return { error: 'not_configured' };
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         return { error: error?.message ?? null };
       },
       async signInWithMagicLink(email) {
+        if (DEMO) {
+          setSession(demoSession);
+          return { error: null };
+        }
         if (!supabase) return { error: 'not_configured' };
         const { error } = await supabase.auth.signInWithOtp({
           email,
@@ -57,6 +68,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: error?.message ?? null };
       },
       async signOut() {
+        if (DEMO) {
+          setSession(null);
+          return;
+        }
         if (!supabase) return;
         await supabase.auth.signOut();
       },

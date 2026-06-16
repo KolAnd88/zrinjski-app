@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Day, Gender, Grp, Player, Team, TablesInsert, TablesUpdate } from '@zrinjski/core';
 import { roundRobinPairings } from '@zrinjski/core';
-import { isSupabaseConfigured, supabase } from '../../lib/supabase';
+import { HAS_DATA } from '../../lib/supabase';
 import {
   createGroup,
   createPlayer,
@@ -11,7 +11,7 @@ import {
   deleteTeam,
   fetchGroups,
   fetchGroupsWithMatches,
-  fetchPlayers,
+  fetchPlayersByTeams,
   fetchTeams,
   insertMatches,
   maxMatchSortOrder,
@@ -42,14 +42,14 @@ export type TeamsData = {
 
 export function useTeamsData(tournamentId: string | null): TeamsData {
   const [gender, setGender] = useState<Gender>('m');
-  const [loading, setLoading] = useState(isSupabaseConfigured && !!tournamentId);
+  const [loading, setLoading] = useState(HAS_DATA && !!tournamentId);
   const [error, setError] = useState<string | null>(null);
   const [groups, setGroups] = useState<Grp[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
 
   const reload = useCallback(async () => {
-    if (!supabase || !tournamentId) {
+    if (!tournamentId) {
       setLoading(false);
       return;
     }
@@ -64,12 +64,7 @@ export function useTeamsData(tournamentId: string | null): TeamsData {
       setTeams(ts);
       // Igrači svih ekipa ovog spola (za brojač + uređivanje sastava).
       const ids = ts.map((t) => t.id);
-      if (ids.length > 0) {
-        const { data } = await supabase.from('player').select('*').in('team_id', ids);
-        setPlayers((data ?? []) as Player[]);
-      } else {
-        setPlayers([]);
-      }
+      setPlayers(ids.length > 0 ? await fetchPlayersByTeams(ids) : []);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -184,7 +179,7 @@ export function useTeamsData(tournamentId: string | null): TeamsData {
 
   return {
     loading,
-    configured: isSupabaseConfigured,
+    configured: HAS_DATA,
     error,
     gender,
     setGender,
