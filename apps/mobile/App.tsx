@@ -10,6 +10,8 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import { I18nProvider } from './src/i18n/I18nProvider';
+import { DataProvider } from './src/lib/useData';
+import { FollowProvider } from './src/lib/useFollow';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { C } from './src/theme';
 
@@ -31,8 +33,12 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <I18nProvider>
-        <StatusBar style="light" />
-        <RootNavigator />
+        <DataProvider>
+          <FollowProvider>
+            <StatusBar style="light" />
+            <RootNavigator />
+          </FollowProvider>
+        </DataProvider>
       </I18nProvider>
     </SafeAreaProvider>
   );

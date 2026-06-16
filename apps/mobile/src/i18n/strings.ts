@@ -27,6 +27,7 @@ export const strings = {
     'common.search': 'Pretraga',
     'common.notifications': 'Obavijesti',
     'common.empty': 'Nema podataka.',
+    'common.half': 'poluvrijeme',
 
     // Onboarding
     'onb.langTitle': 'Odaberi jezik',
@@ -144,6 +145,7 @@ export const strings = {
     'common.search': 'Search',
     'common.notifications': 'Notifications',
     'common.empty': 'No data.',
+    'common.half': 'half',
 
     'onb.langTitle': 'Choose language',
     'onb.langSub': 'Jezik',

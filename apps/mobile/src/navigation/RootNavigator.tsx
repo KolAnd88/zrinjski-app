@@ -11,6 +11,10 @@ import { StandingsScreen } from '../screens/StandingsScreen';
 import { StatsScreen } from '../screens/StatsScreen';
 import { GalleryScreen } from '../screens/GalleryScreen';
 import { InfoScreen } from '../screens/InfoScreen';
+import { LiveScreen } from '../screens/LiveScreen';
+import { TeamScreen } from '../screens/TeamScreen';
+import { SearchScreen } from '../screens/SearchScreen';
+import { NotifSettingsScreen } from '../screens/NotifSettingsScreen';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -74,8 +78,19 @@ function Tabs() {
 export function RootNavigator() {
   return (
     <NavigationContainer theme={navTheme}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Tabs" component={Tabs} />
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: { backgroundColor: C.card },
+          headerTintColor: C.txt,
+          headerTitleStyle: { fontFamily: F.headSemi },
+          contentStyle: { backgroundColor: C.bg },
+        }}
+      >
+        <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
+        <Stack.Screen name="Live" component={LiveScreen} options={{ title: '' }} />
+        <Stack.Screen name="Team" component={TeamScreen} options={{ title: '' }} />
+        <Stack.Screen name="Search" component={SearchScreen} options={{ title: '' }} />
+        <Stack.Screen name="NotifSettings" component={NotifSettingsScreen} options={{ title: '' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
