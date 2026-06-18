@@ -2,6 +2,7 @@
 // Dvije grane: DEMO (lokalni podaci u memoriji, demoDb) i Supabase (pravi backend).
 // DEMO grana omogućuje pregled cijelog admina bez baze; ukloni se kad DEMO = false.
 import type {
+  AppUser,
   Day,
   Gender,
   Grp,
@@ -564,6 +565,47 @@ export async function updateRegistrationStatus(id: string, status: RegistrationS
   if (DEMO) return patch(db.registrations, id, { status });
   const { error } = await client().from('registration').update({ status }).eq('id', id);
   if (error) throw error;
+}
+
+// ── Korisnici (admin/delegate/rep) ───────────────────────────────────────────
+export async function fetchAppUsers(): Promise<AppUser[]> {
+  if (DEMO) return db.appUsers.map((u) => ({ ...u })) as AppUser[];
+  const { data, error } = await client().from('app_user').select('*').order('email');
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function updateUserRole(id: string, role: string): Promise<void> {
+  if (DEMO) {
+    patch(db.appUsers, id, { role });
+    return;
+  }
+  const { error } = await client().from('app_user').update({ role }).eq('id', id);
+  if (error) throw error;
+}
+
+export type CreateUserInput = { email: string; password: string; role: string; team_id?: string | null };
+
+export async function adminCreateUser(input: CreateUserInput): Promise<void> {
+  if (DEMO) {
+    db.appUsers.push({ id: genId('u'), email: input.email, role: input.role, team_id: input.team_id ?? null });
+    return;
+  }
+  const { data, error } = await client().functions.invoke('admin-users', {
+    body: { action: 'create', ...input },
+  });
+  if (error) throw new Error(error.message);
+  if (data && data.ok === false) throw new Error(data.error ?? 'Greška.');
+}
+
+export async function adminDeleteUser(id: string): Promise<void> {
+  if (DEMO) {
+    db.appUsers = db.appUsers.filter((u) => u.id !== id);
+    return;
+  }
+  const { data, error } = await client().functions.invoke('admin-users', { body: { action: 'delete', id } });
+  if (error) throw new Error(error.message);
+  if (data && data.ok === false) throw new Error(data.error ?? 'Greška.');
 }
 
 // ── Upload (Storage) ─────────────────────────────────────────────────────────

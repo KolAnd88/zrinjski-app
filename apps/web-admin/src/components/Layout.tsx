@@ -14,6 +14,7 @@ const NAV: { to: string; key: StringKey }[] = [
   { to: '/notices', key: 'nav.notices' },
   { to: '/promo', key: 'nav.promo' },
   { to: '/registrations', key: 'nav.registrations' },
+  { to: '/users', key: 'nav.users' },
 ];
 
 function LangToggle() {

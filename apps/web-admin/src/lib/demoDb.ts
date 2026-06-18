@@ -195,6 +195,11 @@ const notifications: NotificationLog[] = [
   { id: 'n2', tournament_id: T, type: 'team_playing_soon', audience: 'team:zri', title: 'Vaša utakmica za 30 min', body: null, sent_at: '2026-06-06T12:10:00Z' },
 ];
 
+const appUsers: { id: string; email: string; role: string; team_id: string | null }[] = [
+  { id: 'u1', email: 'admin@zrinjski.ba', role: 'admin', team_id: null },
+  { id: 'u2', email: 'delegat@zrinjski.ba', role: 'delegate', team_id: null },
+];
+
 /** Mutabilni singleton — DEMO grana u data.ts radi nad ovim. */
 export const db = {
   tournament,
@@ -209,4 +214,5 @@ export const db = {
   program,
   registrations,
   notifications,
+  appUsers,
 };

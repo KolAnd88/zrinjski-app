@@ -1,0 +1,64 @@
+/* Users.css — upravljanje korisnicima. */
+
+.users {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
+  max-width: 760px;
+}
+.users__form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--sp-md);
+}
+.users__field {
+  display: flex;
+  flex-direction: column;
+}
+.users__note {
+  color: var(--mut);
+  font-size: 12px;
+  margin: var(--sp-sm) 0 0;
+}
+
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-chip);
+  padding: var(--sp-sm) var(--sp-md);
+}
+.user-row__main {
+  flex: 1;
+  min-width: 0;
+}
+.user-row__email {
+  font-family: var(--font-body);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.user-row__you {
+  color: var(--mut);
+  font-weight: 400;
+}
+.user-row__role {
+  width: 200px;
+  min-height: 40px;
+}
+.user-row__del {
+  color: var(--red);
+}
+.user-row__del:disabled {
+  color: var(--mut);
+  cursor: not-allowed;
+  text-decoration: none;
+}

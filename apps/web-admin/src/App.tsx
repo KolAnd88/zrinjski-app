@@ -13,6 +13,7 @@ import { Sponsors } from './pages/Sponsors';
 import { Registrations } from './pages/Registrations';
 import { Notices } from './pages/Notices';
 import { Promo } from './pages/Promo';
+import { Users } from './pages/Users';
 
 function FullScreenMessage({ text }: { text: string }) {
   return (
@@ -69,6 +70,9 @@ function AppRoutes() {
       </Route>
       <Route element={<Layout title="nav.registrations" />}>
         <Route path="/registrations" element={<Registrations />} />
+      </Route>
+      <Route element={<Layout title="nav.users" />}>
+        <Route path="/users" element={<Users />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
