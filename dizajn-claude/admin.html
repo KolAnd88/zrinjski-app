@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Web admin — VHMRK Zrinjski</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--red:#E11D2A;--gold:#D9B24A;--bg:#0B0B0E;--card:#15161B;--card2:#1C1D24;--line:#2A2B33;--txt:#F4F4F5;--sub:#9AA0AA;--mut:#6B7079;--green:#22C55E;--head:'Oswald',sans-serif;--body:'Inter',sans-serif;}
+  *{box-sizing:border-box}body{margin:0;background:#000;font-family:var(--body);color:var(--txt);padding:24px;display:flex;justify-content:center}
+  .app{width:1180px;height:760px;display:grid;grid-template-columns:220px 1fr;background:var(--bg);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .side{background:var(--card);border-right:1px solid var(--line);padding:16px;display:flex;flex-direction:column}
+  .brand{display:flex;gap:10px;align-items:center;padding:6px 6px 18px}
+  .logo{width:36px;height:36px;border-radius:8px;background:var(--red);display:grid;place-items:center;font-family:var(--head);font-weight:700;color:#fff;font-size:12px}
+  .brand b{font-family:var(--head);font-size:15px}.brand small{color:var(--mut);font-size:10px;letter-spacing:1px;display:block}
+  .nav a{display:block;padding:11px 12px;border-radius:8px;color:var(--sub);font-size:14px;text-decoration:none;margin-bottom:2px}
+  .nav a.on{background:var(--red);color:#fff}
+  .foot{margin-top:auto;border-top:1px solid var(--line);padding-top:12px;color:var(--sub);font-size:14px}
+  .main{display:flex;flex-direction:column;overflow:hidden}
+  .bar{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line)}
+  .bar h1{font-family:var(--head);font-size:22px;text-transform:uppercase;letter-spacing:.5px;margin:0}
+  .cont{padding:24px;overflow:auto;display:flex;flex-direction:column;gap:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+  .card.live{border-color:var(--red)}
+  .lt{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+  .dot{width:9px;height:9px;border-radius:999px;background:var(--red)}
+  .lt b{font-family:var(--head);font-size:13px;letter-spacing:1px;color:var(--red);text-transform:uppercase}
+  .sr{display:grid;grid-template-columns:1fr auto 1fr;align-items:center}
+  .side2{display:flex;align-items:center;gap:12px}.side2.r{justify-content:flex-end}
+  .crest{width:48px;height:48px;border-radius:10px;display:grid;place-items:center;font-family:var(--head);font-weight:700;color:#fff}
+  .nm{font-family:var(--head);font-size:20px}
+  .score{font-family:var(--head);font-weight:700;font-size:44px}
+  .btn{background:var(--red);color:#fff;border:none;border-radius:8px;padding:14px;font-family:var(--head);font-weight:600;font-size:16px;width:100%}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;text-align:center}
+  .stat b{font-family:var(--head);font-size:36px;display:block}.stat span{color:var(--sub);font-size:13px}
+  .lbl{font-family:var(--head);font-size:13px;letter-spacing:1px;color:var(--sub);text-transform:uppercase}
+  .qa{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .qa div{background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:14px;text-align:center;font-family:var(--head);font-weight:600;font-size:14px}
+  .todo{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
+  .chk{width:26px;height:26px;border-radius:8px;border:2px solid var(--green)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="side">
+    <div class="brand"><div class="logo">ZRI</div><div><b>VHMRK Zrinjski</b><small>WEB ADMIN</small></div></div>
+    <div class="nav">
+      <a class="on">Pregled</a><a>Uživo</a><a>Raspored</a><a>Ekipe</a><a>Turnir</a><a>Sponzori</a><a>Obavijesti</a><a>Promo</a><a>Prijave</a><a>Korisnici</a>
+    </div>
+    <div class="foot">Odjava</div>
+  </div>
+  <div class="main">
+    <div class="bar"><h1>Nadzorna ploča</h1><span style="color:var(--sub);font-size:13px">HR · EN</span></div>
+    <div class="cont">
+      <div class="card live">
+        <div class="lt"><span class="dot"></span><b>Utakmica u tijeku · Finale</b></div>
+        <div class="sr">
+          <div class="side2"><span class="crest" style="background:#E11D2A">ZRI</span><span class="nm">Zrinjski</span></div>
+          <div class="score">4 : 2</div>
+          <div class="side2 r"><span class="nm">Ljubuški</span><span class="crest" style="background:#6A1FB0">LJU</span></div>
+        </div>
+      </div>
+      <button class="btn">Nastavi unos uživo</button>
+      <div class="stats">
+        <div class="stat"><b>24</b><span>ekipa · 12 M / 12 Ž</span></div>
+        <div class="stat"><b>34/36</b><span>odigrano</span></div>
+        <div class="stat"><b>5</b><span>sponzora</span></div>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:10px">Brze akcije</div>
+        <div class="qa"><div>Unesi rezultat</div><div>Pošalji obavijest</div><div>Generiraj satnicu</div><div>Dodaj sponzora</div></div>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:10px">Za odraditi</div>
+        <div class="todo"><span class="chk"></span><span>Postavi najboljeg igrača turnira</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

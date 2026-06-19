@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Početna — VHMRK Zrinjski</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#E11D2A; --redDk:#9C0C18; --blue:#2D6CDF; --gold:#D9B24A;
+    --bg:#0B0B0E; --card:#15161B; --card2:#1C1D24; --line:#2A2B33;
+    --txt:#F4F4F5; --sub:#9AA0AA; --mut:#6B7079; --green:#22C55E;
+    --head:'Oswald',sans-serif; --body:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box} body{margin:0;background:#000;font-family:var(--body);display:flex;justify-content:center;padding:24px;}
+  .phone{width:390px;background:var(--bg);color:var(--txt);border-radius:28px;overflow:hidden;border:1px solid var(--line);position:relative;min-height:780px;}
+  .statusbar{display:flex;justify-content:space-between;padding:10px 18px;font-size:12px;color:var(--sub);}
+  .content{padding:8px 16px 90px;}
+  .hero{position:relative;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#1a0407,#0B0B0E);border:1px solid var(--line);padding:18px;margin-bottom:16px;}
+  .hero::after{content:"";position:absolute;right:-40px;top:-20px;width:260px;height:80px;background:linear-gradient(90deg,var(--redDk),var(--red));transform:rotate(-18deg);opacity:.5;}
+  .hero h1{font-family:var(--head);font-weight:700;font-size:24px;margin:0;letter-spacing:.5px;}
+  .hero p{color:var(--sub);margin:4px 0 0;font-size:13px;}
+  .label{font-family:var(--head);font-weight:600;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin:18px 4px 8px;}
+  .follow{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;}
+  .crest{width:40px;height:40px;border-radius:8px;display:grid;place-items:center;font-family:var(--head);font-weight:700;color:#fff;font-size:14px;flex:none;}
+  .live{border:1px solid var(--red);border-radius:14px;padding:16px;background:linear-gradient(180deg,rgba(225,29,42,.06),transparent);}
+  .live-top{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+  .dot{width:9px;height:9px;border-radius:999px;background:var(--red);animation:p 1.4s infinite}
+  @keyframes p{0%,100%{opacity:1}50%{opacity:.3}}
+  .live-lbl{font-family:var(--head);font-weight:700;font-size:12px;letter-spacing:1px;color:var(--red);text-transform:uppercase;}
+  .score-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;}
+  .side{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .side b{font-family:var(--head);font-weight:600;font-size:13px;text-transform:uppercase}
+  .score{font-family:var(--head);font-weight:700;font-size:44px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;}
+  .mrow{display:flex;align-items:center;gap:10px;}
+  .mrow .t{flex:1;font-weight:600;font-size:14px}
+  .mrow .t.r{text-align:right}
+  .mid{min-width:54px;text-align:center;color:var(--mut);font-size:13px}
+  .gold-card{display:flex;align-items:center;gap:14px;border:1px solid var(--gold);border-radius:12px;padding:16px;background:linear-gradient(90deg,rgba(217,178,74,.08),transparent);}
+  .gold-logo{width:64px;height:44px;background:#fff;border-radius:8px;display:grid;place-items:center;color:#999;font-family:var(--head);font-weight:700;font-size:12px}
+  .sponsors{display:flex;gap:10px;flex-wrap:wrap}
+  .sp{flex:1;min-width:90px;height:46px;background:var(--card2);border:1px solid var(--line);border-radius:8px;display:grid;place-items:center;color:var(--mut);font-size:12px}
+  .prog{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+  .prog .tm{font-family:var(--head);font-weight:600;color:var(--red);width:48px}
+  .nav{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-around;background:var(--card);border-top:1px solid var(--line);padding:8px 0 14px;}
+  .nav a{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--mut);font-size:10px;font-family:var(--head);text-decoration:none;}
+  .nav a.on{color:var(--red)}
+  .nav .ic{width:22px;height:22px;border-radius:6px;background:currentColor;opacity:.9;-webkit-mask:center/contain no-repeat;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="statusbar"><span>9:41</span><span>▮▮▮ ▮</span></div>
+  <div class="content">
+    <div class="hero">
+      <h1>VHMRK ZRINJSKI</h1>
+      <p>Turnir veterana · 2026 · Bijeli Brijeg, Mostar</p>
+    </div>
+
+    <div class="label">Pratiš</div>
+    <div class="follow">
+      <span class="crest" style="background:#E11D2A">ZRI</span>
+      <div style="flex:1"><b>VHMRK Zrinjski</b><div style="color:var(--sub);font-size:12px">Grupa A · 1. mjesto</div></div>
+      <span style="color:var(--blue);font-size:13px;font-weight:600">Promijeni</span>
+    </div>
+
+    <div class="label">Uživo sada</div>
+    <div class="live">
+      <div class="live-top"><span class="dot"></span><span class="live-lbl">UŽIVO · FINALE</span></div>
+      <div class="score-row">
+        <div class="side"><span class="crest" style="background:#E11D2A">ZRI</span><b>Zrinjski</b></div>
+        <div class="score">4 : 2</div>
+        <div class="side"><span class="crest" style="background:#6A1FB0">LJU</span><b>Ljubuški</b></div>
+      </div>
+    </div>
+
+    <div class="label">Sljedeće na rasporedu</div>
+    <div class="card">
+      <div class="mrow">
+        <span class="mid">19:00</span>
+        <span class="crest" style="width:28px;height:28px;background:#1F7A8C">LAS</span>
+        <span class="t">ŽRK Lasta</span>
+        <span class="mid">vs</span>
+        <span class="t r">Mostar Ž</span>
+        <span class="crest" style="width:28px;height:28px;background:#E11D2A">MOS</span>
+      </div>
+    </div>
+
+    <div class="label" style="color:var(--gold)">Zlatni sponzor</div>
+    <div class="gold-card">
+      <div class="gold-logo">LOGO</div>
+      <div><b style="font-family:var(--head);font-size:18px">Elektroprivreda HZHB</b></div>
+    </div>
+
+    <div class="label">Sponzori</div>
+    <div class="sponsors"><div class="sp">Euroherc</div><div class="sp">HT Eronet</div><div class="sp">JYSK</div></div>
+
+    <div class="label">Današnji program</div>
+    <div class="card" style="padding:0 14px">
+      <div class="prog"><span class="tm">20:30</span><span style="flex:1">Završna večera i dodjela</span></div>
+      <div class="prog"><span class="tm">21:00</span><span style="flex:1">Druženje uz glazbu</span></div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <a class="on"><span class="ic"></span>Početna</a>
+    <a><span class="ic"></span>Raspored</a>
+    <a><span class="ic"></span>Poredak</a>
+    <a><span class="ic"></span>Statist.</a>
+    <a><span class="ic"></span>Galerija</a>
+    <a><span class="ic"></span>Info</a>
+  </div>
+</div>
+</body>
+</html>

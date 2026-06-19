@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Uživo — VHMRK Zrinjski</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--red:#E11D2A;--redDk:#9C0C18;--blue:#2D6CDF;--gold:#D9B24A;--bg:#0B0B0E;--card:#15161B;--card2:#1C1D24;--line:#2A2B33;--txt:#F4F4F5;--sub:#9AA0AA;--mut:#6B7079;--head:'Oswald',sans-serif;--body:'Inter',sans-serif;}
+  *{box-sizing:border-box}body{margin:0;background:#000;font-family:var(--body);display:flex;justify-content:center;padding:24px}
+  .phone{width:390px;background:var(--bg);color:var(--txt);border-radius:28px;overflow:hidden;border:1px solid var(--line);min-height:780px;position:relative}
+  .statusbar{display:flex;justify-content:space-between;padding:10px 18px;font-size:12px;color:var(--sub)}
+  .top{display:flex;align-items:center;justify-content:space-between;padding:6px 16px}
+  .top .back{color:var(--sub)}.top .share{color:var(--red);font-family:var(--head);font-weight:600}
+  .scorewrap{position:relative;overflow:hidden;padding:18px 16px 20px;border-bottom:1px solid var(--line)}
+  .scorewrap::after{content:"";position:absolute;left:-10%;right:-10%;top:40%;height:60px;background:linear-gradient(90deg,var(--redDk),var(--red));transform:rotate(-10deg);opacity:.4}
+  .st{position:relative;text-align:center;font-family:var(--head);font-weight:700;font-size:12px;letter-spacing:1px;color:var(--red);margin-bottom:10px}
+  .sr{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+  .side{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .side b{font-family:var(--head);font-size:13px;text-transform:uppercase}
+  .crest{width:44px;height:44px;border-radius:9px;display:grid;place-items:center;font-family:var(--head);font-weight:700;color:#fff;font-size:14px}
+  .score{font-family:var(--head);font-weight:700;font-size:48px}
+  .min{position:relative;text-align:center;color:var(--sub);font-family:var(--head);margin-top:8px;font-size:13px}
+  .tabs{display:flex;border-bottom:1px solid var(--line)}
+  .tabs div{flex:1;text-align:center;padding:12px;font-family:var(--head);font-weight:600;color:var(--sub);font-size:14px}
+  .tabs div.on{color:var(--txt);box-shadow:inset 0 -2px 0 var(--red)}
+  .feed{padding:16px}
+  .row{display:flex;align-items:flex-start}
+  .row .col{flex:1}
+  .row .c{width:44px;display:flex;flex-direction:column;align-items:center;align-self:stretch}
+  .mn{font-family:var(--head);font-weight:600;color:var(--sub);font-size:12px;margin-bottom:4px}
+  .bdg{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-family:var(--head);font-weight:700;color:#fff;font-size:13px}
+  .bar{flex:1;width:2px;background:var(--line);margin-top:2px}
+  .ev{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin-bottom:16px}
+  .ev .nm{font-family:var(--body);font-weight:600;font-size:14px}
+  .ev .sub{color:var(--sub);font-size:12px}
+  .ev .sc{display:inline-block;margin-top:4px;background:var(--card2);border-radius:6px;padding:2px 8px;font-family:var(--head);color:var(--red);font-weight:700;font-size:13px}
+  .home .ev{border-left:3px solid #E11D2A;text-align:right}
+  .away .ev{border-right:3px solid #6A1FB0}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="statusbar"><span>9:41</span><span>▮▮▮ ▮</span></div>
+  <div class="top"><span class="back">‹ Natrag</span><span class="share">Podijeli</span></div>
+  <div class="scorewrap">
+    <div class="st">● UŽIVO · FINALE</div>
+    <div class="sr">
+      <div class="side"><span class="crest" style="background:#E11D2A">ZRI</span><b>Zrinjski</b></div>
+      <div class="score">4 : 2</div>
+      <div class="side"><span class="crest" style="background:#6A1FB0">LJU</span><b>Ljubuški</b></div>
+    </div>
+    <div class="min">2. poluvrijeme · 12'</div>
+  </div>
+  <div class="tabs"><div class="on">Tijek</div><div>Sastavi</div><div>Statistika</div></div>
+  <div class="feed">
+    <div class="row home"><div class="col"><div class="ev"><div class="nm">Marko Jurić</div><div class="sub">Gol · ZRI</div><div class="sc">4:2</div></div></div>
+      <div class="c"><span class="mn">12'</span><span class="bdg" style="background:#E11D2A">G</span><span class="bar"></span></div><div class="col"></div></div>
+    <div class="row away"><div class="col"></div><div class="c"><span class="mn">10'</span><span class="bdg" style="background:#E11D2A">G</span><span class="bar"></span></div>
+      <div class="col"><div class="ev"><div class="nm">Ivan Lučić</div><div class="sub">Gol · LJU</div><div class="sc">3:2</div></div></div></div>
+    <div class="row away"><div class="col"></div><div class="c"><span class="mn">9'</span><span class="bdg" style="background:#2D6CDF">O</span><span class="bar"></span></div>
+      <div class="col"><div class="ev"><div class="nm">Ante Babić</div><div class="sub">Obrana · LJU</div></div></div></div>
+    <div class="row home"><div class="col"><div class="ev"><div class="nm">Josip Marić</div><div class="sub">Gol · ZRI</div><div class="sc">3:1</div></div></div>
+      <div class="c"><span class="mn">7'</span><span class="bdg" style="background:#E11D2A">G</span><span class="bar"></span></div><div class="col"></div></div>
+    <div class="row home"><div class="col"><div class="ev"><div class="nm">Luka Bevanda</div><div class="sub">Isključenje · ZRI</div></div></div>
+      <div class="c"><span class="mn">5'</span><span class="bdg" style="background:#D9B24A;color:#2a1f00">2'</span></div><div class="col"></div></div>
+  </div>
+</div>
+</body>
+</html>
