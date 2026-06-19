@@ -13,14 +13,14 @@
     "@zrinjski/core": "*",
     "@zrinjski/ui-tokens": "*",
     "qrcode": "^1.5.4",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "react-router-dom": "^6.26.2"
   },
   "devDependencies": {
     "@types/qrcode": "^1.5.5",
-    "@types/react": "^18.3.5",
-    "@types/react-dom": "^18.3.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^4.3.1",
     "typescript": "^5.5.0",
     "vite": "^5.4.8"
