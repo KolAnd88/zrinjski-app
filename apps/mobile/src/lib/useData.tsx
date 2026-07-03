@@ -3,7 +3,8 @@
 //  • ŽIVO (isSupabaseConfigured): učitava iz Supabasea + realtime (match/match_event),
 //    a admin mutatori pišu u bazu (DB trigger sam diže rezultat na gol).
 //  • DEMO (bez .env): lokalni demo podaci u stanju (offline pregled).
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Alert, Platform } from 'react-native';
 import type {
   Day,
   EventType,
@@ -17,6 +18,7 @@ import type {
   Team,
   Tournament,
 } from '@zrinjski/core';
+import { useT } from '../i18n/I18nProvider';
 import { isSupabaseConfigured, supabase } from './supabase';
 import {
   demoDays,
@@ -156,29 +158,49 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
   );
 
+  // Ponovno povuci utakmice + događaje iz baze (realtime osvježenje i oporavak od greške).
+  const refreshMatchesEvents = useCallback(async () => {
+    const sb = supabase;
+    if (!sb) return;
+    try {
+      const tid = (await sb.from('tournament').select('id').limit(1).maybeSingle()).data?.id;
+      if (!tid) return;
+      const ms = await sb.from('match').select('*').eq('tournament_id', tid).order('sort_order');
+      const matchIds = (ms.data ?? []).map((m) => m.id);
+      const ev = matchIds.length
+        ? await sb.from('match_event').select('*').in('match_id', matchIds).order('created_at')
+        : { data: [] };
+      setData((d) => ({ ...d, matches: ms.data ?? d.matches, events: (ev.data ?? []) as MatchEvent[] }));
+    } catch {
+      /* mrežna greška — sljedeći realtime event ili ručni refresh pokušava ponovno */
+    }
+  }, []);
+
+  // Obavijest zapisničaru da upis NIJE prošao + povratak ekrana na stvarno stanje baze.
+  const { t } = useT();
+  const notifyWriteError = useCallback(() => {
+    const msg = t('admin.writeError');
+    if (Platform.OS === 'web') window.alert(msg);
+    else Alert.alert('⚠️', msg);
+    void refreshMatchesEvents();
+  }, [t, refreshMatchesEvents]);
+
   // ŽIVO: učitavanje + realtime na match/match_event.
   useEffect(() => {
     if (!LIVE || !supabase) return;
     let active = true;
     const sb = supabase;
 
-    const refreshMatchesEvents = async () => {
-      const tid = (await sb.from('tournament').select('id').limit(1).maybeSingle()).data?.id;
-      if (!tid || !active) return;
-      const ms = await sb.from('match').select('*').eq('tournament_id', tid).order('sort_order');
-      const matchIds = (ms.data ?? []).map((m) => m.id);
-      const ev = matchIds.length
-        ? await sb.from('match_event').select('*').in('match_id', matchIds).order('created_at')
-        : { data: [] };
-      if (active) setData((d) => ({ ...d, matches: ms.data ?? d.matches, events: (ev.data ?? []) as MatchEvent[] }));
-    };
-
-    void loadAll().then((all) => {
-      if (active) {
-        setData(all);
-        setLoading(false);
-      }
-    });
+    loadAll()
+      .then((all) => {
+        if (active) setData(all);
+      })
+      .catch(() => {
+        /* mreža pala pri startu — ekrani pokazuju prazna stanja umjesto vječnog učitavanja */
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
 
     const ch = sb
       .channel('public-live')
@@ -190,7 +212,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       active = false;
       void sb.removeChannel(ch);
     };
-  }, []);
+  }, [refreshMatchesEvents]);
 
   const value = useMemo<DataStore>(() => {
     const { teams, players, matches, events } = data;
@@ -199,6 +221,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     const patchMatchLocal = (id: string, patch: Partial<Match>) =>
       setData((d) => ({ ...d, matches: d.matches.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
+
+    // Provjeri je li upis stvarno prošao. VAŽNO: RLS blokada na UPDATE/DELETE ne
+    // vraća grešku nego "uspjeh" s 0 redova — zato upiti nose .select('id') pa
+    // prazan rezultat također tretiramo kao neuspjeh.
+    const checkWrite = (op: PromiseLike<{ error: unknown; data: unknown[] | null }>) => {
+      void Promise.resolve(op).then(
+        ({ error, data: rows }) => {
+          if (error || !rows || rows.length === 0) notifyWriteError();
+        },
+        () => notifyWriteError()
+      );
+    };
 
     return {
       loading,
@@ -211,13 +245,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
       startMatch: (id) => {
         patchMatchLocal(id, { status: 'live', current_half: 1, current_minute: 0 });
-        if (LIVE && sb) void sb.from('match').update({ status: 'live', current_half: 1, current_minute: 0 }).eq('id', id);
+        if (LIVE && sb)
+          checkWrite(sb.from('match').update({ status: 'live', current_half: 1, current_minute: 0 }).eq('id', id).select('id'));
       },
       finishMatch: (id) => {
         patchMatchLocal(id, { status: 'finished' });
-        if (LIVE && sb) void sb.from('match').update({ status: 'finished' }).eq('id', id);
+        if (LIVE && sb) checkWrite(sb.from('match').update({ status: 'finished' }).eq('id', id).select('id'));
       },
       setMinute: (id, minute) => {
+        // Kozmetički tik (svake minute) — bez alarma da ne spamamo; greška se vidi na pravim akcijama.
         patchMatchLocal(id, { current_minute: minute });
         if (LIVE && sb) void sb.from('match').update({ current_minute: minute }).eq('id', id);
       },
@@ -228,7 +264,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           ? { home_score: Math.max(0, m.home_score + delta) }
           : { away_score: Math.max(0, m.away_score + delta) };
         patchMatchLocal(id, next);
-        if (LIVE && sb) void sb.from('match').update(next).eq('id', id);
+        if (LIVE && sb) checkWrite(sb.from('match').update(next).eq('id', id).select('id'));
       },
       addEvent: (matchId, teamId, playerId, type, minute) => {
         // Optimistično lokalno (gol diže rezultat); u živo modu DB trigger radi isto na serveru.
@@ -245,7 +281,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
           return { ...d, events: [...d.events, ev], matches: matchesNext };
         });
         if (LIVE && sb)
-          void sb.from('match_event').insert({ match_id: matchId, team_id: teamId, player_id: playerId, type, minute });
+          checkWrite(
+            sb.from('match_event').insert({ match_id: matchId, team_id: teamId, player_id: playerId, type, minute }).select('id')
+          );
       },
       undoLastEvent: (matchId) => {
         const matchEvents = events.filter((e) => e.match_id === matchId);
@@ -262,10 +300,32 @@ export function DataProvider({ children }: { children: ReactNode }) {
               : d.matches;
           return { ...d, events: d.events.filter((e) => e.id !== last.id), matches: matchesNext };
         });
-        if (LIVE && sb) void sb.from('match_event').delete().eq('id', last.id);
+        if (LIVE && sb) {
+          const client = sb;
+          const doDelete = async () => {
+            // Ako je zadnji događaj još lokalni (optimistični) id, obriši najnoviji DB red te utakmice.
+            let targetId = last.id;
+            if (targetId.startsWith('evt-')) {
+              const { data: rows } = await client
+                .from('match_event')
+                .select('id')
+                .eq('match_id', matchId)
+                .order('created_at', { ascending: false })
+                .limit(1);
+              targetId = rows?.[0]?.id ?? '';
+            }
+            if (!targetId) {
+              notifyWriteError();
+              return;
+            }
+            const { error, data: rows } = await client.from('match_event').delete().eq('id', targetId).select('id');
+            if (error || !rows || rows.length === 0) notifyWriteError();
+          };
+          doDelete().catch(() => notifyWriteError());
+        }
       },
     };
-  }, [data, loading]);
+  }, [data, loading, notifyWriteError]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }

@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useT } from '../i18n/I18nProvider';
 import { useData } from '../lib/useData';
+import { supabase } from '../lib/supabase';
 import { C, F, S } from '../theme';
 import { Screen, Txt } from '../components/base';
 import { MatchRow } from '../components/match';
@@ -26,7 +27,12 @@ export function AdminHomeScreen() {
           </Txt>
           <Txt variant="h1">{t('admin.dashboard').toUpperCase()}</Txt>
         </View>
-        <Pressable onPress={() => nav.reset({ index: 0, routes: [{ name: 'Tabs' }] })}>
+        <Pressable
+          onPress={() => {
+            void supabase?.auth.signOut();
+            nav.reset({ index: 0, routes: [{ name: 'Tabs' }] });
+          }}
+        >
           <Txt style={{ color: C.red, fontFamily: F.headSemi }}>{t('admin.logout')}</Txt>
         </Pressable>
       </View>

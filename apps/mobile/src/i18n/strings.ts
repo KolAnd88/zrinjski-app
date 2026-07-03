@@ -180,6 +180,10 @@ export const strings = {
     'admin.live': 'UŽIVO',
     'admin.finishedBadge': 'ZAVRŠENO',
     'admin.scheduledBadge': 'NAJAVLJENO',
+    'admin.signingIn': 'Prijava…',
+    'admin.errCreds': 'Neispravan e-mail ili lozinka.',
+    'admin.errNoRole': 'Ovaj račun nema organizatorske ovlasti.',
+    'admin.writeError': 'Upis nije uspio — provjeri internet vezu i prijavu. Ekran je vraćen na stvarno stanje.',
   },
   en: {
     appName: 'VHMRK Zrinjski',
@@ -346,6 +350,10 @@ export const strings = {
     'admin.live': 'LIVE',
     'admin.finishedBadge': 'FINISHED',
     'admin.scheduledBadge': 'SCHEDULED',
+    'admin.signingIn': 'Signing in…',
+    'admin.errCreds': 'Invalid e-mail or password.',
+    'admin.errNoRole': 'This account has no organizer permissions.',
+    'admin.writeError': 'Write failed — check your connection and sign-in. The screen was reset to the actual state.',
   },
 } as const;
 
