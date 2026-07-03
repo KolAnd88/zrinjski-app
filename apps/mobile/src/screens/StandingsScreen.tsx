@@ -8,7 +8,7 @@ import { buildBracket, computeStandings, type StandingRow } from '@zrinjski/core
 import { useT } from '../i18n/I18nProvider';
 import { useData } from '../lib/useData';
 import { C, F, R, S } from '../theme';
-import { Crest, Txt } from '../components/base';
+import { Crest, Txt, useRefreshControl } from '../components/base';
 import { GenderToggle, MatchRow } from '../components/match';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -17,6 +17,7 @@ export function StandingsScreen() {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const d = useData();
   const [gender, setGender] = useState<Gender>('m');
+  const refreshControl = useRefreshControl();
 
   const groups = d.groups.filter((g) => g.gender === gender);
   const cfg = {
@@ -49,7 +50,11 @@ export function StandingsScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
+      >
         <View style={styles.head}>
           <Txt variant="h1">{t('standings.title').toUpperCase()}</Txt>
         </View>

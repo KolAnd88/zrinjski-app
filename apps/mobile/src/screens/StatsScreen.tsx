@@ -7,7 +7,7 @@ import { useT } from '../i18n/I18nProvider';
 import type { StringKey } from '../i18n/strings';
 import { useData } from '../lib/useData';
 import { C, F, R, S } from '../theme';
-import { Crest, Txt } from '../components/base';
+import { Crest, Txt, useRefreshControl } from '../components/base';
 import { GenderToggle } from '../components/match';
 
 const CATS: { cat: StatCategory; key: StringKey; unit: StringKey }[] = [
@@ -22,6 +22,7 @@ export function StatsScreen() {
   const d = useData();
   const [gender, setGender] = useState<Gender>('m');
   const [cat, setCat] = useState<StatCategory>('scorers');
+  const refreshControl = useRefreshControl();
 
   // Događaji utakmica zadanog spola.
   const matchIds = new Set(d.matches.filter((m) => m.gender === gender).map((m) => m.id));
@@ -44,7 +45,11 @@ export function StatsScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
+      >
         <View style={styles.head}>
           <Txt variant="h1">{t('stats.title').toUpperCase()}</Txt>
           <View style={{ width: 180 }}>

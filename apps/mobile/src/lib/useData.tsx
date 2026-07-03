@@ -38,6 +38,12 @@ export type GalleryItem = { id: string; day_id: string; color: string };
 
 export type DataStore = {
   loading: boolean;
+  /** Početno učitavanje nije uspjelo (nema mreže?) — ponudi "Pokušaj ponovno". */
+  loadError: boolean;
+  /** Ručno osvježavanje u tijeku (pull-to-refresh). */
+  reloading: boolean;
+  /** Ponovno učitaj sve podatke iz baze. */
+  reload: () => Promise<void>;
   demo: boolean;
   tournament: Tournament | null;
   days: Day[];
@@ -185,22 +191,30 @@ export function DataProvider({ children }: { children: ReactNode }) {
     void refreshMatchesEvents();
   }, [t, refreshMatchesEvents]);
 
+  // Puno (ponovno) učitavanje — početno, pull-to-refresh i "Pokušaj ponovno".
+  const [loadError, setLoadError] = useState(false);
+  const [reloading, setReloading] = useState(false);
+  const reload = useCallback(async () => {
+    if (!LIVE) return;
+    setReloading(true);
+    try {
+      const all = await loadAll();
+      setData(all);
+      setLoadError(false);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setReloading(false);
+      setLoading(false);
+    }
+  }, []);
+
   // ŽIVO: učitavanje + realtime na match/match_event.
   useEffect(() => {
     if (!LIVE || !supabase) return;
-    let active = true;
     const sb = supabase;
 
-    loadAll()
-      .then((all) => {
-        if (active) setData(all);
-      })
-      .catch(() => {
-        /* mreža pala pri startu — ekrani pokazuju prazna stanja umjesto vječnog učitavanja */
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+    void reload();
 
     const ch = sb
       .channel('public-live')
@@ -209,10 +223,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       .subscribe();
 
     return () => {
-      active = false;
       void sb.removeChannel(ch);
     };
-  }, [refreshMatchesEvents]);
+  }, [reload, refreshMatchesEvents]);
 
   const value = useMemo<DataStore>(() => {
     const { teams, players, matches, events } = data;
@@ -236,6 +249,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     return {
       loading,
+      loadError,
+      reloading,
+      reload,
       demo: !LIVE,
       ...data,
       teamById: (id) => (id ? teamIndex.get(id) : undefined),
@@ -325,7 +341,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
       },
     };
-  }, [data, loading, notifyWriteError]);
+  }, [data, loading, loadError, reloading, reload, notifyWriteError]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }

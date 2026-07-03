@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import {
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -8,9 +9,29 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useData } from '../lib/useData';
 import { C, F, R, S, type as T } from '../theme';
 
 type TxtVariant = keyof typeof T;
+
+/**
+ * Povuci-za-osvježi vezan na globalni reload podataka.
+ * U demo modu (bez baze) vraća undefined — nema što osvježavati.
+ * Napomena: na webu je RefreshControl no-op; radi na Androidu/iOS-u.
+ */
+export function useRefreshControl() {
+  const d = useData();
+  if (d.demo) return undefined;
+  return (
+    <RefreshControl
+      refreshing={d.reloading}
+      onRefresh={() => void d.reload()}
+      tintColor={C.red}
+      colors={[C.red]}
+      progressBackgroundColor={C.card}
+    />
+  );
+}
 
 export function Txt({
   variant = 'body',
@@ -35,6 +56,7 @@ export function Screen({
   scroll?: boolean;
   padded?: boolean;
 }) {
+  const refreshControl = useRefreshControl();
   const inner = (
     <View style={padded ? styles.padded : undefined}>{children}</View>
   );
@@ -44,6 +66,7 @@ export function Screen({
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={refreshControl}
         >
           {inner}
         </ScrollView>

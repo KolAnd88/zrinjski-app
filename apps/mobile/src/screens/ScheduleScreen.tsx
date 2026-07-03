@@ -9,7 +9,7 @@ import { useData } from '../lib/useData';
 import { openMaps } from '../lib/maps';
 import { isoToHHMM, tabLabel, dayTitle, timeToHHMM } from '../lib/dates';
 import { C, F, R, S } from '../theme';
-import { Badge, Crest, Txt } from '../components/base';
+import { Badge, Crest, Txt, useRefreshControl } from '../components/base';
 import type { RootStackParamList } from '../navigation/types';
 
 type Row =
@@ -21,6 +21,7 @@ export function ScheduleScreen() {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const d = useData();
   const [dayId, setDayId] = useState(d.days[0]?.id ?? '');
+  const refreshControl = useRefreshControl();
 
   const stageLabel = (m: Match): string =>
     m.stage === 'group'
@@ -42,7 +43,11 @@ export function ScheduleScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
+      >
         <Txt variant="h1">{t('schedule.title').toUpperCase()}</Txt>
 
         {/* Dani */}

@@ -9,7 +9,8 @@ import { useFollow } from '../lib/useFollow';
 import { openMaps } from '../lib/maps';
 import { isoToHHMM } from '../lib/dates';
 import { C, F, R, S } from '../theme';
-import { Badge, Card, Crest, Txt } from '../components/base';
+import { Badge, Card, Crest, Txt, useRefreshControl } from '../components/base';
+import { PrimaryButton } from '../components/buttons';
 import { MatchRow } from '../components/match';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -25,6 +26,7 @@ export function HomeScreen() {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const d = useData();
   const { followed } = useFollow();
+  const refreshControl = useRefreshControl();
 
   const live = d.matches.find((m) => m.status === 'live') ?? null;
   const followedTeam = followed.length ? d.teamById(followed[0]) : undefined;
@@ -50,7 +52,18 @@ export function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
+      >
+        {/* Podaci se nisu učitali (mreža?) — ponudi ponovni pokušaj */}
+        {d.loadError && (
+          <Card accent style={{ marginBottom: S.md }}>
+            <Txt style={{ marginBottom: S.sm }}>{t('common.loadError')}</Txt>
+            <PrimaryButton label={t('common.retry')} onPress={() => void d.reload()} />
+          </Card>
+        )}
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logo}>
