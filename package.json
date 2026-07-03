@@ -10,7 +10,7 @@
   "scripts": {
     "typecheck": "tsc -b packages/core packages/ui-tokens",
     "db:types": "supabase gen types typescript --local > packages/core/src/types/database.ts",
-    "test": "node --test packages/core/dist/**/*.test.js"
+    "test": "npm run test -w @zrinjski/core"
   },
   "engines": {
     "node": ">=20"
