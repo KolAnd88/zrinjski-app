@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { Gender } from '@zrinjski/core';
 import { aggregateStats, type StatCategory } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import type { StringKey } from '../i18n/strings';
 import { useData } from '../lib/useData';
+import { useGender } from '../lib/useGender';
 import { C, F, R, S } from '../theme';
 import { Crest, Txt, useRefreshControl } from '../components/base';
 import { GenderToggle } from '../components/match';
@@ -20,7 +20,7 @@ const CATS: { cat: StatCategory; key: StringKey; unit: StringKey }[] = [
 export function StatsScreen() {
   const { t } = useT();
   const d = useData();
-  const [gender, setGender] = useState<Gender>('m');
+  const { gender, setGender } = useGender();
   const [cat, setCat] = useState<StatCategory>('scorers');
   const refreshControl = useRefreshControl();
 

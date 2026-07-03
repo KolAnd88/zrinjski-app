@@ -1,12 +1,12 @@
-import { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { Gender, Grp, Match } from '@zrinjski/core';
+import type { Grp, Match } from '@zrinjski/core';
 import { buildBracket, computeStandings, type StandingRow } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import { useData } from '../lib/useData';
+import { useGender } from '../lib/useGender';
 import { C, F, R, S } from '../theme';
 import { Crest, Txt, useRefreshControl } from '../components/base';
 import { GenderToggle, MatchRow } from '../components/match';
@@ -16,7 +16,7 @@ export function StandingsScreen() {
   const { t } = useT();
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const d = useData();
-  const [gender, setGender] = useState<Gender>('m');
+  const { gender, setGender } = useGender();
   const refreshControl = useRefreshControl();
 
   const groups = d.groups.filter((g) => g.gender === gender);

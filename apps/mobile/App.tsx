@@ -12,6 +12,7 @@ import {
 import { I18nProvider } from './src/i18n/I18nProvider';
 import { DataProvider } from './src/lib/useData';
 import { FollowProvider } from './src/lib/useFollow';
+import { GenderProvider } from './src/lib/useGender';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { C } from './src/theme';
 
@@ -35,8 +36,10 @@ export default function App() {
       <I18nProvider>
         <DataProvider>
           <FollowProvider>
-            <StatusBar style="light" />
-            <RootNavigator />
+            <GenderProvider>
+              <StatusBar style="light" />
+              <RootNavigator />
+            </GenderProvider>
           </FollowProvider>
         </DataProvider>
       </I18nProvider>
