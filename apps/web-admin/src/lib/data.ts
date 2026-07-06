@@ -618,6 +618,39 @@ export async function updateRegistrationStatus(id: string, status: RegistrationS
   if (error) throw error;
 }
 
+export type PublicRegistrationInput = {
+  team_name: string;
+  gender: Gender;
+  rep_name: string;
+  rep_email: string;
+  player_count: number | null;
+};
+
+/**
+ * JAVNA prijava ekipe (bez logina) — RLS dopušta anon INSERT u registration.
+ * Status kreće kao 'pending'; organizator odobrava u adminu (Prijave).
+ */
+export async function submitRegistration(input: PublicRegistrationInput): Promise<void> {
+  const t = await fetchActiveTournament();
+  if (!t) throw new Error('Turnir još nije postavljen.');
+  if (DEMO) {
+    db.registrations.push({
+      id: genId('r'),
+      tournament_id: t.id,
+      team_name: input.team_name,
+      gender: input.gender,
+      rep_name: input.rep_name,
+      rep_email: input.rep_email,
+      player_count: input.player_count,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+    });
+    return;
+  }
+  const { error } = await client().from('registration').insert({ tournament_id: t.id, ...input });
+  if (error) throw error;
+}
+
 // ── Korisnici (admin/delegate/rep) ───────────────────────────────────────────
 export async function fetchAppUsers(): Promise<AppUser[]> {
   if (DEMO) return db.appUsers.map((u) => ({ ...u })) as AppUser[];

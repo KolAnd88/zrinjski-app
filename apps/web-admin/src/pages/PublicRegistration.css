@@ -1,0 +1,73 @@
+/* PublicRegistration.css — javna prijava ekipe (dijeli bazni izgled s Login.css). */
+
+.regform__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+}
+
+/* M/Ž izbor */
+.regform__gender {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-sm);
+}
+.regform__gbtn {
+  min-height: var(--touch);
+  border-radius: var(--r-chip);
+  border: 1px solid var(--line);
+  background: var(--card2);
+  color: var(--sub);
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+.regform__gbtn.is-on {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+
+.regform__count {
+  max-width: 180px;
+}
+
+/* Honeypot — vizualno nepostojeći, ali prisutan u DOM-u za botove */
+.regform__hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Uspjeh */
+.regform__success {
+  background: var(--card);
+  border: 1px solid var(--green);
+  border-radius: var(--r-card);
+  padding: var(--sp-xl);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+}
+.regform__success-title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--green);
+}
+.regform__success-body {
+  color: var(--sub);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.regform__adminlink {
+  text-align: center;
+  margin-top: var(--sp-lg);
+  opacity: 0.7;
+}

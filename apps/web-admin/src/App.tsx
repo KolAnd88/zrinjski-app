@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { I18nProvider, useT } from './i18n/I18nProvider';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
+import { PublicRegistration } from './pages/PublicRegistration';
 import { Dashboard } from './pages/Dashboard';
 import { Tournament } from './pages/Tournament';
 import { Schedule } from './pages/Schedule';
@@ -34,6 +35,8 @@ function AppRoutes() {
     return (
       <Routes>
         <Route path="/login" element={<Login />} />
+        {/* Javna prijava ekipe — dostupna bez prijave */}
+        <Route path="/prijava" element={<PublicRegistration />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
@@ -43,6 +46,8 @@ function AppRoutes() {
     <Routes>
       {/* TV / semafor — preko cijelog ekrana, bez sidebar layouta */}
       <Route path="/tv" element={<Tv />} />
+      {/* Javna prijava ekipe (radi i dok je admin prijavljen — za dijeljenje linka) */}
+      <Route path="/prijava" element={<PublicRegistration />} />
 
       <Route element={<Layout title="dash.title" />}>
         <Route index element={<Dashboard />} />

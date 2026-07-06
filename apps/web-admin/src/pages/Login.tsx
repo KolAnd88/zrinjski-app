@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { useT } from '../i18n/I18nProvider';
 import { DEMO } from '../lib/supabase';
@@ -107,6 +108,12 @@ export function Login() {
         </div>
 
         <div className="login__note">{t('login.note')}</div>
+
+        <div style={{ textAlign: 'center', marginTop: 'var(--sp-md)' }}>
+          <Link to="/prijava" className="btn-link">
+            {t('login.registerLink')}
+          </Link>
+        </div>
       </form>
     </div>
   );
