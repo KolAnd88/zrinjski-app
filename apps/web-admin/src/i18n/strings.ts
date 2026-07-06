@@ -181,6 +181,10 @@ export const strings = {
     'live.noPlayers': 'Ekipa nema unesenih igrača.',
     'live.teamUnknown': 'ekipa još nije poznata',
     'live.backToList': 'Natrag na popis utakmica',
+    'live.delay': 'Kašnjenje — pomakni satnicu',
+    'live.delayDone': 'Satnica pomaknuta za +{n} min ({m} utakmica).',
+    'live.delayNone': 'Nema utakmica za pomak.',
+    'live.delayNotif': 'Satnica pomaknuta za +{n} min',
 
     // TV / semafor
     'tv.sponsor': 'pokrovitelj',
@@ -433,6 +437,10 @@ export const strings = {
     'live.noPlayers': 'Team has no players entered.',
     'live.teamUnknown': 'team not yet known',
     'live.backToList': 'Back to match list',
+    'live.delay': 'Delay — shift schedule',
+    'live.delayDone': 'Schedule shifted by +{n} min ({m} matches).',
+    'live.delayNone': 'No matches to shift.',
+    'live.delayNotif': 'Schedule shifted by +{n} min',
 
     'tv.sponsor': 'sponsor',
     'tv.next': 'Next',

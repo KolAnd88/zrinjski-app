@@ -40,6 +40,14 @@ function patch<T extends { id: string }>(arr: T[], id: string, p: Partial<T>): v
   if (i >= 0) arr[i] = { ...arr[i]!, ...p };
 }
 
+/** Timestamp za sortiranje — Date-based (tekstualna usporedba vara kod miješanih zapisa zone). */
+const TS_MAX = 8.64e15; // najveći valjani Date ms (konačan → nema NaN u komparatoru)
+function ts(iso: string | null | undefined): number {
+  if (!iso) return TS_MAX; // bez vremena → na kraj (uzlazno)
+  const t = new Date(iso).getTime();
+  return Number.isNaN(t) ? TS_MAX : t;
+}
+
 // ── Turnir / dani ──────────────────────────────────────────────────────────
 export async function fetchActiveTournament(): Promise<Tournament | null> {
   if (DEMO) return db.tournament;
@@ -127,6 +135,49 @@ export async function applyScheduledTimes(updates: { id: string; scheduledTime: 
   );
   const firstErr = results.find((r) => r.error)?.error;
   if (firstErr) throw firstErr;
+}
+
+/**
+ * Kašnjenje uživo (spec): pomakni zadanu utakmicu i SVE KASNIJE utakmice istog
+ * dana za `delayMin` minuta + zabilježi obavijest "promjena satnice".
+ * Radi nad stvarnim scheduled_time vrijednostima (poštuje ručne izmjene).
+ * Završene utakmice se ne diraju. Vraća broj pomaknutih utakmica.
+ */
+export async function shiftScheduleFrom(
+  matchId: string,
+  delayMin: number,
+  notifTitle: string
+): Promise<number> {
+  if (delayMin === 0) return 0;
+  const cur = await fetchMatch(matchId);
+  if (!cur || !cur.day_id) return 0;
+
+  const all = await fetchMatchesForSchedule(cur.tournament_id);
+  const targets = all.filter(
+    (m) =>
+      m.day_id === cur.day_id &&
+      m.sort_order >= cur.sort_order &&
+      m.status !== 'finished' &&
+      m.scheduled_time
+  );
+  if (targets.length === 0) return 0;
+
+  await applyScheduledTimes(
+    targets.map((m) => ({
+      id: m.id,
+      scheduledTime: new Date(new Date(m.scheduled_time!).getTime() + delayMin * 60_000).toISOString(),
+    }))
+  );
+
+  await insertNotification({
+    tournament_id: cur.tournament_id,
+    type: 'schedule_change',
+    audience: 'all',
+    title: notifTitle,
+    body: null,
+  });
+
+  return targets.length;
 }
 
 // ── Grupe ────────────────────────────────────────────────────────────────
@@ -363,7 +414,7 @@ export async function fetchEnterableMatches(tournamentId: string): Promise<Match
   if (DEMO)
     return db.matches
       .filter((m) => m.tournament_id === tournamentId && (m.status === 'scheduled' || m.status === 'live'))
-      .sort((a, b) => (a.scheduled_time ?? '').localeCompare(b.scheduled_time ?? '') || a.sort_order - b.sort_order);
+      .sort((a, b) => ts(a.scheduled_time) - ts(b.scheduled_time) || a.sort_order - b.sort_order);
   const { data, error } = await client()
     .from('match')
     .select('*')
@@ -379,7 +430,7 @@ export async function fetchFinishedMatches(tournamentId: string): Promise<Match[
   if (DEMO)
     return db.matches
       .filter((m) => m.tournament_id === tournamentId && m.status === 'finished')
-      .sort((a, b) => (b.scheduled_time ?? '').localeCompare(a.scheduled_time ?? ''));
+      .sort((a, b) => ts(b.scheduled_time) - ts(a.scheduled_time));
   const { data, error } = await client()
     .from('match')
     .select('*')

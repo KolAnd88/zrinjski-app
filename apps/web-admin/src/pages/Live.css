@@ -122,6 +122,13 @@
   color: #ffd7da;
 }
 
+/* Kašnjenje — pomak satnice */
+.live__delay {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-sm);
+}
+
 /* Vrsta događaja */
 .live__events {
   display: grid;

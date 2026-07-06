@@ -7,6 +7,7 @@ import { Button, Card, Crest } from '../components/ui';
 import { useTournamentData } from '../features/tournament/useTournamentData';
 import { useEnterableMatches } from '../features/live/useEnterableMatches';
 import { useLiveMatch, type LiveTeam } from '../features/live/useLiveMatch';
+import { shiftScheduleFrom } from '../lib/data';
 import { isoToLocalHHMM } from '../lib/timeFormat';
 import './Live.css';
 
@@ -119,6 +120,20 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
   const enterable = useEnterableMatches(tournamentId);
   const clock = useLiveClock(live.match);
   const [selectedType, setSelectedType] = useState<EventType>('goal');
+  const [delayMsg, setDelayMsg] = useState<string | null>(null);
+  const [delayBusy, setDelayBusy] = useState(false);
+
+  async function handleDelay(minutes: number) {
+    setDelayBusy(true);
+    try {
+      const moved = await shiftScheduleFrom(matchId, minutes, t('live.delayNotif', { n: minutes }));
+      setDelayMsg(moved > 0 ? t('live.delayDone', { n: minutes, m: moved }) : t('live.delayNone'));
+      await enterable.reload();
+      setTimeout(() => setDelayMsg(null), 4000);
+    } finally {
+      setDelayBusy(false);
+    }
+  }
 
   // Sinkroniziraj minutu na bazu (jednom po minuti) dok je uživo.
   useEffect(() => {
@@ -213,6 +228,21 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
         <div className={`live__jersey ${clash ? 'is-clash' : 'is-ok'}`}>
           ● {t('live.jersey')} — {clash ? t('live.jerseyClash') : t('live.jerseyOk')}
         </div>
+
+        {/* Kašnjenje uživo → pomak satnice (spec: sve kasnije utakmice se pomiču + obavijest) */}
+        <Card>
+          <h3 className="section-label" style={{ marginBottom: 'var(--sp-sm)' }}>
+            {t('live.delay')}
+          </h3>
+          <div className="live__delay">
+            {[5, 10, 15].map((min) => (
+              <Button key={min} disabled={delayBusy || !m.day_id} onClick={() => void handleDelay(min)}>
+                +{min} min
+              </Button>
+            ))}
+          </div>
+          {delayMsg && <div className="banner banner--ok" style={{ marginTop: 'var(--sp-sm)' }}>{delayMsg}</div>}
+        </Card>
 
         {/* Vrsta događaja */}
         <Card>

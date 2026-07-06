@@ -14,12 +14,13 @@ export function fromInputTime(v: string): string | null {
 }
 
 /**
- * Vrijeme "HH:MM" iz ISO timestampa (core sprema lokalno vrijeme s eksplicitnim
- * offsetom, npr. "2026-07-10T18:00:00+02:00"). Slicea satnicu iz stringa pa je
- * neovisno o vremenskoj zoni preglednika. null/'' → ''.
+ * Vrijeme "HH:MM" iz ISO timestampa, u LOKALNOJ zoni preglednika.
+ * VAŽNO: Postgres (timestamptz) vraća vremena u UTC — rezanje sata iz stringa
+ * prikazivalo bi 2h krivo. Organizacija i turnir su u istoj zoni pa je lokalno točno.
  */
 export function isoToLocalHHMM(iso: string | null | undefined): string {
   if (!iso) return '';
-  const m = /T(\d{2}):(\d{2})/.exec(iso);
-  return m ? `${m[1]}:${m[2]}` : '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }

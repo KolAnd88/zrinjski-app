@@ -53,11 +53,16 @@ export function dayTitle(isoDate: string, locale: Locale): string {
   return `${wd} · ${MONTH_EN[d.getUTCMonth()]} ${d.getUTCDate()}`;
 }
 
-/** "HH:MM" iz ISO timestampa (neovisno o zoni preglednika). */
+/**
+ * "HH:MM" iz ISO timestampa, u LOKALNOJ zoni uređaja.
+ * VAŽNO: Postgres (timestamptz) vraća vremena u UTC — rezanje sata iz stringa
+ * prikazivalo bi 2h krivo. Publika i turnir su u istoj zoni pa je lokalno točno.
+ */
 export function isoToHHMM(iso: string | null | undefined): string {
   if (!iso) return '';
-  const m = /T(\d{2}):(\d{2})/.exec(iso);
-  return m ? `${m[1]}:${m[2]}` : '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
 /** "HH:MM:SS"/"HH:MM" Postgres time → "HH:MM". */
