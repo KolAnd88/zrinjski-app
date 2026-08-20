@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import type { Gender } from '@zrinjski/core';
+import type { Gender, RegistrationPlayer } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import { submitRegistration } from '../lib/data';
 import { Button } from '../components/ui';
@@ -13,7 +13,12 @@ export function PublicRegistration() {
   const [gender, setGender] = useState<Gender>('m');
   const [repName, setRepName] = useState('');
   const [repEmail, setRepEmail] = useState('');
-  const [playerCount, setPlayerCount] = useState('');
+  // Sastav: predstavnik može upisati odmah (ili preskočiti i poslati kasnije).
+  const [players, setPlayers] = useState<RegistrationPlayer[]>([
+    { name: '', number: null },
+    { name: '', number: null },
+    { name: '', number: null },
+  ]);
   const [honey, setHoney] = useState(''); // honeypot — ljudi ga ne vide, botovi popune
   const openedAt = useRef(Date.now());
   const [busy, setBusy] = useState(false);
@@ -41,13 +46,16 @@ export function PublicRegistration() {
 
     setBusy(true);
     try {
-      const n = Number(playerCount);
+      const roster = players
+        .filter((p) => p.name.trim())
+        .map((p) => ({ name: p.name.trim(), number: p.number }));
       await submitRegistration({
         team_name: teamName.trim(),
         gender,
         rep_name: repName.trim(),
         rep_email: repEmail.trim(),
-        player_count: Number.isFinite(n) && n > 0 ? Math.round(n) : null,
+        player_count: roster.length || null,
+        players: roster,
       });
       setDone(true);
     } catch {
@@ -57,14 +65,24 @@ export function PublicRegistration() {
     }
   }
 
+  function setPlayer(i: number, patch: Partial<RegistrationPlayer>) {
+    setPlayers((xs) => xs.map((p, idx) => (idx === i ? { ...p, ...patch } : p)));
+  }
+
   function resetForm() {
     setTeamName('');
     setRepName('');
     setRepEmail('');
-    setPlayerCount('');
+    setPlayers([
+      { name: '', number: null },
+      { name: '', number: null },
+      { name: '', number: null },
+    ]);
     setDone(false);
     openedAt.current = Date.now();
   }
+
+  const filledPlayers = players.filter((p) => p.name.trim()).length;
 
   return (
     <div className="login regform">
@@ -141,19 +159,58 @@ export function PublicRegistration() {
               />
             </div>
 
+            {/* Sastav — može se preskočiti i poslati kasnije */}
             <div>
-              <label className="field-label" htmlFor="rf-count">
-                {t('regform.playerCount')}
-              </label>
-              <input
-                id="rf-count"
-                className="input regform__count"
-                type="number"
-                min={1}
-                max={30}
-                value={playerCount}
-                onChange={(e) => setPlayerCount(e.target.value)}
-              />
+              <div className="regform__rosterhead">
+                <span className="field-label" style={{ marginBottom: 0 }}>
+                  {t('regform.roster')}
+                </span>
+                <span className="regform__count-badge">
+                  {filledPlayers} {t('regform.rosterCount')}
+                </span>
+              </div>
+              <p className="regform__rosterhint">{t('regform.rosterHint')}</p>
+
+              <div className="regform__players">
+                {players.map((p, i) => (
+                  <div key={i} className="regform__prow">
+                    <input
+                      className="input regform__pnum"
+                      inputMode="numeric"
+                      placeholder={t('regform.playerNumber')}
+                      value={p.number ?? ''}
+                      onChange={(e) => {
+                        const v = e.target.value.trim();
+                        const n = Number(v);
+                        setPlayer(i, { number: v && Number.isFinite(n) ? Math.round(n) : null });
+                      }}
+                    />
+                    <input
+                      className="input"
+                      placeholder={`${t('regform.playerName')} ${i + 1}`}
+                      value={p.name}
+                      onChange={(e) => setPlayer(i, { name: e.target.value })}
+                    />
+                    <button
+                      type="button"
+                      className="regform__pdel"
+                      aria-label="×"
+                      disabled={players.length <= 1}
+                      onClick={() => setPlayers((xs) => xs.filter((_, idx) => idx !== i))}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className="regform__addplayer"
+                onClick={() => setPlayers((xs) => [...xs, { name: '', number: null }])}
+              >
+                {t('regform.addPlayer')}
+              </button>
             </div>
 
             {/* honeypot — skriveno od ljudi */}

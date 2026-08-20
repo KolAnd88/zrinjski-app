@@ -76,6 +76,35 @@
 .regcard__email {
   color: var(--mut);
 }
+/* Prijavljeni sastav */
+.regcard__roster {
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-chip);
+  padding: var(--sp-md);
+}
+.regcard__roster-head {
+  font-family: var(--font-head);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--sub);
+  margin-bottom: var(--sp-sm);
+}
+.regcard__roster-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+.regcard__player {
+  font-size: 13px;
+}
+.regcard__player b {
+  color: var(--sub);
+  font-family: var(--font-head);
+  margin-right: 2px;
+}
+
 .regcard__actions {
   display: grid;
   grid-template-columns: 1fr 1fr;

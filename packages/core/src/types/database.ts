@@ -29,6 +29,12 @@ export type NotificationType =
   | 'program'
   | 'custom';
 
+/** Jedan igrač u nacrtu sastava (javna prijava ekipe). */
+export type RegistrationPlayer = {
+  name: string;
+  number: number | null;
+};
+
 export type ReminderPrefs = {
   day_before_18: boolean;
   thirty_min_before: boolean;
@@ -311,6 +317,8 @@ export type Database = {
           rep_name: string;
           rep_email: string;
           player_count: number | null;
+          /** Nacrt sastava iz javne prijave; kod odobrenja se prepisuje u `player`. */
+          players: RegistrationPlayer[];
           status: RegistrationStatus;
           created_at: string;
         };
@@ -322,6 +330,7 @@ export type Database = {
           rep_name: string;
           rep_email: string;
           player_count?: number | null;
+          players?: RegistrationPlayer[];
           status?: RegistrationStatus;
           created_at?: string;
         };

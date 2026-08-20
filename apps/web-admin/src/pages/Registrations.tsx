@@ -40,6 +40,22 @@ function PendingCard({
         <br />
         <span className="regcard__email">{reg.rep_email}</span>
       </div>
+
+      {/* Prijavljeni sastav — kreira se kao igrači kad se prijava odobri. */}
+      {(reg.players?.length ?? 0) > 0 && (
+        <div className="regcard__roster">
+          <div className="regcard__roster-head">
+            {t('reg.roster')} · {reg.players.length}
+          </div>
+          <div className="regcard__roster-list">
+            {reg.players.map((p, i) => (
+              <span key={i} className="regcard__player">
+                {p.number != null && <b>{p.number}</b>} {p.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="regcard__actions">
         <button className="btn-approve" onClick={onApprove}>
           {t('reg.approve')}

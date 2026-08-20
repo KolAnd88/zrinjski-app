@@ -190,9 +190,12 @@ create table if not exists public.registration (
   rep_name text not null,
   rep_email text not null,
   player_count int,
+  players jsonb not null default '[]'::jsonb,
   status registration_status not null default 'pending',
   created_at timestamptz not null default now()
 );
+-- Nacrt sastava iz javne prijave: [{name, number}]; kod odobrenja ide u `player`.
+alter table public.registration add column if not exists players jsonb not null default '[]'::jsonb;
 create index if not exists idx_registration_tournament on public.registration(tournament_id, status);
 
 create table if not exists public.gallery_photo (

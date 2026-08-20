@@ -11,6 +11,7 @@ import type {
   NotificationLog,
   Player,
   Registration,
+  RegistrationPlayer,
   RegistrationStatus,
   Sponsor,
   Team,
@@ -678,6 +679,8 @@ export type PublicRegistrationInput = {
   rep_name: string;
   rep_email: string;
   player_count: number | null;
+  /** Nacrt sastava (može biti prazan — sastav se doda kasnije). */
+  players: RegistrationPlayer[];
 };
 
 /**
@@ -696,6 +699,7 @@ export async function submitRegistration(input: PublicRegistrationInput): Promis
       rep_name: input.rep_name,
       rep_email: input.rep_email,
       player_count: input.player_count,
+      players: input.players,
       status: 'pending',
       created_at: new Date().toISOString(),
     });

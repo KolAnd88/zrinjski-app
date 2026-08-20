@@ -33,6 +33,70 @@
   max-width: 180px;
 }
 
+/* Sastav */
+.regform__rosterhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-sm);
+}
+.regform__count-badge {
+  color: var(--sub);
+  font-size: 12px;
+}
+.regform__rosterhint {
+  color: var(--mut);
+  font-size: 12px;
+  margin: var(--sp-xs) 0 var(--sp-sm);
+  line-height: 1.4;
+}
+.regform__players {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+.regform__prow {
+  display: grid;
+  grid-template-columns: 64px 1fr 36px;
+  gap: var(--sp-sm);
+  align-items: center;
+}
+.regform__pnum {
+  text-align: center;
+  padding: 0 var(--sp-sm);
+}
+.regform__pdel {
+  background: none;
+  border: none;
+  color: var(--sub);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.regform__pdel:hover:not(:disabled) {
+  color: var(--red);
+}
+.regform__pdel:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.regform__addplayer {
+  width: 100%;
+  min-height: var(--touch);
+  margin-top: var(--sp-sm);
+  border: 1px dashed var(--red);
+  background: transparent;
+  color: var(--red);
+  border-radius: var(--r-chip);
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+.regform__addplayer:hover {
+  background: rgba(225, 29, 42, 0.08);
+}
+
 /* Honeypot — vizualno nepostojeći, ali prisutan u DOM-u za botove */
 .regform__hp {
   position: absolute;
