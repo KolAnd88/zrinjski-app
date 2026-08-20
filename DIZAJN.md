@@ -19,7 +19,36 @@ Tokeni u kodu: vidi `dizajn/tokens.ts`. Vizualne ploče sustava: `ekrani/ds_foun
 | sub | #9AA0AA | sekundarni tekst |
 | mut | #6B7079 | prigušeno |
 | green | #22C55E | uspjeh/prolaz/odobri |
-| purple, teal, orange | #6A1FB0 / #1F7A8C / #C2410C | boje gostujućih ekipa (primjeri) |
+
+> Boje ekipa nisu u ovoj tablici — vidi „Grbovi ekipa" niže.
+
+## Grbovi ekipa (boje i logotipi)
+
+**Nema master tablice ekipa → boja.** Boja grba se **računa iz indeksa ekipe**
+(`crestColorFor(team.sort_order)`); ponavljanje boja je dopušteno i **nije greška**.
+
+Boja grba **nije nositelj informacije** — ne označava grupu, plasman ni status.
+
+| # | Hex | |
+|---|-----|---|
+| 0 | #1F6F6B | teal |
+| 1 | #4A127F | ljubičasta |
+| 2 | #C2571B | narančasta |
+| 3 | #1E4FA3 | plava |
+| 4 | #2F7D4F | zelenkasta |
+| 5 | #6B2233 | burgundy |
+
+U paleti namjerno **nema** brend-crvene (`#E11D2A`/`#9C0C18`), zlatne (`#D9B24A`)
+ni zelene (`#22C55E`) — te tri imaju svoje značenje.
+
+**Logotip je opcionalan.** Jedna komponenta (`Crest`, mobilna + web) crta grb svugdje:
+1. ima li ekipa `logo_url` → slika uklopljena (`contain`), **nikad obrezana**, na neutralnoj podlozi;
+2. inače → **krug** u boji iz palete s 2–3 slovnom kraticom (Oswald, bijelo, centrirano).
+
+Nikad prazna rupa ni generička placeholder ikona. Veličine: popis/raspored 32,
+poredak 28, zaglavlje ekipe i detalj utakmice 56, uživo 72, TV semafor 120.
+Upload logotipa: web admin → Ekipe → „Logo ekipe" (PNG/SVG, prozirna pozadina,
+preporučeno 512×512, najviše 512 KB; sprema se u Storage bucket `team-logos`).
 
 ## Tipografija
 - **Oswald** (700/600) — naslovi, rezultati, oznake; često VELIKIM slovima, blagi letter-spacing.
@@ -33,7 +62,7 @@ Tokeni u kodu: vidi `dizajn/tokens.ts`. Vizualne ploče sustava: `ekrani/ds_foun
 
 ## Ključne komponente (vidi ds_components.png)
 Gumbi (primarni crveni / sekundarni obrub / ghost / tap-+), chipovi (izbor događaja, M/Ž toggle), oznake (UŽIVO crveno, ZAVRŠENO, FINALE zlatni obrub, „nema sudara" zeleno), red utakmice (grb + naziv + rezultat/UŽIVO), red igrača s „+", donja navigacija (6: Početna/Raspored/Poredak/Statist./Galerija/Info), istaknuti blokovi (zlatni sponzor, finale).
-Grb ekipe = zaobljeni kvadrat u boji ekipe s 3-slovnom kraticom (npr. ZRI, GRU). Donja navigacija (korisnička) i crveno zaglavlje + izbornik u pločicama (admin).
+Grb ekipe = **krug** s logotipom ekipe ili, ako logotipa nema, s 2–3 slovnom kraticom (npr. ZRI, GRU) u automatski dodijeljenoj boji — vidi „Grbovi ekipa". Donja navigacija (korisnička) i crveno zaglavlje + izbornik u pločicama (admin).
 
 ## Mapa ekrana → mockup datoteke (sve u `ekrani/`)
 
@@ -78,5 +107,6 @@ Grb ekipe = zaobljeni kvadrat u boji ekipe s 3-slovnom kraticom (npr. ZRI, GRU).
 ## Pravila primjene
 - Ne odstupaj od tokena; sve boje/razmaci/radijusi dolaze iz `tokens.ts`.
 - UŽIVO/realtime stanja uvijek crvena. Finale i zlatni sponzor jedini smiju biti zlatni.
+- Boje ekipa se NE biraju ručno niti hardkodiraju po nazivu kluba — uvijek `crestColorFor(team.sort_order)`.
 - Admin = crveno zaglavlje + izbornik u pločicama; korisnik = donja navigacija sa 6 stavki.
 - Mockupi su smjernica za raspored i hijerarhiju, ne piksel-savršen zahtjev; drži se sustava i proporcija.
