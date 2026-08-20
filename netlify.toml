@@ -1,0 +1,24 @@
+# Netlify — objava web admina (apps/web-admin) iz monorepa.
+# Build se pokreće iz korijena jer web-admin ovisi o workspace paketima
+# (@zrinjski/core, @zrinjski/ui-tokens) koji se moraju instalirati zajedno.
+#
+# Supabase ključevi se NE drže ovdje — postavljaju se u Netlify sučelju
+# (Site settings → Environment variables): VITE_SUPABASE_URL i VITE_SUPABASE_ANON_KEY.
+
+[build]
+  command = "npm run build -w @zrinjski/web-admin"
+  publish = "apps/web-admin/dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  # Mobilna app (Expo/React Native) nije potrebna za web build, ali je u istom
+  # workspaceu. Ako instalacija bude presporo/pukne, ovdje se prelazi na:
+  # NPM_FLAGS = "--workspace @zrinjski/web-admin --include-workspace-root"
+
+# SPA routing — /prijava, /moja-ekipa i ostale rute moraju vraćati index.html,
+# inače Netlify traži datoteku tog imena i vraća 404 kod osvježavanja stranice.
+# (Isto radi i apps/web-admin/public/_redirects; ovdje je da bude na jednom mjestu.)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
