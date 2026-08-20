@@ -21,10 +21,22 @@ export const colors = {
 
   // Status
   green: '#22C55E',   // uspjeh / prolaz u završnicu / odobri
-
-  // Boje gostujućih ekipa (primjeri — stvarne se biraju u adminu)
-  teamColors: ['#E11D2A', '#2D6CDF', '#6A1FB0', '#1F7A8C', '#C2410C', '#0D9488', '#B03060', '#0E7490'],
 } as const;
+
+// Boje grbova ekipa — dodjeljuju se po indeksu, ponavljanje je OK.
+// NE koriste se kao nositelj informacije (ne označavaju grupu, plasman ni status).
+// Namjerno bez brend-crvene, zlatne i zelene — one imaju svoje značenje.
+export const teamCrest = [
+  '#1F6F6B', // teal
+  '#4A127F', // ljubičasta
+  '#C2571B', // narančasta
+  '#1E4FA3', // plava
+  '#2F7D4F', // zelenkasta
+  '#6B2233', // burgundy
+] as const;
+
+export const crestColorFor = (index: number) =>
+  teamCrest[((index % teamCrest.length) + teamCrest.length) % teamCrest.length]!;
 
 // 8pt ritam
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;

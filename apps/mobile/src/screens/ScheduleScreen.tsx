@@ -118,7 +118,7 @@ function MatchCard({ match, stage, onPress }: { match: Match; stage: string; onP
         </Txt>
       ) : (
         <View style={styles.cardRow}>
-          <Crest code={home?.short_code} color={home?.color} size={26} />
+          <Crest code={home?.short_code} index={home?.sort_order} size={26} />
           <Txt style={styles.code}>{home?.short_code}</Txt>
           <View style={styles.cardMid}>
             {match.status === 'live' ? (
@@ -132,7 +132,7 @@ function MatchCard({ match, stage, onPress }: { match: Match; stage: string; onP
             )}
           </View>
           <Txt style={[styles.code, { textAlign: 'right' }]}>{away?.short_code}</Txt>
-          <Crest code={away?.short_code} color={away?.color} size={26} />
+          <Crest code={away?.short_code} index={away?.sort_order} size={26} />
         </View>
       )}
     </Pressable>

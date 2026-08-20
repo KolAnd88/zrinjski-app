@@ -41,6 +41,10 @@ export const demoGroups: Grp[] = [
   { id: 'GZ', tournament_id: 'T', gender: 'z', name: 'Grupa A', sort_order: 0 },
 ];
 
+// `color` se više ne koristi u UI-ju (boja grba = crestColorFor(sort_order)),
+// ostaje samo da demo redovi zadovolje tip baze.
+let demoMIdx = 0;
+let demoZIdx = 0;
 function team(
   id: string,
   name: string,
@@ -61,6 +65,7 @@ function team(
     coach_name: coach,
     rep_email: null,
     logo_url: null,
+    sort_order: gender === 'm' ? demoMIdx++ : demoZIdx++,
     created_at: '2026-01-01T00:00:00+01:00',
   };
 }

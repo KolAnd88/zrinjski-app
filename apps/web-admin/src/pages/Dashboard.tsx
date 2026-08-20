@@ -32,7 +32,7 @@ export function Dashboard() {
             </div>
             <div className="dash__live-row">
               <div className="dash__team">
-                <Crest code={live.homeCode} color={live.homeColor} />
+                <Crest code={live.homeCode} index={live.homeIndex} />
                 <span className="dash__team-name">{live.homeName}</span>
               </div>
               <div className="dash__score">
@@ -40,7 +40,7 @@ export function Dashboard() {
               </div>
               <div className="dash__team dash__team--away">
                 <span className="dash__team-name">{live.awayName}</span>
-                <Crest code={live.awayCode} color={live.awayColor} />
+                <Crest code={live.awayCode} index={live.awayIndex} />
               </div>
             </div>
           </>

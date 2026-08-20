@@ -15,10 +15,10 @@ export type LiveMatch = {
   stage: Stage;
   homeName: string;
   homeCode: string | null;
-  homeColor: string | null;
+  homeIndex: number;
   awayName: string;
   awayCode: string | null;
-  awayColor: string | null;
+  awayIndex: number;
   homeScore: number;
   awayScore: number;
 };
@@ -79,10 +79,10 @@ export function useDashboard(): DashboardData {
             stage: lm.stage,
             homeName: home?.name ?? '—',
             homeCode: home?.short_code ?? null,
-            homeColor: home?.color ?? null,
+            homeIndex: home?.sort_order ?? 0,
             awayName: away?.name ?? '—',
             awayCode: away?.short_code ?? null,
-            awayColor: away?.color ?? null,
+            awayIndex: away?.sort_order ?? 0,
             homeScore: lm.home_score,
             awayScore: lm.away_score,
           };

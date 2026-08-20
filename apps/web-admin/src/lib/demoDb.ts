@@ -58,11 +58,16 @@ const groups: Grp[] = [
   { id: gZA, tournament_id: T, gender: 'z', name: 'Grupa A', sort_order: 0 },
 ];
 
-// Ekipe
+// Ekipe. `color` se više ne koristi u UI-ju (boja = crestColorFor(sort_order)),
+// ostaje samo da demo redovi zadovolje tip. sort_order se dodjeljuje redom po spolu.
+let mIdx = 0;
+let zIdx = 0;
 function team(id: string, name: string, code: string, color: string, gender: 'm' | 'z', group: string | null, coach: string): Team {
   return {
     id, tournament_id: T, name, short_code: code, color, gender, group_id: group,
-    coach_name: coach, rep_email: `${code.toLowerCase()}@klub.ba`, logo_url: null, created_at: '2026-01-01T00:00:00Z',
+    coach_name: coach, rep_email: `${code.toLowerCase()}@klub.ba`, logo_url: null,
+    sort_order: gender === 'm' ? mIdx++ : zIdx++,
+    created_at: '2026-01-01T00:00:00Z',
   };
 }
 const teams: Team[] = [

@@ -80,7 +80,7 @@ export function OnboardingScreen() {
                 const on = followed.includes(tm.id);
                 return (
                   <Pressable key={tm.id} style={[styles.teamRow, on && styles.teamOn]} onPress={() => toggleFollow(tm.id)}>
-                    <Crest code={tm.short_code} color={tm.color} size={32} />
+                    <Crest code={tm.short_code} index={tm.sort_order} size={32} />
                     <Txt style={styles.teamName}>{tm.name}</Txt>
                     <Txt style={{ fontFamily: F.head, color: on ? C.red : C.mut, fontSize: 18 }}>{on ? '✓' : '+'}</Txt>
                   </Pressable>

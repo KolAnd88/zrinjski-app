@@ -94,14 +94,14 @@ export function LiveScreen() {
         )}
         <View style={styles.scoreRow}>
           <View style={styles.side}>
-            <Crest code={home?.short_code} color={home?.color} size={72} />
+            <Crest code={home?.short_code} index={home?.sort_order} size={72} />
             <Txt style={styles.sideName}>{home?.name?.toUpperCase()}</Txt>
           </View>
           <Txt style={styles.big}>
             {m.home_score} : {m.away_score}
           </Txt>
           <View style={styles.side}>
-            <Crest code={away?.short_code} color={away?.color} size={72} />
+            <Crest code={away?.short_code} index={away?.sort_order} size={72} />
             <Txt style={styles.sideName}>{away?.name?.toUpperCase()}</Txt>
           </View>
         </View>
@@ -159,7 +159,7 @@ export function LiveScreen() {
                 tm && (
                   <View key={tm.id} style={styles.roster}>
                     <View style={[styles.rosterHead, { backgroundColor: tm.color ?? C.card2 }]}>
-                      <Crest code={tm.short_code} color={tm.color} size={24} />
+                      <Crest code={tm.short_code} index={tm.sort_order} size={24} />
                       <Txt style={styles.rosterName}>{tm.name}</Txt>
                     </View>
                     {d.playersOf(tm.id).map((p) => (
@@ -256,7 +256,7 @@ function MatchStats({ matchEvents }: { matchEvents: MatchEvent[] }) {
         const team = p ? d.teamById(p.team_id) : undefined;
         return (
           <View key={pid} style={styles.statRow}>
-            <Crest code={team?.short_code} color={team?.color} size={28} />
+            <Crest code={team?.short_code} index={team?.sort_order} size={28} />
             <Txt style={{ flex: 1, fontFamily: F.bodySemi }}>{p?.name}</Txt>
             <Txt style={{ fontFamily: F.head, fontSize: 18 }}>{n}</Txt>
           </View>

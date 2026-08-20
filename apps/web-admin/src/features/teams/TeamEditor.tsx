@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Grp, Player, Team, TablesUpdate } from '@zrinjski/core';
-import { colors as tokenColors } from '@zrinjski/ui-tokens';
+import { crestColorFor } from '@zrinjski/ui-tokens';
 import { useT } from '../../i18n/I18nProvider';
 import { Crest } from '../../components/ui';
 import type { TeamsData } from './useTeamsData';
@@ -126,7 +126,7 @@ export function TeamEditor({
   return (
     <div className="teditor">
       <div className="teditor__head">
-        <Crest code={team.short_code} color={team.color} />
+        <Crest code={team.short_code} color={crestColorFor(team.sort_order)} />
         <h2 className="teditor__title">
           {t('teams.editPrefix')}: {team.name}
         </h2>
@@ -141,27 +141,6 @@ export function TeamEditor({
           placeholder="ZRI"
           onSave={(v) => data.editTeam(team.id, { short_code: v.trim().toUpperCase() || null })}
         />
-      </div>
-
-      <div>
-        <label className="field-label">{t('teams.color')}</label>
-        <div className="swatches">
-          {tokenColors.teamColors.map((c) => (
-            <button
-              key={c}
-              className={`swatch ${team.color === c ? 'is-on' : ''}`}
-              style={{ background: c }}
-              aria-label={c}
-              onClick={() => void data.editTeam(team.id, { color: c })}
-            />
-          ))}
-          <input
-            type="color"
-            className="swatch swatch--custom"
-            value={team.color ?? '#888888'}
-            onChange={(e) => void data.editTeam(team.id, { color: e.target.value })}
-          />
-        </div>
       </div>
 
       <div className="teditor__grid">

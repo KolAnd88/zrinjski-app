@@ -5,7 +5,16 @@ import { HAS_DATA } from '../../lib/supabase';
 import { applyScheduledTimes, fetchAllTeams, fetchMatchesForSchedule } from '../../lib/data';
 import { toInputTime } from '../../lib/timeFormat';
 
-export type TeamLite = { id: string; name: string; short_code: string | null; color: string | null };
+export type TeamLite = {
+  id: string;
+  name: string;
+  short_code: string | null;
+  /** @deprecated boja se računa iz sort_order (crestColorFor) */
+  color: string | null;
+  /** Indeks za boju grba. */
+  sort_order: number;
+  logo_url: string | null;
+};
 
 export type ScheduleMatchesState = {
   loading: boolean;

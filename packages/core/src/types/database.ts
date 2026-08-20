@@ -120,12 +120,15 @@ export type Database = {
           tournament_id: string;
           name: string;
           short_code: string | null;
+          /** @deprecated Boja grba se računa iz sort_order (crestColorFor). Ostaje radi kompatibilnosti. */
           color: string | null;
           gender: Gender;
           group_id: string | null;
           coach_name: string | null;
           rep_email: string | null;
           logo_url: string | null;
+          /** Redoslijed ekipe — određuje i boju grba: crestColorFor(sort_order). */
+          sort_order: number;
           created_at: string;
         };
         Insert: {
@@ -139,6 +142,7 @@ export type Database = {
           coach_name?: string | null;
           rep_email?: string | null;
           logo_url?: string | null;
+          sort_order?: number;
           created_at?: string;
         };
         Update: Partial<Database['public']['Tables']['team']['Insert']>;

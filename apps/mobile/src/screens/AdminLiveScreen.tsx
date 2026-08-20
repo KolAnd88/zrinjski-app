@@ -71,7 +71,7 @@ export function AdminLiveScreen() {
     return (
       <View style={styles.roster}>
         <View style={[styles.rosterHead, { backgroundColor: team.color ?? C.card2 }]}>
-          <Crest code={team.short_code} color={team.color} size={24} />
+          <Crest code={team.short_code} index={team.sort_order} size={24} />
           <Txt style={styles.rosterName}>{team.name}</Txt>
         </View>
         {roster.length === 0 ? (
@@ -109,7 +109,7 @@ export function AdminLiveScreen() {
 
           <View style={styles.scoreRow}>
             <View style={styles.sideCol}>
-              <Crest code={home?.short_code} color={home?.color} size={48} />
+              <Crest code={home?.short_code} index={home?.sort_order} size={48} />
               <Txt style={styles.sideName} numberOfLines={1}>
                 {home?.name ?? '—'}
               </Txt>
@@ -118,7 +118,7 @@ export function AdminLiveScreen() {
               {m.home_score} : {m.away_score}
             </Txt>
             <View style={styles.sideCol}>
-              <Crest code={away?.short_code} color={away?.color} size={48} />
+              <Crest code={away?.short_code} index={away?.sort_order} size={48} />
               <Txt style={styles.sideName} numberOfLines={1}>
                 {away?.name ?? '—'}
               </Txt>

@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { crestColorFor } from '@zrinjski/ui-tokens';
 import './ui.css';
 
 type Variant = 'primary' | 'secondary' | 'ghost';
@@ -50,22 +51,30 @@ export function Card({
 }
 
 /** Grb ekipe — zaobljeni kvadrat u boji ekipe s 3-slovnom kraticom. */
+/**
+ * Grb ekipe (krug). Boja se NE bira ručno — računa se iz indeksa ekipe.
+ * `color` prop postoji samo za slučajeve bez ekipe (npr. prijave) gdje se
+ * boja već izračunala pozivateljem; inače proslijedi `index`.
+ */
 export function Crest({
   code,
   color,
+  index,
   size = 48,
 }: {
   code: string | null | undefined;
-  color: string | null | undefined;
+  color?: string | null;
+  index?: number | null;
   size?: number;
 }) {
+  const bg = color ?? (index != null ? crestColorFor(index) : 'var(--card2)');
   return (
     <span
       className="crest"
       style={{
         width: size,
         height: size,
-        background: color || 'var(--card2)',
+        background: bg,
         fontSize: Math.round(size * 0.34),
       }}
     >

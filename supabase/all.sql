@@ -92,10 +92,14 @@ create table if not exists public.team (
   coach_name text,
   rep_email text,
   logo_url text,
+  sort_order int not null default 0,
   created_at timestamptz not null default now()
 );
+-- `color` se više ne koristi u UI-ju: boja grba = crestColorFor(sort_order).
+alter table public.team add column if not exists sort_order int not null default 0;
 create index if not exists idx_team_tournament on public.team(tournament_id, gender);
 create index if not exists idx_team_group on public.team(group_id);
+create index if not exists idx_team_sort on public.team(tournament_id, gender, sort_order);
 
 create table if not exists public.player (
   id uuid primary key default gen_random_uuid(),

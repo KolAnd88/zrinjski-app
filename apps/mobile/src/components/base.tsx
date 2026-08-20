@@ -9,6 +9,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { crestColorFor } from '@zrinjski/ui-tokens';
 import { useData } from '../lib/useData';
 import { C, F, R, S, type as T } from '../theme';
 
@@ -102,20 +103,27 @@ export function Card({
   );
 }
 
+/**
+ * Grb ekipe (krug). Boja se NE bira ručno — računa se iz indeksa ekipe
+ * (`index` → crestColorFor). `color` ostaje za rijetke slučajeve bez ekipe.
+ */
 export function Crest({
   code,
   color,
+  index,
   size = 48,
 }: {
   code?: string | null;
   color?: string | null;
+  index?: number | null;
   size?: number;
 }) {
+  const bg = color ?? (index != null ? crestColorFor(index) : C.card2);
   return (
     <View
       style={[
         styles.crest,
-        { width: size, height: size, backgroundColor: color || C.card2, borderRadius: R.chip },
+        { width: size, height: size, backgroundColor: bg, borderRadius: size / 2 },
       ]}
     >
       <Text style={{ fontFamily: F.head, color: '#fff', fontSize: Math.round(size * 0.34) }}>

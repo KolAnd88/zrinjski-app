@@ -4,6 +4,7 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Match } from '@zrinjski/core';
 import { computeStandings } from '@zrinjski/core';
+import { crestColorFor } from '@zrinjski/ui-tokens';
 import { useT } from '../i18n/I18nProvider';
 import type { StringKey } from '../i18n/strings';
 import { useData } from '../lib/useData';
@@ -79,8 +80,8 @@ export function TeamScreen() {
 
   return (
     <ScrollView style={styles.safe} contentContainerStyle={{ paddingBottom: S.xxl }}>
-      {/* Zaglavlje u boji ekipe */}
-      <View style={[styles.header, { backgroundColor: team.color ?? C.card2 }]}>
+      {/* Zaglavlje u boji ekipe (boja iz indeksa, vidi crestColorFor) */}
+      <View style={[styles.header, { backgroundColor: crestColorFor(team.sort_order) }]}>
         <Crest code={team.short_code} color="rgba(0,0,0,0.25)" size={84} />
         <View style={{ flex: 1 }}>
           <Txt style={styles.teamName}>{team.name.toUpperCase()}</Txt>

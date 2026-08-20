@@ -1,5 +1,6 @@
-// crest.ts — pomoć za grb kad ekipa nema unesenu kraticu/boju (npr. prijave).
-import { colors } from '@zrinjski/ui-tokens';
+// crest.ts — pomoć za grb kad ekipa nema unesenu kraticu (npr. prijave).
+// Boja grba se NE bira ručno: računa se iz indeksa (crestColorFor u @zrinjski/ui-tokens).
+export { crestColorFor } from '@zrinjski/ui-tokens';
 
 /** Kratica iz naziva: 3 slova prve riječi (ili inicijali prvih riječi). */
 export function autoShortCode(name: string): string {
@@ -11,12 +12,4 @@ export function autoShortCode(name: string): string {
     .map((w) => w[0])
     .join('')
     .toUpperCase();
-}
-
-/** Deterministička boja iz naziva (stabilan grb dok ekipa ne dobije svoju boju). */
-export function colorForName(name: string): string {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-  const palette = colors.teamColors;
-  return palette[h % palette.length]!;
 }

@@ -3,15 +3,17 @@ import { useT } from '../i18n/I18nProvider';
 import { Card, Crest } from '../components/ui';
 import { useTournamentData } from '../features/tournament/useTournamentData';
 import { useRegistrations } from '../features/registrations/useRegistrations';
-import { autoShortCode, colorForName } from '../lib/crest';
+import { autoShortCode, crestColorFor } from '../lib/crest';
 import './Registrations.css';
 
 function PendingCard({
   reg,
+  index,
   onApprove,
   onReject,
 }: {
   reg: Registration;
+  index: number;
   onApprove: () => void;
   onReject: () => void;
 }) {
@@ -19,7 +21,8 @@ function PendingCard({
   return (
     <Card className="regcard">
       <div className="regcard__head">
-        <Crest code={autoShortCode(reg.team_name)} color={colorForName(reg.team_name)} size={56} />
+        {/* Prijava još nije ekipa → boja po indeksu u popisu. */}
+        <Crest code={autoShortCode(reg.team_name)} color={crestColorFor(index)} size={56} />
         <div>
           <div className="regcard__name">{reg.team_name}</div>
           <div className="regcard__meta">
@@ -69,10 +72,11 @@ export function Registrations() {
         <div className="regs__empty">{t('reg.noPending')}</div>
       ) : (
         <div className="regs__pending">
-          {data.pending.map((r) => (
+          {data.pending.map((r, i) => (
             <PendingCard
               key={r.id}
               reg={r}
+              index={i}
               onApprove={() => void data.approve(r)}
               onReject={() => {
                 if (confirm(t('reg.rejectConfirm'))) void data.reject(r.id);
@@ -89,9 +93,9 @@ export function Registrations() {
         <div className="regs__empty">{t('reg.noApproved')}</div>
       ) : (
         <div className="regs__approved">
-          {data.approved.map((r) => (
+          {data.approved.map((r, i) => (
             <div key={r.id} className="approved-row">
-              <Crest code={autoShortCode(r.team_name)} color={colorForName(r.team_name)} size={40} />
+              <Crest code={autoShortCode(r.team_name)} color={crestColorFor(i)} size={40} />
               <span className="approved-row__name">{r.team_name}</span>
               <span className="approved-row__check">✓</span>
             </div>

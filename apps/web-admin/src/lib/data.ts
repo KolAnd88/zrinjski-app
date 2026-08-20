@@ -265,6 +265,8 @@ export async function createTeam(row: TablesInsert<'team'>): Promise<Team> {
       coach_name: row.coach_name ?? null,
       rep_email: row.rep_email ?? null,
       logo_url: row.logo_url ?? null,
+      // Nova ekipa ide na kraj → dobiva sljedeću boju iz palete.
+      sort_order: row.sort_order ?? db.teams.filter((x) => x.gender === row.gender).length,
       created_at: new Date().toISOString(),
     };
     db.teams.push(t);

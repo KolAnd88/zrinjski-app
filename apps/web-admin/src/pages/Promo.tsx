@@ -5,7 +5,7 @@ import { useT } from '../i18n/I18nProvider';
 import { Button, Card } from '../components/ui';
 import { useTournamentData } from '../features/tournament/useTournamentData';
 import { usePromo } from '../features/promo/usePromo';
-import { autoShortCode, colorForName } from '../lib/crest';
+import { autoShortCode, crestColorFor } from '../lib/crest';
 import {
   downloadSvg,
   downloadSvgAsPng,
@@ -49,7 +49,8 @@ export function Promo() {
       return {
         name,
         code: tm?.short_code ?? autoShortCode(name),
-        color: tm?.color ?? colorForName(name),
+        // Boja grba se računa iz indeksa ekipe (placeholder/nepoznata ekipa → prva boja).
+        color: crestColorFor(tm?.sort_order ?? 0),
       };
     };
     const h = side(m.home_team_id, m.home_placeholder);

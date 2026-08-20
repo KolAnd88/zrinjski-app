@@ -46,7 +46,7 @@ export function StandingsScreen() {
 
   const codeOf = (teamId: string | null, ph: string) =>
     teamId ? d.teamById(teamId)?.short_code ?? ph : ph;
-  const colorOf = (teamId: string | null) => (teamId ? d.teamById(teamId)?.color : null);
+  const indexOf = (teamId: string | null) => (teamId ? d.teamById(teamId)?.sort_order : null);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -81,7 +81,7 @@ export function StandingsScreen() {
                   <Pressable key={r.teamId} style={styles.trow} onPress={() => nav.navigate('Team', { teamId: r.teamId })}>
                     <Txt style={[styles.cRank, r.qualifies && { color: C.green }]}>{r.rank}</Txt>
                     <View style={[styles.cName, styles.nameCell]}>
-                      <Crest code={d.teamById(r.teamId)?.short_code} color={d.teamById(r.teamId)?.color} size={22} />
+                      <Crest code={d.teamById(r.teamId)?.short_code} index={d.teamById(r.teamId)?.sort_order} size={22} />
                       <Txt numberOfLines={1} style={styles.teamName}>
                         {r.teamName}
                       </Txt>
@@ -121,7 +121,7 @@ export function StandingsScreen() {
                   </Txt>
                   <View style={styles.brow}>
                     <View style={styles.bside}>
-                      <Crest code={codeOf(bm.home.teamId, bm.home.placeholder)} color={colorOf(bm.home.teamId)} size={24} />
+                      <Crest code={codeOf(bm.home.teamId, bm.home.placeholder)} index={indexOf(bm.home.teamId)} size={24} />
                       <Txt numberOfLines={1} style={styles.bname}>
                         {bm.home.teamId ? d.teamById(bm.home.teamId)?.name : bm.home.placeholder}
                       </Txt>
@@ -131,7 +131,7 @@ export function StandingsScreen() {
                       <Txt numberOfLines={1} style={[styles.bname, { textAlign: 'right' }]}>
                         {bm.away.teamId ? d.teamById(bm.away.teamId)?.name : bm.away.placeholder}
                       </Txt>
-                      <Crest code={codeOf(bm.away.teamId, bm.away.placeholder)} color={colorOf(bm.away.teamId)} size={24} />
+                      <Crest code={codeOf(bm.away.teamId, bm.away.placeholder)} index={indexOf(bm.away.teamId)} size={24} />
                     </View>
                   </View>
                 </View>

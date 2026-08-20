@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { EventType, Match, Player } from '@zrinjski/core';
+import { crestColorFor } from '@zrinjski/ui-tokens';
 import { useT } from '../i18n/I18nProvider';
 import type { StringKey } from '../i18n/strings';
 import { Button, Card, Crest } from '../components/ui';
@@ -43,9 +44,14 @@ function useLiveClock(match: Match | null) {
   };
 }
 
-function colorsClash(a: string | null | undefined, b: string | null | undefined): boolean {
-  if (!a || !b) return false;
-  return a.trim().toLowerCase() === b.trim().toLowerCase();
+/**
+ * Sudar grbova: boje se dodjeljuju po indeksu i ponavljaju se, pa dvije ekipe
+ * mogu dobiti istu boju. Upozorenje je za zapisničara (grbovi izgledaju isto),
+ * ne za stvarne dresove — te provjerava delegat na terenu.
+ */
+function crestClash(a: number | undefined, b: number | undefined): boolean {
+  if (a == null || b == null) return false;
+  return crestColorFor(a) === crestColorFor(b);
 }
 
 function Roster({
@@ -59,8 +65,8 @@ function Roster({
   if (!team) return <Card>{t('live.teamUnknown')}</Card>;
   return (
     <div className="roster">
-      <div className="roster__head" style={{ background: team.color || 'var(--card2)' }}>
-        <Crest code={team.short_code} color={team.color} size={28} />
+      <div className="roster__head" style={{ background: crestColorFor(team.sort_order) }}>
+        <Crest code={team.short_code} index={team.sort_order} size={28} />
         <span className="roster__name">{team.name}</span>
       </div>
       {team.players.length === 0 ? (
@@ -159,7 +165,7 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
 
   const m = live.match;
   const isLive = m.status === 'live';
-  const clash = colorsClash(live.home?.color, live.away?.color);
+  const clash = crestClash(live.home?.sort_order, live.away?.sort_order);
   const recentFeed = [...live.feed].reverse().slice(0, 5);
   const nextMatches = enterable.matches.filter((x) => x.id !== matchId).slice(0, 3);
 
@@ -181,7 +187,7 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
 
           <div className="live__scorerow">
             <div className="live__side">
-              <Crest code={live.home?.short_code} color={live.home?.color} size={56} />
+              <Crest code={live.home?.short_code} index={live.home?.sort_order} size={56} />
               <span className="live__sidename">{live.home?.name ?? '—'}</span>
             </div>
             <div className="live__score">
@@ -189,7 +195,7 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
             </div>
             <div className="live__side live__side--away">
               <span className="live__sidename">{live.away?.name ?? '—'}</span>
-              <Crest code={live.away?.short_code} color={live.away?.color} size={56} />
+              <Crest code={live.away?.short_code} index={live.away?.sort_order} size={56} />
             </div>
           </div>
 

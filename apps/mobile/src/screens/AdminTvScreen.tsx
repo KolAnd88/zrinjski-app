@@ -47,7 +47,7 @@ export function AdminTvScreen() {
 
       <View style={styles.main}>
         <View style={styles.team}>
-          <Crest code={home?.short_code} color={home?.color} size={96} />
+          <Crest code={home?.short_code} index={home?.sort_order} size={96} />
           <Txt style={styles.teamName} numberOfLines={1}>
             {home?.name ?? '—'}
           </Txt>
@@ -62,7 +62,7 @@ export function AdminTvScreen() {
           </Txt>
         </View>
         <View style={styles.team}>
-          <Crest code={away?.short_code} color={away?.color} size={96} />
+          <Crest code={away?.short_code} index={away?.sort_order} size={96} />
           <Txt style={styles.teamName} numberOfLines={1}>
             {away?.name ?? '—'}
           </Txt>

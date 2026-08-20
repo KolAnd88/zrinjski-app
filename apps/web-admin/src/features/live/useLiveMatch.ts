@@ -15,7 +15,9 @@ export type LiveTeam = {
   id: string;
   name: string;
   short_code: string | null;
-  color: string | null;
+  /** Indeks za boju grba (crestColorFor). */
+  sort_order: number;
+  logo_url: string | null;
   players: Player[];
 };
 
@@ -50,7 +52,8 @@ async function loadTeam(id: string | null, players: Player[]): Promise<LiveTeam 
     id: data.id,
     name: data.name,
     short_code: data.short_code,
-    color: data.color,
+    sort_order: data.sort_order,
+    logo_url: data.logo_url,
     players: players.filter((p) => p.team_id === id),
   };
 }
