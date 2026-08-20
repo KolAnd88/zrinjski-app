@@ -5,7 +5,6 @@ import {
   createPlayer,
   createTeam,
   fetchRegistrations,
-  fetchTeams,
   updateRegistrationStatus,
 } from '../../lib/data';
 import { autoShortCode } from '../../lib/crest';
@@ -49,15 +48,14 @@ export function useRegistrations(tournamentId: string | null): RegistrationsData
   const approve = useCallback(
     async (reg: Registration) => {
       if (!tournamentId) return;
-      // Nova ekipa ide na kraj popisa svog spola → dobiva sljedeću boju grba.
-      const existing = await fetchTeams(tournamentId, reg.gender);
+      // sort_order namjerno ne šaljemo — createTeam dodijeli sljedeći slobodan
+      // unutar spola (broj ekipa nije pouzdan ako je neka usput obrisana).
       const team = await createTeam({
         tournament_id: tournamentId,
         name: reg.team_name,
         gender: reg.gender,
         rep_email: reg.rep_email,
         short_code: autoShortCode(reg.team_name),
-        sort_order: existing.length,
       });
 
       // Prijavljeni sastav (ako ga ima) prepiši u igrače ekipe.

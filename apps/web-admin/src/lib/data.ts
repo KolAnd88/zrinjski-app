@@ -267,15 +267,43 @@ export async function createTeam(row: TablesInsert<'team'>): Promise<Team> {
       rep_email: row.rep_email ?? null,
       logo_url: row.logo_url ?? null,
       // Nova ekipa ide na kraj → dobiva sljedeću boju iz palete.
-      sort_order: row.sort_order ?? db.teams.filter((x) => x.gender === row.gender).length,
+      sort_order:
+        row.sort_order ??
+        db.teams
+          .filter((x) => x.tournament_id === row.tournament_id && x.gender === row.gender)
+          .reduce((mx, x) => Math.max(mx, x.sort_order), -1) + 1,
       created_at: new Date().toISOString(),
     };
     db.teams.push(t);
     return t;
   }
-  const { data, error } = await client().from('team').insert(row).select('*').single();
+  // Bez sort_order baza upiše 0 → nova ekipa dijeli boju grba s prvom i skače
+  // na vrh popisa. Zato ga dodijelimo ovdje: sljedeći slobodan unutar istog spola.
+  const insert =
+    row.sort_order == null
+      ? { ...row, sort_order: (await maxTeamSortOrder(row.tournament_id, row.gender)) + 1 }
+      : row;
+  const { data, error } = await client().from('team').insert(insert).select('*').single();
   if (error) throw error;
   return data;
+}
+
+/** Najveći `sort_order` među ekipama istog spola; -1 ako ih još nema. */
+export async function maxTeamSortOrder(tournamentId: string, gender: Gender): Promise<number> {
+  if (DEMO)
+    return db.teams
+      .filter((t) => t.tournament_id === tournamentId && t.gender === gender)
+      .reduce((mx, t) => Math.max(mx, t.sort_order), -1);
+  const { data, error } = await client()
+    .from('team')
+    .select('sort_order')
+    .eq('tournament_id', tournamentId)
+    .eq('gender', gender)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.sort_order ?? -1;
 }
 
 export async function updateTeam(id: string, p: TablesUpdate<'team'>): Promise<void> {
