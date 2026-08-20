@@ -20,12 +20,12 @@ function side(
   teamId: string | null,
   placeholder: string | null,
   teamsById: Map<string, TeamLite>
-): { name: string; code: string | null; index: number | null; ph: boolean } {
+): { name: string; code: string | null; index: number | null; logoUrl: string | null; ph: boolean } {
   if (teamId && teamsById.has(teamId)) {
     const tm = teamsById.get(teamId)!;
-    return { name: tm.name, code: tm.short_code, index: tm.sort_order, ph: false };
+    return { name: tm.name, code: tm.short_code, index: tm.sort_order, logoUrl: tm.logo_url, ph: false };
   }
-  return { name: placeholder ?? '—', code: null, index: null, ph: true };
+  return { name: placeholder ?? '—', code: null, index: null, logoUrl: null, ph: true };
 }
 
 function MatchRow({
@@ -44,7 +44,7 @@ function MatchRow({
   return (
     <div className={`mrow ${isFinal ? 'mrow--final' : ''}`}>
       <div className="mrow__time">{time || '—'}</div>
-      <Crest code={home.code} index={home.index} size={28} />
+      <Crest code={home.code} index={home.index} logoUrl={home.logoUrl} size={28} />
       <div className={`mrow__team ${home.ph ? 'is-ph' : ''}`}>{home.name}</div>
       <div className="mrow__mid">
         {m.status === 'live' ? (
@@ -60,7 +60,7 @@ function MatchRow({
         )}
       </div>
       <div className={`mrow__team mrow__team--away ${away.ph ? 'is-ph' : ''}`}>{away.name}</div>
-      <Crest code={away.code} index={away.index} size={28} />
+      <Crest code={away.code} index={away.index} logoUrl={away.logoUrl} size={28} />
       {STAGE_SHORT[m.stage] && <span className="mrow__stage">{STAGE_SHORT[m.stage]}</span>}
     </div>
   );

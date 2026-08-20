@@ -334,6 +334,16 @@ create policy public_assets_admin_write on storage.objects for all to authentica
   using (bucket_id = 'public-assets' and public.is_admin())
   with check (bucket_id = 'public-assets' and public.is_admin());
 
+-- Logotipi ekipa (opcionalni; fallback je krug s kraticom).
+insert into storage.buckets (id, name, public) values ('team-logos','team-logos', true)
+  on conflict (id) do nothing;
+drop policy if exists team_logos_read on storage.objects;
+create policy team_logos_read on storage.objects for select using (bucket_id = 'team-logos');
+drop policy if exists team_logos_admin_write on storage.objects;
+create policy team_logos_admin_write on storage.objects for all to authenticated
+  using (bucket_id = 'team-logos' and public.is_admin())
+  with check (bucket_id = 'team-logos' and public.is_admin());
+
 -- ════════════════════════════════════════════════════════════ POČETNI TURNIR (samo ako ne postoji)
 insert into public.tournament (name, season_year, match_duration_min, gap_min)
 select 'VHMRK Zrinjski Cup', 2026, 15, 5

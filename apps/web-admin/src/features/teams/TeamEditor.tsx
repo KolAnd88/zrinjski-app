@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { Grp, Player, Team, TablesUpdate } from '@zrinjski/core';
-import { crestColorFor } from '@zrinjski/ui-tokens';
 import { useT } from '../../i18n/I18nProvider';
 import { Crest } from '../../components/ui';
+import { deleteTeamLogo, LogoValidationError, uploadTeamLogo } from '../../lib/data';
 import type { TeamsData } from './useTeamsData';
 
 function PlayerRow({
@@ -98,6 +98,79 @@ function Field({
   );
 }
 
+/** Logo ekipe — upload, pretpregled, brisanje. Logo je opcionalan. */
+function LogoField({ team, onChanged }: { team: Team; onChanged: () => void }) {
+  const { t } = useT();
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function pick(file: File | null) {
+    if (!file) return;
+    setErr(null);
+    setBusy(true);
+    try {
+      await uploadTeamLogo(team.id, file);
+      onChanged();
+    } catch (e) {
+      if (e instanceof LogoValidationError) {
+        setErr(e.reason === 'type' ? t('teams.logoErrType') : t('teams.logoErrSize'));
+      } else {
+        setErr(t('teams.logoErrUpload'));
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove() {
+    if (!confirm(t('teams.logoRemoveConfirm'))) return;
+    setBusy(true);
+    try {
+      await deleteTeamLogo(team.id);
+      onChanged();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div>
+      <label className="field-label">{t('teams.logo')}</label>
+      <div className="logo-field">
+        <div className="logo-field__preview">
+          {team.logo_url ? (
+            <img src={team.logo_url} alt={team.short_code ?? team.name} />
+          ) : (
+            <Crest code={team.short_code} index={team.sort_order} size={64} />
+          )}
+        </div>
+        <div className="logo-field__actions">
+          <label className={`btn btn--secondary ${busy ? 'btn--busy' : ''}`}>
+            {busy ? t('teams.logoUploading') : team.logo_url ? t('teams.logoChange') : t('teams.logoUpload')}
+            <input
+              type="file"
+              accept="image/png,image/svg+xml"
+              hidden
+              disabled={busy}
+              onChange={(e) => {
+                void pick(e.target.files?.[0] ?? null);
+                e.target.value = ''; // dopušta ponovni odabir iste datoteke
+              }}
+            />
+          </label>
+          {team.logo_url && (
+            <button className="btn-link logo-field__remove" disabled={busy} onClick={() => void remove()}>
+              {t('teams.logoRemove')}
+            </button>
+          )}
+          <p className="logo-field__hint">{team.logo_url ? t('teams.logoHint') : t('teams.logoNone')}</p>
+        </div>
+      </div>
+      {err && <div className="banner banner--error" style={{ marginTop: 'var(--sp-sm)' }}>{err}</div>}
+    </div>
+  );
+}
+
 export function TeamEditor({
   team,
   players,
@@ -126,11 +199,13 @@ export function TeamEditor({
   return (
     <div className="teditor">
       <div className="teditor__head">
-        <Crest code={team.short_code} color={crestColorFor(team.sort_order)} />
+        <Crest code={team.short_code} index={team.sort_order} logoUrl={team.logo_url} />
         <h2 className="teditor__title">
           {t('teams.editPrefix')}: {team.name}
         </h2>
       </div>
+
+      <LogoField team={team} onChanged={() => void data.reload()} />
 
       <div className="teditor__grid">
         <Field label={t('teams.name')} value={team.name} onSave={(v) => v.trim() && data.editTeam(team.id, { name: v.trim() })} />

@@ -119,14 +119,14 @@ export function HomeScreen() {
               </View>
               <View style={styles.liveScore}>
                 <View style={styles.liveSide}>
-                  <Crest code={d.teamById(live.home_team_id)?.short_code} index={d.teamById(live.home_team_id)?.sort_order} size={52} />
+                  <Crest code={d.teamById(live.home_team_id)?.short_code} index={d.teamById(live.home_team_id)?.sort_order} logoUrl={d.teamById(live.home_team_id)?.logo_url} size={52} />
                   <Txt style={styles.liveTeam}>{d.teamById(live.home_team_id)?.name}</Txt>
                 </View>
                 <Txt style={styles.bigScore}>
                   {live.home_score} : {live.away_score}
                 </Txt>
                 <View style={styles.liveSide}>
-                  <Crest code={d.teamById(live.away_team_id)?.short_code} index={d.teamById(live.away_team_id)?.sort_order} size={52} />
+                  <Crest code={d.teamById(live.away_team_id)?.short_code} index={d.teamById(live.away_team_id)?.sort_order} logoUrl={d.teamById(live.away_team_id)?.logo_url} size={52} />
                   <Txt style={styles.liveTeam}>{d.teamById(live.away_team_id)?.name}</Txt>
                 </View>
               </View>

@@ -64,7 +64,7 @@ export function NotifSettingsScreen() {
         const on = followed.includes(tm.id);
         return (
           <Pressable key={tm.id} style={styles.teamRow} onPress={() => toggleFollow(tm.id)}>
-            <Crest code={tm.short_code} index={tm.sort_order} size={32} />
+            <Crest code={tm.short_code} index={tm.sort_order} logoUrl={tm.logo_url} size={32} />
             <Txt style={styles.rowName}>{tm.name}</Txt>
             <View style={[styles.followPill, on && styles.followOn]}>
               <Txt style={[styles.followTxt, on && { color: '#fff' }]}>

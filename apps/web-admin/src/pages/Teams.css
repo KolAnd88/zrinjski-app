@@ -161,6 +161,51 @@
 }
 
 
+/* Logo ekipe */
+.logo-field {
+  display: flex;
+  gap: var(--sp-lg);
+  align-items: flex-start;
+}
+.logo-field__preview {
+  width: 84px;
+  height: 84px;
+  border-radius: var(--r-pill);
+  background: var(--card2);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  flex: none;
+}
+.logo-field__preview img {
+  width: 82%;
+  height: 82%;
+  object-fit: contain;
+}
+.logo-field__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-sm);
+}
+.logo-field__actions .btn {
+  cursor: pointer;
+}
+.logo-field__actions .btn--busy {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.logo-field__remove {
+  color: var(--red);
+}
+.logo-field__hint {
+  color: var(--mut);
+  font-size: 12px;
+  margin: 0;
+  max-width: 320px;
+}
+
 /* Igrači */
 .plist {
   display: flex;

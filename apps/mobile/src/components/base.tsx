@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import {
+  Image,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -104,18 +105,24 @@ export function Card({
 }
 
 /**
- * Grb ekipe (krug). Boja se NE bira ručno — računa se iz indeksa ekipe
- * (`index` → crestColorFor). `color` ostaje za rijetke slučajeve bez ekipe.
+ * Grb ekipe (krug). Dva stanja:
+ *  1. `logoUrl` postoji → slika, `resizeMode="contain"` (nikad obrezana)
+ *  2. inače → krug u boji crestColorFor(index) s 2–3 slovnom kraticom
+ * Nikad prazna rupa ni generička placeholder ikona.
+ *
+ * Boja se NE bira ručno; `color` ostaje za rijetke slučajeve bez ekipe.
  */
 export function Crest({
   code,
   color,
   index,
+  logoUrl,
   size = 48,
 }: {
   code?: string | null;
   color?: string | null;
   index?: number | null;
+  logoUrl?: string | null;
   size?: number;
 }) {
   const bg = color ?? (index != null ? crestColorFor(index) : C.card2);
@@ -123,12 +130,27 @@ export function Crest({
     <View
       style={[
         styles.crest,
-        { width: size, height: size, backgroundColor: bg, borderRadius: size / 2 },
+        {
+          width: size,
+          height: size,
+          // Iza prozirnog logotipa ide neutralna podloga, ne boja ekipe.
+          backgroundColor: logoUrl ? C.card2 : bg,
+          borderRadius: size / 2,
+          overflow: 'hidden',
+        },
       ]}
     >
-      <Text style={{ fontFamily: F.head, color: '#fff', fontSize: Math.round(size * 0.34) }}>
-        {(code || '?').slice(0, 3).toUpperCase()}
-      </Text>
+      {logoUrl ? (
+        <Image
+          source={{ uri: logoUrl }}
+          resizeMode="contain"
+          style={{ width: size * 0.82, height: size * 0.82 }}
+        />
+      ) : (
+        <Text style={{ fontFamily: F.head, color: '#fff', fontSize: Math.round(size * 0.34) }}>
+          {(code || '?').slice(0, 3).toUpperCase()}
+        </Text>
+      )}
     </View>
   );
 }

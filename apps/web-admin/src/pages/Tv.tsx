@@ -84,7 +84,7 @@ export function Tv() {
 
       <main className="tv__main">
         <div className="tv__team">
-          <Crest code={live.home?.short_code} index={live.home?.sort_order} size={150} />
+          <Crest code={live.home?.short_code} index={live.home?.sort_order} logoUrl={live.home?.logo_url} size={150} />
           <div className="tv__teamname">{live.home?.name ?? '—'}</div>
         </div>
 
@@ -99,7 +99,7 @@ export function Tv() {
         </div>
 
         <div className="tv__team">
-          <Crest code={live.away?.short_code} index={live.away?.sort_order} size={150} />
+          <Crest code={live.away?.short_code} index={live.away?.sort_order} logoUrl={live.away?.logo_url} size={150} />
           <div className="tv__teamname">{live.away?.name ?? '—'}</div>
         </div>
       </main>

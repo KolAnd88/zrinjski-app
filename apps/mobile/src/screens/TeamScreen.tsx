@@ -82,7 +82,8 @@ export function TeamScreen() {
     <ScrollView style={styles.safe} contentContainerStyle={{ paddingBottom: S.xxl }}>
       {/* Zaglavlje u boji ekipe (boja iz indeksa, vidi crestColorFor) */}
       <View style={[styles.header, { backgroundColor: crestColorFor(team.sort_order) }]}>
-        <Crest code={team.short_code} color="rgba(0,0,0,0.25)" size={84} />
+        {/* Na obojenom zaglavlju grb je zatamnjeni krug (ili logo ako postoji). */}
+        <Crest code={team.short_code} color="rgba(0,0,0,0.25)" logoUrl={team.logo_url} size={84} />
         <View style={{ flex: 1 }}>
           <Txt style={styles.teamName}>{team.name.toUpperCase()}</Txt>
           {standing && (

@@ -83,7 +83,7 @@ export function StatsScreen() {
             return (
               <View key={r.playerId} style={[styles.row, isTop && styles.rowTop]}>
                 <Txt style={[styles.rank, isTop && { color: C.gold }]}>{r.rank}</Txt>
-                <Crest code={info.team?.short_code} index={info.team?.sort_order} size={36} />
+                <Crest code={info.team?.short_code} index={info.team?.sort_order} logoUrl={info.team?.logo_url} size={36} />
                 <View style={{ flex: 1 }}>
                   <Txt style={styles.name}>{info.name}</Txt>
                   <Txt variant="caption">{info.team?.name}</Txt>
@@ -101,7 +101,7 @@ export function StatsScreen() {
               {t('stats.bestPlayer')}
             </Txt>
             <View style={styles.bestRow}>
-              <Crest code={best.team?.short_code} index={best.team?.sort_order} size={36} />
+              <Crest code={best.team?.short_code} index={best.team?.sort_order} logoUrl={best.team?.logo_url} size={36} />
               <Txt style={styles.bestName}>
                 {best.name} · {best.team?.name}
               </Txt>

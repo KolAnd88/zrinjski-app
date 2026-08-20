@@ -29,6 +29,7 @@ export type TeamsData = {
   teams: Team[];
   players: Player[];
   playerCount: (teamId: string) => number;
+  reload: () => Promise<void>;
   addGroup: (name: string) => Promise<void>;
   removeGroup: (id: string) => Promise<void>;
   addTeam: (name: string) => Promise<Team>;
@@ -181,6 +182,7 @@ export function useTeamsData(tournamentId: string | null): TeamsData {
     loading,
     configured: HAS_DATA,
     error,
+    reload,
     gender,
     setGender,
     groups,

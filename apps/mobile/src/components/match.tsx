@@ -15,6 +15,7 @@ function side(
     name: tm?.name ?? placeholder ?? '—',
     code: tm?.short_code ?? null,
     sort_order: tm?.sort_order ?? null,
+    logo_url: tm?.logo_url ?? null,
     ph: !tm,
   };
 }
@@ -39,7 +40,7 @@ export function MatchRow({
       style={({ pressed }) => [styles.row, isFinal && styles.final, pressed && { opacity: 0.7 }]}
     >
       <Txt style={styles.time}>{isoToHHMM(match.scheduled_time) || '—'}</Txt>
-      <Crest code={h.code} index={h.sort_order} size={28} />
+      <Crest code={h.code} index={h.sort_order} logoUrl={h.logo_url} size={28} />
       <Txt
         numberOfLines={1}
         style={[styles.name, h.ph && styles.ph]}
@@ -62,7 +63,7 @@ export function MatchRow({
       <Txt numberOfLines={1} style={[styles.name, styles.nameAway, a.ph && styles.ph]}>
         {a.name}
       </Txt>
-      <Crest code={a.code} index={a.sort_order} size={28} />
+      <Crest code={a.code} index={a.sort_order} logoUrl={a.logo_url} size={28} />
     </Pressable>
   );
 }

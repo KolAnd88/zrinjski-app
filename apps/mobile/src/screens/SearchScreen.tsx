@@ -58,7 +58,7 @@ export function SearchScreen() {
           <Txt variant="label" style={styles.sect}>{t('search.teams')}</Txt>
           {teams.map((tm) => (
             <Pressable key={tm.id} style={styles.row} onPress={() => nav.navigate('Team', { teamId: tm.id })}>
-              <Crest code={tm.short_code} index={tm.sort_order} size={32} />
+              <Crest code={tm.short_code} index={tm.sort_order} logoUrl={tm.logo_url} size={32} />
               <Txt style={styles.rowName}>{tm.name}</Txt>
             </Pressable>
           ))}
@@ -72,7 +72,7 @@ export function SearchScreen() {
             const team = d.teamById(p.team_id);
             return (
               <Pressable key={p.id} style={styles.row} onPress={() => team && nav.navigate('Team', { teamId: team.id })}>
-                <Crest code={team?.short_code} index={team?.sort_order} size={32} />
+                <Crest code={team?.short_code} index={team?.sort_order} logoUrl={team?.logo_url} size={32} />
                 <View style={{ flex: 1 }}>
                   <Txt style={styles.rowName}>{p.name}</Txt>
                   <Txt variant="caption">{team?.name}</Txt>

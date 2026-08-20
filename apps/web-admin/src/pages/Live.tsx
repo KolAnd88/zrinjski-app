@@ -66,7 +66,7 @@ function Roster({
   return (
     <div className="roster">
       <div className="roster__head" style={{ background: crestColorFor(team.sort_order) }}>
-        <Crest code={team.short_code} index={team.sort_order} size={28} />
+        <Crest code={team.short_code} index={team.sort_order} logoUrl={team.logo_url} size={28} />
         <span className="roster__name">{team.name}</span>
       </div>
       {team.players.length === 0 ? (
@@ -187,7 +187,7 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
 
           <div className="live__scorerow">
             <div className="live__side">
-              <Crest code={live.home?.short_code} index={live.home?.sort_order} size={56} />
+              <Crest code={live.home?.short_code} index={live.home?.sort_order} logoUrl={live.home?.logo_url} size={56} />
               <span className="live__sidename">{live.home?.name ?? '—'}</span>
             </div>
             <div className="live__score">
@@ -195,7 +195,7 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
             </div>
             <div className="live__side live__side--away">
               <span className="live__sidename">{live.away?.name ?? '—'}</span>
-              <Crest code={live.away?.short_code} index={live.away?.sort_order} size={56} />
+              <Crest code={live.away?.short_code} index={live.away?.sort_order} logoUrl={live.away?.logo_url} size={56} />
             </div>
           </div>
 

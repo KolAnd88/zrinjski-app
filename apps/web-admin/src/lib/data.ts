@@ -293,6 +293,58 @@ export async function deleteTeam(id: string): Promise<void> {
   if (error) throw error;
 }
 
+// ── Logotip ekipe ─────────────────────────────────────────────────────────
+const TEAM_LOGOS_BUCKET = 'team-logos';
+/** Ograničenja uploada logotipa (validira se prije slanja). */
+export const TEAM_LOGO_MAX_BYTES = 512 * 1024; // 512 KB
+export const TEAM_LOGO_TYPES = ['image/png', 'image/svg+xml'];
+
+export class LogoValidationError extends Error {
+  constructor(public reason: 'type' | 'size') {
+    super(reason);
+    this.name = 'LogoValidationError';
+  }
+}
+
+/**
+ * Upload logotipa ekipe. Sprema se kao `{team_id}.png` (upsert — zamjenjuje stari)
+ * i upisuje javni URL u `team.logo_url`. Vraća URL.
+ */
+export async function uploadTeamLogo(teamId: string, file: File): Promise<string> {
+  if (!TEAM_LOGO_TYPES.includes(file.type)) throw new LogoValidationError('type');
+  if (file.size > TEAM_LOGO_MAX_BYTES) throw new LogoValidationError('size');
+
+  if (DEMO) {
+    const url = URL.createObjectURL(file);
+    patch(db.teams, teamId, { logo_url: url });
+    return url;
+  }
+
+  const c = client();
+  const path = `${teamId}.png`;
+  const { error } = await c.storage
+    .from(TEAM_LOGOS_BUCKET)
+    .upload(path, file, { cacheControl: '3600', upsert: true, contentType: file.type });
+  if (error) throw error;
+
+  // `?v=` razbija cache kad se logo zamijeni istim imenom.
+  const base = c.storage.from(TEAM_LOGOS_BUCKET).getPublicUrl(path).data.publicUrl;
+  const url = `${base}?v=${Date.now()}`;
+  await updateTeam(teamId, { logo_url: url });
+  return url;
+}
+
+/** Ukloni logotip ekipe (datoteka + logo_url). */
+export async function deleteTeamLogo(teamId: string): Promise<void> {
+  if (DEMO) {
+    patch(db.teams, teamId, { logo_url: null });
+    return;
+  }
+  const c = client();
+  await c.storage.from(TEAM_LOGOS_BUCKET).remove([`${teamId}.png`]);
+  await updateTeam(teamId, { logo_url: null });
+}
+
 // ── Igrači ───────────────────────────────────────────────────────────────
 export async function fetchPlayers(teamId: string): Promise<Player[]> {
   if (DEMO) return db.players.filter((p) => p.team_id === teamId).sort((a, b) => a.sort_order - b.sort_order);

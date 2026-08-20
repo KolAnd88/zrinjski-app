@@ -16,9 +16,11 @@ export type LiveMatch = {
   homeName: string;
   homeCode: string | null;
   homeIndex: number;
+  homeLogo: string | null;
   awayName: string;
   awayCode: string | null;
   awayIndex: number;
+  awayLogo: string | null;
   homeScore: number;
   awayScore: number;
 };
@@ -80,9 +82,11 @@ export function useDashboard(): DashboardData {
             homeName: home?.name ?? '—',
             homeCode: home?.short_code ?? null,
             homeIndex: home?.sort_order ?? 0,
+            homeLogo: home?.logo_url ?? null,
             awayName: away?.name ?? '—',
             awayCode: away?.short_code ?? null,
             awayIndex: away?.sort_order ?? 0,
+            awayLogo: away?.logo_url ?? null,
             homeScore: lm.home_score,
             awayScore: lm.away_score,
           };

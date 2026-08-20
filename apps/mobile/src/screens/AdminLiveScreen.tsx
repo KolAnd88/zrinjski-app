@@ -6,6 +6,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { EventType, Player } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import type { StringKey } from '../i18n/strings';
+import { crestColorFor } from '@zrinjski/ui-tokens';
 import { useData } from '../lib/useData';
 import { isoToHHMM } from '../lib/dates';
 import { C, F, R, S } from '../theme';
@@ -70,8 +71,8 @@ export function AdminLiveScreen() {
     const roster = d.playersOf(team.id);
     return (
       <View style={styles.roster}>
-        <View style={[styles.rosterHead, { backgroundColor: team.color ?? C.card2 }]}>
-          <Crest code={team.short_code} index={team.sort_order} size={24} />
+        <View style={[styles.rosterHead, { backgroundColor: crestColorFor(team.sort_order) }]}>
+          <Crest code={team.short_code} index={team.sort_order} logoUrl={team.logo_url} size={24} />
           <Txt style={styles.rosterName}>{team.name}</Txt>
         </View>
         {roster.length === 0 ? (
@@ -109,7 +110,7 @@ export function AdminLiveScreen() {
 
           <View style={styles.scoreRow}>
             <View style={styles.sideCol}>
-              <Crest code={home?.short_code} index={home?.sort_order} size={48} />
+              <Crest code={home?.short_code} index={home?.sort_order} logoUrl={home?.logo_url} size={48} />
               <Txt style={styles.sideName} numberOfLines={1}>
                 {home?.name ?? '—'}
               </Txt>
@@ -118,7 +119,7 @@ export function AdminLiveScreen() {
               {m.home_score} : {m.away_score}
             </Txt>
             <View style={styles.sideCol}>
-              <Crest code={away?.short_code} index={away?.sort_order} size={48} />
+              <Crest code={away?.short_code} index={away?.sort_order} logoUrl={away?.logo_url} size={48} />
               <Txt style={styles.sideName} numberOfLines={1}>
                 {away?.name ?? '—'}
               </Txt>

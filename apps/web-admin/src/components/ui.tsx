@@ -50,35 +50,42 @@ export function Card({
   );
 }
 
-/** Grb ekipe — zaobljeni kvadrat u boji ekipe s 3-slovnom kraticom. */
 /**
- * Grb ekipe (krug). Boja se NE bira ručno — računa se iz indeksa ekipe.
- * `color` prop postoji samo za slučajeve bez ekipe (npr. prijave) gdje se
- * boja već izračunala pozivateljem; inače proslijedi `index`.
+ * Grb ekipe (krug). Dva stanja:
+ *  1. `logoUrl` postoji → slika, uklopljena (contain), nikad obrezana
+ *  2. inače → krug u boji crestColorFor(index) s 2–3 slovnom kraticom
+ * Nikad prazna rupa ni generička placeholder ikona.
+ *
+ * Boja se NE bira ručno. `color` prop je samo za slučajeve bez ekipe
+ * (npr. prijave) gdje je pozivatelj već izračunao boju.
  */
 export function Crest({
   code,
   color,
   index,
+  logoUrl,
   size = 48,
 }: {
   code: string | null | undefined;
   color?: string | null;
   index?: number | null;
+  logoUrl?: string | null;
   size?: number;
 }) {
   const bg = color ?? (index != null ? crestColorFor(index) : 'var(--card2)');
+  const label = (code || '?').slice(0, 3).toUpperCase();
   return (
     <span
       className="crest"
       style={{
         width: size,
         height: size,
-        background: bg,
+        // Iza prozirnog logotipa treba neutralna podloga, ne boja ekipe.
+        background: logoUrl ? 'var(--card2)' : bg,
         fontSize: Math.round(size * 0.34),
       }}
     >
-      {(code || '?').slice(0, 3).toUpperCase()}
+      {logoUrl ? <img src={logoUrl} alt={label} /> : label}
     </span>
   );
 }

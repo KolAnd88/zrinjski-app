@@ -126,7 +126,7 @@ export function Teams() {
                 className={`team-row ${selectedId === tm.id ? 'is-active' : ''}`}
                 onClick={() => setSelectedId(tm.id)}
               >
-                <Crest code={tm.short_code} index={tm.sort_order} size={40} />
+                <Crest code={tm.short_code} index={tm.sort_order} logoUrl={tm.logo_url} size={40} />
                 <div className="team-row__main">
                   <div className="team-row__name">{tm.name}</div>
                   {groupName(tm.group_id) && (
