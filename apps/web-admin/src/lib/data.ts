@@ -294,6 +294,16 @@ export async function deleteTeam(id: string): Promise<void> {
   if (error) throw error;
 }
 
+// ── Portal predstavnika ────────────────────────────────────────────────────
+/** Ekipa + sastav za predstavnika (RLS: čitanje je javno, pisanje samo svoje). */
+export async function fetchTeamWithPlayers(
+  teamId: string
+): Promise<{ team: Team; players: Player[] } | null> {
+  const team = await fetchTeam(teamId);
+  if (!team) return null;
+  return { team, players: await fetchPlayers(teamId) };
+}
+
 // ── Logotip ekipe ─────────────────────────────────────────────────────────
 const TEAM_LOGOS_BUCKET = 'team-logos';
 /** Ograničenja uploada logotipa (validira se prije slanja). */

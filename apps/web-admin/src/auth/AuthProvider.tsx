@@ -5,10 +5,19 @@ import { DEMO, isSupabaseConfigured, supabase } from '../lib/supabase';
 /** Lažna sesija za DEMO mod (preskakanje prave prijave). */
 const demoSession = { user: { id: 'demo', email: 'demo@zrinjski.ba' } } as unknown as Session;
 
+/** Uloga prijavljenog korisnika: organizacija (admin/delegate) ili predstavnik ekipe (rep). */
+export type UserRole = 'admin' | 'delegate' | 'rep';
+
 type AuthContextValue = {
   session: Session | null;
   loading: boolean;
   configured: boolean;
+  /** Uloga iz app_user; null dok se ne učita ili ako red ne postoji. */
+  role: UserRole | null;
+  /** Ekipa predstavnika (samo za ulogu 'rep'). */
+  teamId: string | null;
+  /** Ima li pristup admin sučelju (admin ili delegate). */
+  isStaff: boolean;
   signInWithPassword: (email: string, password: string) => Promise<{ error: string | null }>;
   signInWithMagicLink: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -19,6 +28,9 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<UserRole | null>(null);
+  const [teamId, setTeamId] = useState<string | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   useEffect(() => {
     if (!supabase) {
@@ -41,11 +53,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Profil (uloga + ekipa) — RLS dopušta čitanje vlastitog app_user reda.
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!supabase || !uid) {
+      setRole(DEMO ? 'admin' : null); // DEMO: pretvaraj se da je organizator
+      setTeamId(null);
+      return;
+    }
+    let active = true;
+    setProfileLoading(true);
+    void supabase
+      .from('app_user')
+      .select('role, team_id')
+      .eq('id', uid)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!active) return;
+        setRole((data?.role as UserRole) ?? null);
+        setTeamId(data?.team_id ?? null);
+        setProfileLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [session?.user?.id]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       session,
-      loading,
+      // Dok se profil učitava ne znamo kamo usmjeriti korisnika → drži "loading".
+      loading: loading || profileLoading,
       configured: isSupabaseConfigured || DEMO,
+      role,
+      teamId,
+      isStaff: role === 'admin' || role === 'delegate',
       async signInWithPassword(email, password) {
         if (DEMO) {
           setSession(demoSession);
@@ -76,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await supabase.auth.signOut();
       },
     }),
-    [session, loading]
+    [session, loading, profileLoading, role, teamId]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

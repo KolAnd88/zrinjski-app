@@ -21,21 +21,31 @@ export function Users() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('delegate');
+  const [repTeamId, setRepTeamId] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   const roleLabel = (r: string) => t(ROLES.find((x) => x.value === r)?.key ?? 'users.role.delegate');
+  // Predstavnik mora biti vezan uz ekipu — inače nema što uređivati.
+  const needsTeam = role === 'rep';
 
   async function handleCreate() {
     if (!email.trim() || password.length < 6) return;
+    if (needsTeam && !repTeamId) return;
     setBusy(true);
     setErr(null);
     setMsg(null);
     try {
-      await data.create({ email: email.trim(), password, role });
+      await data.create({
+        email: email.trim(),
+        password,
+        role,
+        team_id: needsTeam ? repTeamId : null,
+      });
       setEmail('');
       setPassword('');
+      setRepTeamId('');
       setMsg(t('users.created'));
       setTimeout(() => setMsg(null), 2500);
     } catch (e) {
@@ -73,10 +83,26 @@ export function Users() {
             </select>
           </div>
         </div>
+
+        {/* Predstavnik ekipe uređuje samo sastav te ekipe. */}
+        {needsTeam && (
+          <div className="users__field" style={{ marginTop: 'var(--sp-md)', maxWidth: 320 }}>
+            <label className="field-label">{t('users.repTeam')}</label>
+            <select className="input" value={repTeamId} onChange={(e) => setRepTeamId(e.target.value)}>
+              <option value="">{t('users.repTeamPick')}</option>
+              {data.teams.map((tm) => (
+                <option key={tm.id} value={tm.id}>
+                  {tm.name} ({tm.gender === 'm' ? t('common.menu') : t('common.women')})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <Button
           variant="primary"
           style={{ marginTop: 'var(--sp-md)' }}
-          disabled={busy || !email.trim() || password.length < 6}
+          disabled={busy || !email.trim() || password.length < 6 || (needsTeam && !repTeamId)}
           onClick={() => void handleCreate()}
         >
           {busy ? t('users.creating') : t('users.create')}

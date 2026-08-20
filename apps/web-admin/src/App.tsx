@@ -4,6 +4,7 @@ import { I18nProvider, useT } from './i18n/I18nProvider';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { PublicRegistration } from './pages/PublicRegistration';
+import { RepPortal } from './pages/RepPortal';
 import { Dashboard } from './pages/Dashboard';
 import { Tournament } from './pages/Tournament';
 import { Schedule } from './pages/Schedule';
@@ -25,7 +26,7 @@ function FullScreenMessage({ text }: { text: string }) {
 }
 
 function AppRoutes() {
-  const { session, loading, configured } = useAuth();
+  const { session, loading, configured, role, isStaff } = useAuth();
   const { t } = useT();
 
   // Dok Supabase nije konfiguriran, dopusti pristup loginu (koji prikazuje uputu).
@@ -38,6 +39,18 @@ function AppRoutes() {
         {/* Javna prijava ekipe — dostupna bez prijave */}
         <Route path="/prijava" element={<PublicRegistration />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
+
+  // Predstavnik ekipe (rep) vidi samo svoj portal — ne admin sučelje.
+  // (Baza to i tehnički jamči kroz RLS; ovo je da UI ne nudi ono što ionako ne smije.)
+  if (role === 'rep' || (session && !isStaff && role !== null)) {
+    return (
+      <Routes>
+        <Route path="/prijava" element={<PublicRegistration />} />
+        <Route path="/moja-ekipa" element={<RepPortal />} />
+        <Route path="*" element={<Navigate to="/moja-ekipa" replace />} />
       </Routes>
     );
   }

@@ -54,6 +54,8 @@ export const strings = {
     'users.you': 'ti',
     'users.created': 'Korisnik kreiran.',
     'users.demoNote': 'Demo: korisnici se ne spremaju u pravu bazu.',
+    'users.repTeam': 'Ekipa predstavnika',
+    'users.repTeamPick': 'Odaberi ekipu…',
     'users.hint': 'Dodani korisnici prijavljuju se istim e-mailom i lozinkom u web admin ili mobilni „Organizator".',
 
     // Nadzorna ploča
@@ -259,6 +261,24 @@ export const strings = {
     'promo.downloadImg': 'Preuzmi sliku',
     'promo.autoNote': 'app sama složi sliku nakon svake utakmice',
 
+    // Portal predstavnika ekipe (uloga 'rep')
+    'rep.title': 'Moja ekipa',
+    'rep.subtitle': 'Predstavnik ekipe',
+    'rep.noTeam': 'Tvoj račun još nije povezan s ekipom. Javi se organizatoru.',
+    'rep.teamInfo': 'Podaci ekipe',
+    'rep.rosterTitle': 'Sastav',
+    'rep.rosterHint': 'Uredi popis igrača do zatvaranja prijava. Promjene se spremaju odmah.',
+    'rep.addPlayer': '+ Dodaj igrača',
+    'rep.playerName': 'Ime i prezime',
+    'rep.playerNumber': 'Br.',
+    'rep.captain': 'Kapetan',
+    'rep.deletePlayerConfirm': 'Ukloniti igrača iz sastava?',
+    'rep.saved': 'Spremljeno.',
+    'rep.saveError': 'Spremanje nije uspjelo — provjeri vezu i pokušaj ponovno.',
+    'rep.playersCount': 'igrača u sastavu',
+    'rep.contactAdmin': 'Naziv ekipe, grupu i logo mijenja organizator.',
+    'rep.logout': 'Odjava',
+
     // Javna prijava ekipe (/prijava — bez logina)
     'regform.title': 'Prijava ekipe',
     'regform.sub': 'VHMRK Zrinjski Cup — turnir veterana',
@@ -357,6 +377,8 @@ export const strings = {
     'users.you': 'you',
     'users.created': 'User created.',
     'users.demoNote': 'Demo: users are not saved to a real database.',
+    'users.repTeam': 'Representative team',
+    'users.repTeamPick': 'Choose a team…',
     'users.hint': 'Added users sign in with the same e-mail and password in the web admin or the mobile “Organizer”.',
 
     'dash.title': 'Dashboard',
@@ -551,6 +573,23 @@ export const strings = {
     'promo.share': 'Share to social',
     'promo.downloadImg': 'Download image',
     'promo.autoNote': 'the app composes an image after every match',
+
+    'rep.title': 'My team',
+    'rep.subtitle': 'Team representative',
+    'rep.noTeam': 'Your account is not linked to a team yet. Contact the organizer.',
+    'rep.teamInfo': 'Team details',
+    'rep.rosterTitle': 'Roster',
+    'rep.rosterHint': 'Edit the player list until registrations close. Changes save immediately.',
+    'rep.addPlayer': '+ Add player',
+    'rep.playerName': 'Full name',
+    'rep.playerNumber': 'No.',
+    'rep.captain': 'Captain',
+    'rep.deletePlayerConfirm': 'Remove this player from the roster?',
+    'rep.saved': 'Saved.',
+    'rep.saveError': 'Saving failed — check your connection and try again.',
+    'rep.playersCount': 'players in the roster',
+    'rep.contactAdmin': 'Team name, group and logo are managed by the organizer.',
+    'rep.logout': 'Log out',
 
     'regform.title': 'Team registration',
     'regform.sub': 'VHMRK Zrinjski Cup — veterans tournament',

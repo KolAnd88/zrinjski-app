@@ -1,0 +1,109 @@
+/* RepPortal.css — portal predstavnika ekipe (samo sastav vlastite ekipe). */
+
+.rep {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--sp-xl) var(--sp-lg) var(--sp-xxl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
+}
+
+.rep__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-lg);
+}
+.rep__headmain {
+  flex: 1;
+  min-width: 0;
+}
+.rep__label {
+  font-family: var(--font-head);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--red);
+}
+.rep__title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 26px;
+  margin: 2px 0 0;
+}
+
+.rep__rosterhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-sm);
+}
+.rep__count {
+  color: var(--sub);
+  font-size: 13px;
+}
+.rep__hint {
+  color: var(--mut);
+  font-size: 12px;
+  margin: var(--sp-xs) 0 var(--sp-md);
+  line-height: 1.4;
+}
+
+.rep__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+.rep__row {
+  display: grid;
+  grid-template-columns: 64px 1fr 44px 36px;
+  gap: var(--sp-sm);
+  align-items: center;
+}
+.rep__row--add {
+  grid-template-columns: 64px 1fr auto;
+  margin-top: var(--sp-md);
+  padding-top: var(--sp-md);
+  border-top: 1px solid var(--line);
+}
+.rep__num {
+  text-align: center;
+  padding: 0 var(--sp-sm);
+}
+.rep__cap {
+  height: 44px;
+  border-radius: var(--r-chip);
+  border: 1px solid var(--line);
+  background: var(--card2);
+  color: var(--sub);
+  font-family: var(--font-head);
+  font-weight: 700;
+  cursor: pointer;
+}
+.rep__cap.is-on {
+  background: var(--red);
+  color: #fff;
+  border-color: var(--red);
+}
+.rep__del {
+  background: none;
+  border: none;
+  color: var(--sub);
+  font-size: 22px;
+  cursor: pointer;
+}
+.rep__del:hover {
+  color: var(--red);
+}
+
+@media (max-width: 560px) {
+  .rep__row {
+    grid-template-columns: 56px 1fr 40px 32px;
+  }
+  .rep__row--add {
+    grid-template-columns: 56px 1fr;
+  }
+  .rep__row--add .btn {
+    grid-column: 1 / -1;
+  }
+}
