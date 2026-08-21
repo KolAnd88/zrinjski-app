@@ -4,6 +4,7 @@
 import type {
   AppUser,
   Day,
+  GalleryPhoto,
   Gender,
   Grp,
   Match,
@@ -652,6 +653,74 @@ export async function deleteSponsor(id: string): Promise<void> {
     return;
   }
   const { error } = await client().from('sponsor').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ── Galerija ───────────────────────────────────────────────────────────────
+// U `storage_path` držimo javni URL (isto kao logotipi sponzora) da ga mobilna
+// app može prikazati izravno, bez sastavljanja putanje prema Storageu.
+
+/** Dopušteni formati i najveća veličina fotografije. */
+const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+
+export class PhotoValidationError extends Error {
+  constructor(public reason: 'type' | 'size') {
+    super(reason);
+  }
+}
+
+export async function fetchGalleryPhotos(tournamentId: string): Promise<GalleryPhoto[]> {
+  if (DEMO)
+    return db.gallery
+      .filter((g) => g.tournament_id === tournamentId)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  const { data, error } = await client()
+    .from('gallery_photo')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function addGalleryPhoto(
+  tournamentId: string,
+  dayId: string | null,
+  file: File
+): Promise<GalleryPhoto> {
+  if (!PHOTO_TYPES.includes(file.type)) throw new PhotoValidationError('type');
+  if (file.size > PHOTO_MAX_BYTES) throw new PhotoValidationError('size');
+
+  const url = await uploadPublicAsset(file, `gallery/${tournamentId}`);
+  if (DEMO) {
+    const g: GalleryPhoto = {
+      id: genId('gp'),
+      tournament_id: tournamentId,
+      day_id: dayId,
+      storage_path: url,
+      created_at: new Date().toISOString(),
+    };
+    db.gallery.unshift(g);
+    return g;
+  }
+  const { data, error } = await client()
+    .from('gallery_photo')
+    .insert({ tournament_id: tournamentId, day_id: dayId, storage_path: url })
+    .select('*')
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteGalleryPhoto(id: string): Promise<void> {
+  if (DEMO) {
+    db.gallery = db.gallery.filter((g) => g.id !== id);
+    return;
+  }
+  // Zapis brišemo; datoteka ostaje u Storageu (jeftina je i ovako nema rizika
+  // da obrišemo sliku koju netko drugi još koristi).
+  const { error } = await client().from('gallery_photo').delete().eq('id', id);
   if (error) throw error;
 }
 

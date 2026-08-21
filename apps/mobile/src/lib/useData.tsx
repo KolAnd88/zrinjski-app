@@ -34,7 +34,8 @@ import {
   demoTournament,
 } from './demo';
 
-export type GalleryItem = { id: string; day_id: string; color: string };
+/** `url` je javni link na fotografiju; `color` je podloga dok se slika učitava. */
+export type GalleryItem = { id: string; day_id: string; color: string; url: string | null };
 
 export type DataStore = {
   loading: boolean;
@@ -140,6 +141,7 @@ async function loadAll(): Promise<AllData> {
       id: g.id,
       day_id: g.day_id ?? '',
       color: GALLERY_COLORS[i % GALLERY_COLORS.length]!,
+      url: g.storage_path ?? null,
     })),
   };
 }

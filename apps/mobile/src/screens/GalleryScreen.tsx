@@ -1,4 +1,4 @@
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Image, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useT } from '../i18n/I18nProvider';
 import { useData } from '../lib/useData';
 import { formatDayLabel } from '../lib/dates';
@@ -29,10 +29,22 @@ export function GalleryScreen() {
             </Txt>
             <View style={[styles.grid, { gap }]}>
               {photos.map((p) => (
+                // Boja ostaje kao podloga dok se slika učitava (i ako je nema).
                 <View
                   key={p.id}
-                  style={{ width: tile, height: tile, borderRadius: R.chip, backgroundColor: p.color, opacity: 0.85 }}
-                />
+                  style={{
+                    width: tile,
+                    height: tile,
+                    borderRadius: R.chip,
+                    backgroundColor: p.color,
+                    opacity: 0.85,
+                    overflow: 'hidden',
+                  }}
+                >
+                  {p.url && (
+                    <Image source={{ uri: p.url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                  )}
+                </View>
               ))}
             </View>
           </View>

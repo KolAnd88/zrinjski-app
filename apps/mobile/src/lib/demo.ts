@@ -268,12 +268,12 @@ export const demoProgram: ProgramItem[] = [
   { id: 'pr3', tournament_id: 'T', day_id: 'D3', time: '20:30:00', title: 'Dodjela pehara + završna večera', location_id: 'l3', sort_order: 0 },
 ];
 
-// Galerija: boje umjesto stvarnih slika (offline demo).
-export const demoGallery: { id: string; day_id: string; color: string }[] = [
-  { id: 'g1', day_id: 'D1', color: '#E11D2A' },
-  { id: 'g2', day_id: 'D1', color: '#2D6CDF' },
-  { id: 'g3', day_id: 'D1', color: '#6A1FB0' },
-  { id: 'g4', day_id: 'D2', color: '#1F7A8C' },
-  { id: 'g5', day_id: 'D2', color: '#C2410C' },
-  { id: 'g6', day_id: 'D2', color: '#0D9488' },
+// Galerija: boje umjesto stvarnih slika (offline demo nema mrežu ni Storage).
+export const demoGallery: { id: string; day_id: string; color: string; url: string | null }[] = [
+  { id: 'g1', day_id: 'D1', color: '#E11D2A', url: null },
+  { id: 'g2', day_id: 'D1', color: '#2D6CDF', url: null },
+  { id: 'g3', day_id: 'D1', color: '#6A1FB0', url: null },
+  { id: 'g4', day_id: 'D2', color: '#1F7A8C', url: null },
+  { id: 'g5', day_id: 'D2', color: '#C2410C', url: null },
+  { id: 'g6', day_id: 'D2', color: '#0D9488', url: null },
 ];

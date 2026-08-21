@@ -4,6 +4,7 @@
 // konkurencijom, grupama, ekipama, igračima, satnicom, sponzorima, prijavama…
 import type {
   Day,
+  GalleryPhoto,
   Grp,
   LocationRow,
   Match,
@@ -223,6 +224,9 @@ const appUsers: { id: string; email: string; role: string; team_id: string | nul
 ];
 
 /** Mutabilni singleton — DEMO grana u data.ts radi nad ovim. */
+// Galerija u demo modu kreće prazna — fotografije se dodaju uploadom u sesiji.
+const gallery: GalleryPhoto[] = [];
+
 export const db = {
   tournament,
   days,
@@ -237,4 +241,5 @@ export const db = {
   registrations,
   notifications,
   appUsers,
+  gallery,
 };

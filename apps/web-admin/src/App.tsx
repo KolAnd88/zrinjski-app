@@ -15,6 +15,7 @@ import { Sponsors } from './pages/Sponsors';
 import { Registrations } from './pages/Registrations';
 import { Notices } from './pages/Notices';
 import { Promo } from './pages/Promo';
+import { Gallery } from './pages/Gallery';
 import { Users } from './pages/Users';
 
 function FullScreenMessage({ text }: { text: string }) {
@@ -85,6 +86,9 @@ function AppRoutes() {
       </Route>
       <Route element={<Layout title="nav.promo" />}>
         <Route path="/promo" element={<Promo />} />
+      </Route>
+      <Route element={<Layout title="nav.gallery" />}>
+        <Route path="/gallery" element={<Gallery />} />
       </Route>
       <Route element={<Layout title="nav.registrations" />}>
         <Route path="/registrations" element={<Registrations />} />
