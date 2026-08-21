@@ -97,6 +97,10 @@ export const strings = {
     'stats.unit.susp': 'isključenja',
     'stats.unit.reds': 'kartona',
     'stats.emptyCat': 'Još nema podataka u ovoj kategoriji.',
+    'stats.leadScorer': 'Najbolji strijelac',
+    'stats.leadKeeper': 'Najbolji vratar',
+    'stats.leadSusp': 'Najviše isključenja',
+    'stats.leadRed': 'Najviše crvenih kartona',
     'stats.goals': 'gol.',
     'stats.saves': 'obr.',
 
@@ -291,6 +295,10 @@ export const strings = {
     'stats.unit.susp': 'suspensions',
     'stats.unit.reds': 'cards',
     'stats.emptyCat': 'No data in this category yet.',
+    'stats.leadScorer': 'Top scorer',
+    'stats.leadKeeper': 'Top goalkeeper',
+    'stats.leadSusp': 'Most suspensions',
+    'stats.leadRed': 'Most red cards',
     'stats.goals': 'goals',
     'stats.saves': 'saves',
 
