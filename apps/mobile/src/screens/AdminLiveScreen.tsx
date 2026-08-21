@@ -70,6 +70,9 @@ export function AdminLiveScreen() {
   const away = d.teamById(m.away_team_id);
   const crests = crestPair(home?.sort_order ?? 0, away?.sort_order ?? 1);
   const isLive = m.status === 'live';
+  // Unos (rezultat i dogadaji) moguc je tek kad utakmica krene. Zavrsena
+  // ostaje otvorena za ispravak jer je pogreska vidljiva tek na kraju.
+  const canEnter = m.status !== 'scheduled';
   const matchEvents = d.eventsOf(m.id);
 
   // Tijek: najnovije na vrhu, s tekućim rezultatom uz golove.
@@ -175,7 +178,7 @@ export function AdminLiveScreen() {
         </View>
 
         <View style={styles.center}>
-          <ScoreWithAdjust value={m.home_score} onAdjust={(dv) => d.adjustScore(m.id, true, dv)} />
+          <ScoreWithAdjust value={m.home_score} disabled={!canEnter} onAdjust={(dv) => d.adjustScore(m.id, true, dv)} />
           <View style={styles.clockCol}>
             <Pressable
               style={styles.clockBtn}
@@ -190,7 +193,7 @@ export function AdminLiveScreen() {
               {isLive ? t('home.halfN', { n: m.current_half ?? 1 }).toUpperCase() : t('admin.scheduledBadge')}
             </Txt>
           </View>
-          <ScoreWithAdjust value={m.away_score} onAdjust={(dv) => d.adjustScore(m.id, false, dv)} />
+          <ScoreWithAdjust value={m.away_score} disabled={!canEnter} onAdjust={(dv) => d.adjustScore(m.id, false, dv)} />
         </View>
 
         <View style={[styles.teamSide, styles.teamSideRight]}>
@@ -200,6 +203,10 @@ export function AdminLiveScreen() {
           <Crest code={away?.short_code} index={crests[1]} logoUrl={away?.logo_url} size={54} />
         </View>
       </View>
+
+      {!canEnter && (
+        <Txt style={styles.lockNote}>{t('admin.notStarted')}</Txt>
+      )}
 
       {/* Kontrole + tijek */}
       <View style={[styles.main, wide && styles.mainWide]}>
@@ -289,15 +296,23 @@ export function AdminLiveScreen() {
 }
 
 /** Rezultat s malim ručnim ispravkom — sigurnosni ventil kad unos zapne. */
-function ScoreWithAdjust({ value, onAdjust }: { value: number; onAdjust: (d: number) => void }) {
+function ScoreWithAdjust({
+  value,
+  onAdjust,
+  disabled,
+}: {
+  value: number;
+  onAdjust: (d: number) => void;
+  disabled?: boolean;
+}) {
   return (
     <View style={styles.scoreCol}>
       <Txt style={styles.scoreNum}>{value}</Txt>
       <View style={styles.adjRow}>
-        <Pressable style={styles.adjBtn} onPress={() => onAdjust(-1)}>
+        <Pressable style={[styles.adjBtn, disabled && styles.actOff]} disabled={disabled} onPress={() => onAdjust(-1)}>
           <Txt style={styles.adjTxt}>−</Txt>
         </Pressable>
-        <Pressable style={styles.adjBtn} onPress={() => onAdjust(1)}>
+        <Pressable style={[styles.adjBtn, disabled && styles.actOff]} disabled={disabled} onPress={() => onAdjust(1)}>
           <Txt style={styles.adjTxt}>+</Txt>
         </Pressable>
       </View>
@@ -396,6 +411,14 @@ const styles = StyleSheet.create({
   clockTxt: { fontFamily: F.head, fontSize: 28, letterSpacing: 1, color: C.txt },
   halfTxt: { fontFamily: F.headSemi, fontSize: 12, letterSpacing: 1, color: C.sub },
 
+  lockNote: {
+    fontFamily: F.body,
+    fontSize: 13,
+    color: C.sub,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: SP.gap,
+  },
   main: { flex: 1, gap: 16, paddingHorizontal: 20, paddingBottom: 20, minHeight: 0 },
   mainWide: { flexDirection: 'row' },
 

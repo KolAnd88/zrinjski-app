@@ -57,9 +57,12 @@ function crestClash(a: number | undefined, b: number | undefined): boolean {
 function Roster({
   team,
   onPlus,
+  canEnter,
 }: {
   team: LiveTeam | null;
   onPlus: (player: Player) => void;
+  /** Bez pokrenute utakmice nema unosa — gumbi su ugaseni, ne skriveni. */
+  canEnter: boolean;
 }) {
   const { t } = useT();
   if (!team) return <Card>{t('live.teamUnknown')}</Card>;
@@ -76,7 +79,12 @@ function Roster({
           <div key={p.id} className="proster">
             <span className="proster__num">{p.number ?? '–'}</span>
             <span className="proster__name">{p.name}</span>
-            <button className="proster__plus" onClick={() => onPlus(p)} aria-label="+">
+            <button
+              className="proster__plus"
+              disabled={!canEnter}
+              onClick={() => onPlus(p)}
+              aria-label="+"
+            >
               +
             </button>
           </div>
@@ -165,6 +173,8 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
 
   const m = live.match;
   const isLive = m.status === 'live';
+  // Unos je moguc tek kad utakmica krene; zavrsena ostaje otvorena za ispravak.
+  const canEnter = m.status !== 'scheduled';
   const clash = crestClash(live.home?.sort_order, live.away?.sort_order);
   const recentFeed = [...live.feed].reverse().slice(0, 5);
   const nextMatches = enterable.matches.filter((x) => x.id !== matchId).slice(0, 3);
@@ -201,14 +211,14 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
 
           <div className="live__adjust">
             <div className="live__adjust-group">
-              <button onClick={() => void live.adjustScore(true, -1)}>−</button>
+              <button disabled={!canEnter} onClick={() => void live.adjustScore(true, -1)}>−</button>
               <span>{t('live.manual')}</span>
-              <button onClick={() => void live.adjustScore(true, 1)}>+</button>
+              <button disabled={!canEnter} onClick={() => void live.adjustScore(true, 1)}>+</button>
             </div>
             <div className="live__adjust-group">
-              <button onClick={() => void live.adjustScore(false, -1)}>−</button>
+              <button disabled={!canEnter} onClick={() => void live.adjustScore(false, -1)}>−</button>
               <span>{t('live.manual')}</span>
-              <button onClick={() => void live.adjustScore(false, 1)}>+</button>
+              <button disabled={!canEnter} onClick={() => void live.adjustScore(false, 1)}>+</button>
             </div>
           </div>
 
@@ -289,10 +299,16 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
         )}
       </div>
 
+      {!canEnter && (
+        <div className="banner" style={{ marginBottom: 'var(--sp-md)' }}>
+          {t('live.notStarted')}
+        </div>
+      )}
+
       {/* Sastavi */}
       <div className="live__rosters">
-        <Roster team={live.home} onPlus={(p) => live.home && handlePlus(live.home.id, p)} />
-        <Roster team={live.away} onPlus={(p) => live.away && handlePlus(live.away.id, p)} />
+        <Roster team={live.home} canEnter={canEnter} onPlus={(p) => live.home && handlePlus(live.home.id, p)} />
+        <Roster team={live.away} canEnter={canEnter} onPlus={(p) => live.away && handlePlus(live.away.id, p)} />
       </div>
 
       {/* Tijek uživo */}
