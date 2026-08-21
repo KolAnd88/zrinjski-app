@@ -30,6 +30,7 @@ export const strings = {
     'common.notifications': 'Obavijesti',
     'common.empty': 'Nema podataka.',
     'common.half': 'poluvrijeme',
+    'common.back': 'Natrag',
 
     // Onboarding
     'onb.langTitle': 'Odaberi jezik',
@@ -142,6 +143,8 @@ export const strings = {
     'team.resLoss': 'Poraz',
     'team.resDraw': 'Neriješeno',
     'team.noMatches': 'Nema utakmica.',
+    'team.follow': 'Prati',
+    'team.following': 'Pratiš',
 
     // Info
     'info.about': 'O klubu',
@@ -233,6 +236,7 @@ export const strings = {
     'common.notifications': 'Notifications',
     'common.empty': 'No data.',
     'common.half': 'half',
+    'common.back': 'Back',
 
     'onb.langTitle': 'Choose language',
     'onb.langSub': 'Jezik',
@@ -338,6 +342,8 @@ export const strings = {
     'team.resLoss': 'Loss',
     'team.resDraw': 'Draw',
     'team.noMatches': 'No matches.',
+    'team.follow': 'Follow',
+    'team.following': 'Following',
 
     'info.about': 'About the club',
     'info.aboutTournament': 'About the tournament',

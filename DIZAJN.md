@@ -54,7 +54,7 @@ Koristi ga svugdje gdje dvije ekipe stoje jedna uz drugu (hero, red rasporeda, s
 
 Nikad prazna rupa ni generička placeholder ikona.
 
-Radijus prati veličinu: ≤32 px → 9 px · ≤46 px → 11 px · veći → 15 px.
+Radijus prati veličinu: ≤26 px → 7 · ≤32 → 9 · ≤46 → 11 · ≤60 → 15 · veći → 17.
 Veličine: popis/raspored 30, poredak 28, „Pratiš" 42, hero i detalj utakmice 56,
 uživo 72, TV semafor 120.
 Upload logotipa: web admin → Ekipe → „Logo ekipe" (PNG/SVG, prozirna pozadina,

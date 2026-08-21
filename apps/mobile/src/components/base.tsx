@@ -105,12 +105,13 @@ export function Card({
   );
 }
 
-/** Radijus grba prati veličinu (vidi DIZAJN.md): 7 → 9 → 11 → 15. */
+/** Radijus grba prati veličinu (vidi DIZAJN.md): 7 → 9 → 11 → 15 → 17. */
 function crestRadius(size: number) {
   if (size <= 26) return 7;
   if (size <= 32) return R.crestSm;
   if (size <= 46) return R.chip;
-  return R.crestLg;
+  if (size <= 60) return R.crestLg;
+  return 17;
 }
 
 /**
