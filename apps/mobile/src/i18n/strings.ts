@@ -114,6 +114,9 @@ export const strings = {
     'live.type.red': 'Crveni karton',
     'live.noEvents': 'Još nema događaja.',
     'live.scheduledMsg': 'Utakmica još nije počela.',
+    'live.qGoals': 'Golova',
+    'live.qSaves': 'Obrana',
+    'live.qCards': 'Kartona',
 
     // Detalj ekipe
     'team.squad': 'Sastav',
@@ -304,6 +307,9 @@ export const strings = {
     'live.type.red': 'Red card',
     'live.noEvents': 'No events yet.',
     'live.scheduledMsg': 'The match has not started yet.',
+    'live.qGoals': 'Goals',
+    'live.qSaves': 'Saves',
+    'live.qCards': 'Cards',
 
     'team.squad': 'Squad',
     'team.matches': 'Matches',
