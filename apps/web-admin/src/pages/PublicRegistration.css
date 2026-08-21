@@ -5,6 +5,15 @@
   flex-direction: column;
   gap: var(--sp-md);
 }
+.regform__deadline {
+  border: 1px solid var(--line);
+  border-radius: var(--r-chip);
+  background: var(--card2);
+  color: var(--sub);
+  padding: var(--sp-sm) var(--sp-md);
+  font-size: 13px;
+  line-height: 1.4;
+}
 
 /* M/Ž izbor */
 .regform__gender {
@@ -96,6 +105,11 @@
 .regform__addplayer:hover {
   background: rgba(225, 29, 42, 0.08);
 }
+.regform__addplayer:disabled {
+  border-color: var(--line);
+  color: var(--mut);
+  cursor: not-allowed;
+}
 
 /* Honeypot — vizualno nepostojeći, ali prisutan u DOM-u za botove */
 .regform__hp {
@@ -128,6 +142,29 @@
   color: var(--sub);
   margin: 0;
   line-height: 1.5;
+}
+
+/* Učitavanje, zatvorene prijave i nedostupan turnir */
+.regform__state {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: var(--sp-xl);
+  text-align: center;
+}
+.regform__state--closed {
+  border-color: var(--red);
+}
+.regform__state-title {
+  color: var(--txt);
+  font-family: var(--font-head);
+  font-size: 22px;
+  font-weight: 700;
+}
+.regform__state p {
+  color: var(--sub);
+  line-height: 1.5;
+  margin: var(--sp-sm) 0 0;
 }
 
 .regform__adminlink {

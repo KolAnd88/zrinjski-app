@@ -113,7 +113,13 @@ function LogoField({ team, onChanged }: { team: Team; onChanged: () => void }) {
       onChanged();
     } catch (e) {
       if (e instanceof LogoValidationError) {
-        setErr(e.reason === 'type' ? t('teams.logoErrType') : t('teams.logoErrSize'));
+        const msg = {
+          type: 'teams.logoErrType',
+          size: 'teams.logoErrSize',
+          tooSmall: 'teams.logoErrTooSmall',
+          tooLarge: 'teams.logoErrTooLarge',
+        } as const;
+        setErr(t(msg[e.reason]));
       } else {
         setErr(t('teams.logoErrUpload'));
       }

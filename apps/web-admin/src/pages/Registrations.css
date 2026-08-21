@@ -34,6 +34,59 @@
   gap: var(--sp-md);
 }
 
+/* Otvaranje prijava i rok */
+.regs-settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+}
+.regs-settings__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-md);
+}
+.regs-settings__head .section-label {
+  margin: 0;
+}
+.regs-settings__hint {
+  color: var(--mut);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: var(--sp-xs) 0 0;
+}
+.regs-settings__status {
+  flex: 0 0 auto;
+  border-radius: var(--r-chip);
+  padding: 5px 10px;
+  font-family: var(--font-head);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.regs-settings__status.is-open {
+  background: rgba(34, 197, 94, 0.14);
+  color: var(--green);
+}
+.regs-settings__status.is-closed {
+  background: rgba(225, 29, 42, 0.12);
+  color: var(--red);
+}
+.regs-settings__controls {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--sp-sm);
+}
+.regs-settings__deadline {
+  flex: 1 1 240px;
+}
+.regs-settings__message {
+  color: var(--sub);
+  font-size: 13px;
+}
+
 /* Kartica prijave */
 .regcard {
   display: flex;
@@ -135,6 +188,11 @@
 .btn-reject:hover {
   background: rgba(225, 29, 42, 0.08);
 }
+.btn-approve:disabled,
+.btn-reject:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
 
 /* Odobrene ekipe */
 .regs__approved {
@@ -166,4 +224,13 @@
   display: grid;
   place-items: center;
   font-weight: 700;
+}
+
+@media (max-width: 560px) {
+  .regs-settings__head {
+    align-items: center;
+  }
+  .regs-settings__controls > .btn {
+    flex: 1 1 140px;
+  }
 }

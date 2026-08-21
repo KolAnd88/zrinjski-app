@@ -1,14 +1,21 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import type { Gender, RegistrationPlayer } from '@zrinjski/core';
+import type { Gender, RegistrationPlayer, Tournament } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
-import { submitRegistration } from '../lib/data';
+import {
+  fetchActiveTournament,
+  RegistrationSubmissionError,
+  submitRegistration,
+} from '../lib/data';
 import { Button } from '../components/ui';
 import './Login.css';
 import './PublicRegistration.css';
 
 export function PublicRegistration() {
-  const { t } = useT();
+  const { t, locale } = useT();
+  const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [statusLoading, setStatusLoading] = useState(true);
+  const [statusError, setStatusError] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [gender, setGender] = useState<Gender>('m');
   const [repName, setRepName] = useState('');
@@ -24,6 +31,25 @@ export function PublicRegistration() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void fetchActiveTournament()
+      .then((value) => {
+        if (!active) return;
+        setTournament(value);
+        setStatusError(!value);
+      })
+      .catch(() => {
+        if (active) setStatusError(true);
+      })
+      .finally(() => {
+        if (active) setStatusLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -58,8 +84,22 @@ export function PublicRegistration() {
         players: roster,
       });
       setDone(true);
-    } catch {
-      setError(t('regform.errSend'));
+    } catch (submissionError) {
+      if (submissionError instanceof RegistrationSubmissionError) {
+        const errorKey = {
+          closed: 'regform.errClosed',
+          duplicate: 'regform.errDuplicate',
+          rate_limited: 'regform.errRateLimited',
+          invalid: 'regform.errInvalid',
+          unavailable: 'regform.errSend',
+        } as const;
+        setError(t(errorKey[submissionError.code]));
+        if (submissionError.code === 'closed') {
+          setTournament((current) => (current ? { ...current, registration_open: false } : current));
+        }
+      } else {
+        setError(t('regform.errSend'));
+      }
     } finally {
       setBusy(false);
     }
@@ -83,6 +123,15 @@ export function PublicRegistration() {
   }
 
   const filledPlayers = players.filter((p) => p.name.trim()).length;
+  const deadlineExpired =
+    !!tournament?.registration_deadline && Date.now() > new Date(tournament.registration_deadline).getTime();
+  const registrationOpen = !!tournament?.registration_open && !deadlineExpired;
+  const formattedDeadline = tournament?.registration_deadline
+    ? new Intl.DateTimeFormat(locale === 'hr' ? 'hr-HR' : 'en-GB', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      }).format(new Date(tournament.registration_deadline))
+    : null;
 
   return (
     <div className="login regform">
@@ -93,7 +142,21 @@ export function PublicRegistration() {
           <div className="login__subtitle">{t('regform.sub')}</div>
         </div>
 
-        {done ? (
+        {statusLoading ? (
+          <div className="regform__state">
+            <div className="regform__state-title">{t('regform.loading')}</div>
+          </div>
+        ) : statusError ? (
+          <div className="regform__state">
+            <div className="regform__state-title">{t('regform.unavailableTitle')}</div>
+            <p>{t('regform.unavailableBody')}</p>
+          </div>
+        ) : !registrationOpen ? (
+          <div className="regform__state regform__state--closed">
+            <div className="regform__state-title">{t('regform.closedTitle')}</div>
+            <p>{t('regform.closedBody')}</p>
+          </div>
+        ) : done ? (
           <div className="regform__success">
             <div className="regform__success-title">{t('regform.successTitle')}</div>
             <p className="regform__success-body">{t('regform.successBody')}</p>
@@ -104,6 +167,9 @@ export function PublicRegistration() {
         ) : (
           <form onSubmit={handleSubmit} className="regform__form">
             {error && <div className="banner banner--error">{error}</div>}
+            {formattedDeadline && (
+              <div className="regform__deadline">{t('regform.deadline', { date: formattedDeadline })}</div>
+            )}
 
             <div>
               <label className="field-label" htmlFor="rf-team">
@@ -182,7 +248,9 @@ export function PublicRegistration() {
                       onChange={(e) => {
                         const v = e.target.value.trim();
                         const n = Number(v);
-                        setPlayer(i, { number: v && Number.isFinite(n) ? Math.round(n) : null });
+                        setPlayer(i, {
+                          number: v && Number.isFinite(n) ? Math.max(0, Math.min(999, Math.round(n))) : null,
+                        });
                       }}
                     />
                     <input
@@ -207,9 +275,10 @@ export function PublicRegistration() {
               <button
                 type="button"
                 className="regform__addplayer"
+                disabled={players.length >= 40}
                 onClick={() => setPlayers((xs) => [...xs, { name: '', number: null }])}
               >
-                {t('regform.addPlayer')}
+                {players.length >= 40 ? t('regform.maxPlayers') : t('regform.addPlayer')}
               </button>
             </div>
 

@@ -29,7 +29,13 @@ export function Gallery() {
       }
     } catch (e) {
       if (e instanceof PhotoValidationError) {
-        setErr(e.reason === 'type' ? t('gallery.badType') : t('gallery.tooBig'));
+        const msg = {
+          type: 'gallery.badType',
+          size: 'gallery.tooBig',
+          tooSmall: 'gallery.tooSmallPx',
+          tooLarge: 'gallery.tooLargePx',
+        } as const;
+        setErr(t(msg[e.reason]));
       } else {
         setErr(e instanceof Error ? e.message : String(e));
       }

@@ -13,7 +13,6 @@ import type {
   Player,
   Registration,
   RegistrationPlayer,
-  RegistrationStatus,
   Sponsor,
   Team,
   Tournament,
@@ -29,6 +28,20 @@ export class NotConfiguredError extends Error {
   constructor() {
     super('Supabase nije konfiguriran.');
     this.name = 'NotConfiguredError';
+  }
+}
+
+export type RegistrationSubmissionErrorCode =
+  | 'closed'
+  | 'duplicate'
+  | 'rate_limited'
+  | 'invalid'
+  | 'unavailable';
+
+export class RegistrationSubmissionError extends Error {
+  constructor(public readonly code: RegistrationSubmissionErrorCode) {
+    super(code);
+    this.name = 'RegistrationSubmissionError';
   }
 }
 
@@ -333,14 +346,40 @@ export async function fetchTeamWithPlayers(
   return { team, players: await fetchPlayers(teamId) };
 }
 
+// ── Dimenzije slike ───────────────────────────────────────────────────────
+/**
+ * Širina i visina slike u pikselima, pročitane u pregledniku prije uploada.
+ * Vraća null kad se ne mogu utvrditi — SVG je vektor i često nema zadane
+ * piksele, pa se za njega provjerava samo težina datoteke.
+ */
+export function readImageSize(file: File): Promise<{ w: number; h: number } | null> {
+  if (file.type === 'image/svg+xml') return Promise.resolve(null);
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve({ w: img.naturalWidth, h: img.naturalHeight });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url); // neispravna datoteka → pusti dalje, upload će pasti
+      resolve(null);
+    };
+    img.src = url;
+  });
+}
+
 // ── Logotip ekipe ─────────────────────────────────────────────────────────
 const TEAM_LOGOS_BUCKET = 'team-logos';
 /** Ograničenja uploada logotipa (validira se prije slanja). */
 export const TEAM_LOGO_MAX_BYTES = 512 * 1024; // 512 KB
 export const TEAM_LOGO_TYPES = ['image/png', 'image/svg+xml'];
+/** Premali logo je mutan na grbu od 190px (TV semafor); preveliki je bespotrebno težak. */
+export const TEAM_LOGO_MIN_PX = 128;
+export const TEAM_LOGO_MAX_PX = 2048;
 
 export class LogoValidationError extends Error {
-  constructor(public reason: 'type' | 'size') {
+  constructor(public reason: 'type' | 'size' | 'tooSmall' | 'tooLarge') {
     super(reason);
     this.name = 'LogoValidationError';
   }
@@ -353,6 +392,15 @@ export class LogoValidationError extends Error {
 export async function uploadTeamLogo(teamId: string, file: File): Promise<string> {
   if (!TEAM_LOGO_TYPES.includes(file.type)) throw new LogoValidationError('type');
   if (file.size > TEAM_LOGO_MAX_BYTES) throw new LogoValidationError('size');
+
+  // Piksele provjeravamo posebno od težine: mali PNG može biti lagan a mutan.
+  const dim = await readImageSize(file);
+  if (dim) {
+    const min = Math.min(dim.w, dim.h);
+    const max = Math.max(dim.w, dim.h);
+    if (min < TEAM_LOGO_MIN_PX) throw new LogoValidationError('tooSmall');
+    if (max > TEAM_LOGO_MAX_PX) throw new LogoValidationError('tooLarge');
+  }
 
   if (DEMO) {
     const url = URL.createObjectURL(file);
@@ -660,12 +708,15 @@ export async function deleteSponsor(id: string): Promise<void> {
 // U `storage_path` držimo javni URL (isto kao logotipi sponzora) da ga mobilna
 // app može prikazati izravno, bez sastavljanja putanje prema Storageu.
 
-/** Dopušteni formati i najveća veličina fotografije. */
+/** Dopušteni formati, težina i dimenzije fotografije. */
 const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+export const PHOTO_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+/** Ispod ovoga je fotografija zamućena u mreži galerije; iznad je bespotrebno teška. */
+export const PHOTO_MIN_PX = 600;
+export const PHOTO_MAX_PX = 6000;
 
 export class PhotoValidationError extends Error {
-  constructor(public reason: 'type' | 'size') {
+  constructor(public reason: 'type' | 'size' | 'tooSmall' | 'tooLarge') {
     super(reason);
   }
 }
@@ -691,6 +742,14 @@ export async function addGalleryPhoto(
 ): Promise<GalleryPhoto> {
   if (!PHOTO_TYPES.includes(file.type)) throw new PhotoValidationError('type');
   if (file.size > PHOTO_MAX_BYTES) throw new PhotoValidationError('size');
+
+  const dim = await readImageSize(file);
+  if (dim) {
+    const min = Math.min(dim.w, dim.h);
+    const max = Math.max(dim.w, dim.h);
+    if (min < PHOTO_MIN_PX) throw new PhotoValidationError('tooSmall');
+    if (max > PHOTO_MAX_PX) throw new PhotoValidationError('tooLarge');
+  }
 
   const url = await uploadPublicAsset(file, `gallery/${tournamentId}`);
   if (DEMO) {
@@ -794,12 +853,6 @@ export async function fetchRegistrations(tournamentId: string): Promise<Registra
   return data ?? [];
 }
 
-export async function updateRegistrationStatus(id: string, status: RegistrationStatus): Promise<void> {
-  if (DEMO) return patch(db.registrations, id, { status });
-  const { error } = await client().from('registration').update({ status }).eq('id', id);
-  if (error) throw error;
-}
-
 export type PublicRegistrationInput = {
   team_name: string;
   gender: Gender;
@@ -811,13 +864,24 @@ export type PublicRegistrationInput = {
 };
 
 /**
- * JAVNA prijava ekipe (bez logina) — RLS dopušta anon INSERT u registration.
- * Status kreće kao 'pending'; organizator odobrava u adminu (Prijave).
+ * Javna prijava bez logina. Upis ide kroz RPC koji na serveru provjerava
+ * otvorenost prijava, rok, duplikate, sadržaj i osnovni rate-limit.
  */
 export async function submitRegistration(input: PublicRegistrationInput): Promise<void> {
   const t = await fetchActiveTournament();
-  if (!t) throw new Error('Turnir još nije postavljen.');
+  if (!t) throw new RegistrationSubmissionError('unavailable');
   if (DEMO) {
+    if (!t.registration_open || (t.registration_deadline && Date.now() > new Date(t.registration_deadline).getTime())) {
+      throw new RegistrationSubmissionError('closed');
+    }
+    const duplicate = db.registrations.some(
+      (r) =>
+        r.tournament_id === t.id &&
+        r.gender === input.gender &&
+        r.team_name.trim().toLocaleLowerCase() === input.team_name.trim().toLocaleLowerCase() &&
+        (r.status === 'pending' || r.status === 'approved')
+    );
+    if (duplicate) throw new RegistrationSubmissionError('duplicate');
     db.registrations.push({
       id: genId('r'),
       tournament_id: t.id,
@@ -828,11 +892,102 @@ export async function submitRegistration(input: PublicRegistrationInput): Promis
       player_count: input.player_count,
       players: input.players,
       status: 'pending',
+      approved_team_id: null,
+      processed_at: null,
+      processed_by: null,
       created_at: new Date().toISOString(),
     });
     return;
   }
-  const { error } = await client().from('registration').insert({ tournament_id: t.id, ...input });
+  const { error } = await client().rpc('submit_registration', {
+    p_tournament_id: t.id,
+    p_team_name: input.team_name,
+    p_gender: input.gender,
+    p_rep_name: input.rep_name,
+    p_rep_email: input.rep_email,
+    p_player_count: input.player_count,
+    p_players: input.players,
+  });
+  if (!error) return;
+
+  const message = error.message.toLowerCase();
+  if (message.includes('registration_closed')) throw new RegistrationSubmissionError('closed');
+  if (message.includes('registration_duplicate')) throw new RegistrationSubmissionError('duplicate');
+  if (message.includes('registration_rate_limited')) throw new RegistrationSubmissionError('rate_limited');
+  if (message.includes('registration_invalid')) throw new RegistrationSubmissionError('invalid');
+  if (message.includes('registration_unavailable')) throw new RegistrationSubmissionError('unavailable');
+  throw error;
+}
+
+/** Atomski odobrava prijavu i vraća ID kreirane ili postojeće ekipe. */
+export async function approveRegistration(id: string, shortCode: string): Promise<string> {
+  if (DEMO) {
+    const reg = db.registrations.find((r) => r.id === id);
+    if (!reg) throw new Error('Prijava nije pronađena.');
+    if (reg.status === 'rejected') throw new Error('Prijava je već odbijena.');
+    if (reg.status === 'approved' && reg.approved_team_id) return reg.approved_team_id;
+
+    let team = db.teams.find(
+      (candidate) =>
+        candidate.tournament_id === reg.tournament_id &&
+        candidate.gender === reg.gender &&
+        candidate.name.trim().toLocaleLowerCase() === reg.team_name.trim().toLocaleLowerCase()
+    );
+    if (!team) {
+      team = await createTeam({
+        tournament_id: reg.tournament_id,
+        name: reg.team_name.trim(),
+        gender: reg.gender,
+        rep_email: reg.rep_email.trim().toLocaleLowerCase(),
+        short_code: shortCode,
+      });
+    }
+
+    const existingPlayers = db.players.filter((p) => p.team_id === team!.id);
+    for (const player of reg.players ?? []) {
+      const name = player.name.trim();
+      if (!name) continue;
+      const exists = existingPlayers.some(
+        (candidate) =>
+          candidate.name.trim().toLocaleLowerCase() === name.toLocaleLowerCase() &&
+          candidate.number === player.number
+      );
+      if (!exists) {
+        const created = await createPlayer({
+          team_id: team.id,
+          name,
+          number: player.number ?? null,
+          sort_order: existingPlayers.length,
+        });
+        existingPlayers.push(created);
+      }
+    }
+
+    patch(db.registrations, id, {
+      status: 'approved',
+      approved_team_id: team.id,
+      processed_at: new Date().toISOString(),
+    });
+    return team.id;
+  }
+
+  const { data, error } = await client().rpc('approve_registration', {
+    p_registration_id: id,
+    p_short_code: shortCode,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function rejectRegistration(id: string): Promise<void> {
+  if (DEMO) {
+    const reg = db.registrations.find((r) => r.id === id);
+    if (!reg) throw new Error('Prijava nije pronađena.');
+    if (reg.status === 'approved') throw new Error('Odobrena prijava se ne može odbiti.');
+    patch(db.registrations, id, { status: 'rejected', processed_at: new Date().toISOString() });
+    return;
+  }
+  const { error } = await client().rpc('reject_registration', { p_registration_id: id });
   if (error) throw error;
 }
 

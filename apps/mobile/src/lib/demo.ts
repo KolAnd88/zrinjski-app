@@ -25,6 +25,8 @@ export const demoTournament: Tournament = {
   points_loss: 0,
   advance_per_group: 2,
   reminder_prefs: { day_before_18: true, thirty_min_before: true, schedule_change: true },
+  registration_open: true,
+  registration_deadline: null,
   created_at: '2026-01-01T00:00:00+01:00',
   updated_at: '2026-01-01T00:00:00+01:00',
 };

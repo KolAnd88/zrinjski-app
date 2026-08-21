@@ -2,10 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Registration } from '@zrinjski/core';
 import { HAS_DATA } from '../../lib/supabase';
 import {
-  createPlayer,
-  createTeam,
+  approveRegistration,
   fetchRegistrations,
-  updateRegistrationStatus,
+  rejectRegistration,
 } from '../../lib/data';
 import { autoShortCode } from '../../lib/crest';
 
@@ -15,7 +14,8 @@ export type RegistrationsData = {
   error: string | null;
   pending: Registration[];
   approved: Registration[];
-  /** Odobri prijavu: status → approved + kreiraj ekipu (vidljiva u Ekipama). */
+  processingId: string | null;
+  /** Odobri prijavu atomski: ekipa + igrači + status u jednoj transakciji. */
   approve: (reg: Registration) => Promise<void>;
   reject: (id: string) => Promise<void>;
 };
@@ -24,6 +24,7 @@ export function useRegistrations(tournamentId: string | null): RegistrationsData
   const [loading, setLoading] = useState(HAS_DATA && !!tournamentId);
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<Registration[]>([]);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     if (!HAS_DATA || !tournamentId) {
@@ -48,38 +49,46 @@ export function useRegistrations(tournamentId: string | null): RegistrationsData
   const approve = useCallback(
     async (reg: Registration) => {
       if (!tournamentId) return;
-      // sort_order namjerno ne šaljemo — createTeam dodijeli sljedeći slobodan
-      // unutar spola (broj ekipa nije pouzdan ako je neka usput obrisana).
-      const team = await createTeam({
-        tournament_id: tournamentId,
-        name: reg.team_name,
-        gender: reg.gender,
-        rep_email: reg.rep_email,
-        short_code: autoShortCode(reg.team_name),
-      });
-
-      // Prijavljeni sastav (ako ga ima) prepiši u igrače ekipe.
-      const roster = reg.players ?? [];
-      for (let i = 0; i < roster.length; i++) {
-        const p = roster[i]!;
-        if (!p.name?.trim()) continue;
-        await createPlayer({
-          team_id: team.id,
-          name: p.name.trim(),
-          number: p.number ?? null,
-          sort_order: i,
-        });
+      setProcessingId(reg.id);
+      setError(null);
+      try {
+        const teamId = await approveRegistration(reg.id, autoShortCode(reg.team_name));
+        setItems((xs) =>
+          xs.map((r) =>
+            r.id === reg.id
+              ? {
+                  ...r,
+                  status: 'approved',
+                  approved_team_id: teamId,
+                  processed_at: new Date().toISOString(),
+                }
+              : r
+          )
+        );
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      } finally {
+        setProcessingId(null);
       }
-
-      await updateRegistrationStatus(reg.id, 'approved');
-      setItems((xs) => xs.map((r) => (r.id === reg.id ? { ...r, status: 'approved' } : r)));
     },
     [tournamentId]
   );
 
   const reject = useCallback(async (id: string) => {
-    await updateRegistrationStatus(id, 'rejected');
-    setItems((xs) => xs.map((r) => (r.id === id ? { ...r, status: 'rejected' } : r)));
+    setProcessingId(id);
+    setError(null);
+    try {
+      await rejectRegistration(id);
+      setItems((xs) =>
+        xs.map((r) =>
+          r.id === id ? { ...r, status: 'rejected', processed_at: new Date().toISOString() } : r
+        )
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setProcessingId(null);
+    }
   }, []);
 
   return {
@@ -88,6 +97,7 @@ export function useRegistrations(tournamentId: string | null): RegistrationsData
     error,
     pending: items.filter((r) => r.status === 'pending'),
     approved: items.filter((r) => r.status === 'approved'),
+    processingId,
     approve,
     reject,
   };

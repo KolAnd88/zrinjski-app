@@ -39,6 +39,8 @@ const tournament: Tournament = {
   points_loss: 0,
   advance_per_group: 2,
   reminder_prefs: { day_before_18: true, thirty_min_before: true, schedule_change: true },
+  registration_open: true,
+  registration_deadline: null,
   created_at: '2026-01-01T00:00:00Z',
   updated_at: '2026-01-01T00:00:00Z',
 };
@@ -192,7 +194,8 @@ const program: ProgramItem[] = [
 const registrations: Registration[] = [
   {
     id: 'r1', tournament_id: T, team_name: 'Posušje veterani', gender: 'm', rep_name: 'Ivan Lučić',
-    rep_email: 'ivan@posusje.ba', player_count: 4, status: 'pending', created_at: '2026-05-01T10:00:00Z',
+    rep_email: 'ivan@posusje.ba', player_count: 4, status: 'pending', approved_team_id: null,
+    processed_at: null, processed_by: null, created_at: '2026-05-01T10:00:00Z',
     players: [
       { name: 'Slaven Boban', number: 1 },
       { name: 'Mate Jelić', number: 4 },
@@ -202,15 +205,16 @@ const registrations: Registration[] = [
   },
   {
     id: 'r2', tournament_id: T, team_name: 'ŽRK Lasta', gender: 'z', rep_name: 'Maja Kovač',
-    rep_email: 'maja@lasta.ba', player_count: 3, status: 'pending', created_at: '2026-05-02T10:00:00Z',
+    rep_email: 'maja@lasta.ba', player_count: 3, status: 'pending', approved_team_id: null,
+    processed_at: null, processed_by: null, created_at: '2026-05-02T10:00:00Z',
     players: [
       { name: 'Maja Kovač', number: 1 },
       { name: 'Iva Bošnjak', number: 5 },
       { name: 'Petra Lulić', number: 9 },
     ],
   },
-  { id: 'r3', tournament_id: T, team_name: 'VHMRK Zrinjski', gender: 'm', rep_name: 'Ivan Ivić', rep_email: 'zri@klub.ba', player_count: 14, players: [], status: 'approved', created_at: '2026-04-01T10:00:00Z' },
-  { id: 'r4', tournament_id: T, team_name: 'Grude Legende', gender: 'm', rep_name: 'Marko Marić', rep_email: 'gru@klub.ba', player_count: 12, players: [], status: 'approved', created_at: '2026-04-02T10:00:00Z' },
+  { id: 'r3', tournament_id: T, team_name: 'VHMRK Zrinjski', gender: 'm', rep_name: 'Ivan Ivić', rep_email: 'zri@klub.ba', player_count: 14, players: [], status: 'approved', approved_team_id: 'zri', processed_at: '2026-04-01T12:00:00Z', processed_by: 'u1', created_at: '2026-04-01T10:00:00Z' },
+  { id: 'r4', tournament_id: T, team_name: 'Grude Legende', gender: 'm', rep_name: 'Marko Marić', rep_email: 'gru@klub.ba', player_count: 12, players: [], status: 'approved', approved_team_id: 'gru', processed_at: '2026-04-02T12:00:00Z', processed_by: 'u1', created_at: '2026-04-02T10:00:00Z' },
 ];
 
 const notifications: NotificationLog[] = [
