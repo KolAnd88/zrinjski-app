@@ -1,7 +1,7 @@
 // home.tsx — komadi Početne koji su dovoljno samostalni da imaju svoje mjesto:
 // dekorativna lenta, rotirajuća traka sponzora i odbrojavanje.
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { Animated, Easing, Image, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { C, F, R, SP } from '../theme';
 import { Txt } from './base';
@@ -57,7 +57,16 @@ export function useCountdown(targetIso: string | null | undefined): string | nul
  * Beskonačna traka sponzora. Popis se crta dvaput i pomiče za točno pola
  * širine — kad dođe do kraja prve kopije, skok na početak je nevidljiv.
  */
-export function SponsorMarquee({ names, durationMs = 22000 }: { names: string[]; durationMs?: number }) {
+/** Sponzor u traci: logo ako postoji, inače ime. */
+export type MarqueeSponsor = { name: string; logo_url: string | null };
+
+export function SponsorMarquee({
+  sponsors,
+  durationMs = 22000,
+}: {
+  sponsors: MarqueeSponsor[];
+  durationMs?: number;
+}) {
   const x = useRef(new Animated.Value(0)).current;
   const [half, setHalf] = useState(0);
 
@@ -76,8 +85,8 @@ export function SponsorMarquee({ names, durationMs = 22000 }: { names: string[];
     return () => loop.stop();
   }, [half, durationMs, x]);
 
-  if (names.length === 0) return null;
-  const doubled = [...names, ...names];
+  if (sponsors.length === 0) return null;
+  const doubled = [...sponsors, ...sponsors];
 
   return (
     <View style={styles.mqMask}>
@@ -85,11 +94,18 @@ export function SponsorMarquee({ names, durationMs = 22000 }: { names: string[];
         style={[styles.mqTrack, { transform: [{ translateX: x }] }]}
         onLayout={(e) => setHalf(e.nativeEvent.layout.width / 2)}
       >
-        {doubled.map((name, i) => (
-          <View key={`${name}-${i}`} style={styles.mqTile}>
-            <Txt style={styles.mqName} numberOfLines={1}>
-              {name}
-            </Txt>
+        {doubled.map((sp, i) => (
+          <View key={`${sp.name}-${i}`} style={[styles.mqTile, sp.logo_url && styles.mqTileLogo]}>
+            {sp.logo_url ? (
+              // contain — cijeli logo mora stati u pločicu, nikad obrezan.
+              // Podloga je bijela jer logotipi dolaze i kao JPEG s bijelim
+              // rubom; na tamnoj pločici bi izgledali kao zakrpa.
+              <Image source={{ uri: sp.logo_url }} style={styles.mqLogo} resizeMode="contain" />
+            ) : (
+              <Txt style={styles.mqName} numberOfLines={1}>
+                {sp.name}
+              </Txt>
+            )}
           </View>
         ))}
       </Animated.View>
@@ -120,7 +136,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 6,
+    overflow: 'hidden',
   },
+  mqTileLogo: { backgroundColor: '#fff', borderColor: 'rgba(255,255,255,.25)', padding: 6 },
+  mqLogo: { width: '100%', height: '100%' },
   mqName: {
     fontFamily: F.headSemi,
     fontSize: 12,

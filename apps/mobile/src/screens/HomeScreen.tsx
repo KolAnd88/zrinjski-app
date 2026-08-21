@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { Match } from '@zrinjski/core';
@@ -52,7 +52,9 @@ export function HomeScreen() {
   const countdown = useCountdown(nextMatch?.scheduled_time);
 
   const gold = d.sponsors.find((s) => s.tier === 'gold' && s.is_active) ?? null;
-  const otherSponsors = d.sponsors.filter((s) => s.tier !== 'gold').map((s) => s.name);
+  const otherSponsors = d.sponsors
+    .filter((s) => s.tier !== 'gold' && s.is_active)
+    .map((s) => ({ name: s.name, logo_url: s.logo_url }));
 
   const programDayId = live?.day_id ?? d.days[0]?.id;
   const todayProgram = d.program.filter((p) => p.day_id === programDayId);
@@ -152,9 +154,14 @@ export function HomeScreen() {
             style={styles.goldCard}
           >
             <View style={styles.goldLogo}>
-              <Txt style={styles.goldLogoTxt} numberOfLines={1}>
-                {(gold.name || '').slice(0, 8).toUpperCase()}
-              </Txt>
+              {gold.logo_url ? (
+                // contain na bijeloj podlozi — cijeli logo, bez obrezivanja
+                <Image source={{ uri: gold.logo_url }} style={styles.goldLogoImg} resizeMode="contain" />
+              ) : (
+                <Txt style={styles.goldLogoTxt} numberOfLines={1}>
+                  {(gold.name || '').slice(0, 8).toUpperCase()}
+                </Txt>
+              )}
             </View>
             <View style={{ flex: 1 }}>
               <Txt style={styles.goldName}>{gold.name}</Txt>
@@ -169,7 +176,7 @@ export function HomeScreen() {
         {otherSponsors.length > 0 && (
           <>
             <SectionLabel>{t('home.sponsors')}</SectionLabel>
-            <SponsorMarquee names={otherSponsors} />
+            <SponsorMarquee sponsors={otherSponsors} />
           </>
         )}
 
@@ -513,6 +520,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   goldLogoTxt: { fontFamily: F.head, fontSize: 11, color: C.redDk },
+  goldLogoImg: { width: '100%', height: '100%' },
   goldName: { fontFamily: F.head, fontSize: 16, letterSpacing: 0.3, color: C.txt },
   goldSub: { fontFamily: F.body, fontSize: 12, color: C.goldTxt, marginTop: 2 },
 

@@ -369,6 +369,39 @@ export function readImageSize(file: File): Promise<{ w: number; h: number } | nu
   });
 }
 
+// ── Logotip sponzora ──────────────────────────────────────────────────────
+/**
+ * Sponzorski logo se u mobilnoj app crta `contain` unutar pločice 110×50 —
+ * dakle nikad obrezan. Ali izduženi logo (npr. 2000×80) u toj pločici postane
+ * nečitljivo sitan, pa omjer stranica ograničavamo na 4:1 u oba smjera.
+ */
+export const SPONSOR_LOGO_TYPES = ['image/png', 'image/jpeg', 'image/svg+xml'];
+export const SPONSOR_LOGO_MAX_BYTES = 1024 * 1024; // 1 MB
+export const SPONSOR_LOGO_MIN_PX = 100;
+export const SPONSOR_LOGO_MAX_PX = 3000;
+export const SPONSOR_LOGO_MAX_RATIO = 4;
+
+export class SponsorLogoError extends Error {
+  constructor(public reason: 'type' | 'size' | 'tooSmall' | 'tooLarge' | 'ratio') {
+    super(reason);
+    this.name = 'SponsorLogoError';
+  }
+}
+
+/** Provjeri sponzorski logo prije uploada. Baca SponsorLogoError. */
+export async function validateSponsorLogo(file: File): Promise<void> {
+  if (!SPONSOR_LOGO_TYPES.includes(file.type)) throw new SponsorLogoError('type');
+  if (file.size > SPONSOR_LOGO_MAX_BYTES) throw new SponsorLogoError('size');
+
+  const dim = await readImageSize(file);
+  if (!dim) return; // SVG — vektor se skalira bez gubitka, omjer nije problem
+  const min = Math.min(dim.w, dim.h);
+  const max = Math.max(dim.w, dim.h);
+  if (min < SPONSOR_LOGO_MIN_PX) throw new SponsorLogoError('tooSmall');
+  if (max > SPONSOR_LOGO_MAX_PX) throw new SponsorLogoError('tooLarge');
+  if (max / min > SPONSOR_LOGO_MAX_RATIO) throw new SponsorLogoError('ratio');
+}
+
 // ── Logotip ekipe ─────────────────────────────────────────────────────────
 const TEAM_LOGOS_BUCKET = 'team-logos';
 /** Ograničenja uploada logotipa (validira se prije slanja). */

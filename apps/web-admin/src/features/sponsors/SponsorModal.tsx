@@ -3,6 +3,7 @@ import type { Sponsor, SponsorTier } from '@zrinjski/core';
 import { useT } from '../../i18n/I18nProvider';
 import type { StringKey } from '../../i18n/strings';
 import { Button } from '../../components/ui';
+import { SponsorLogoError, validateSponsorLogo } from '../../lib/data';
 import type { SponsorInput } from './useSponsors';
 import './SponsorModal.css';
 
@@ -33,9 +34,33 @@ export function SponsorModal({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  function onPickFile(f: File | null) {
-    setFile(f);
-    if (f) setPreview(URL.createObjectURL(f));
+  // Provjera ide odmah pri odabiru, ne tek na Spremi — organizator vidi
+  // problem prije nego ispuni ostatak obrasca.
+  async function onPickFile(f: File | null) {
+    setErr(null);
+    if (!f) {
+      setFile(null);
+      return;
+    }
+    try {
+      await validateSponsorLogo(f);
+      setFile(f);
+      setPreview(URL.createObjectURL(f));
+    } catch (e) {
+      setFile(null);
+      if (e instanceof SponsorLogoError) {
+        const msg = {
+          type: 'sponsors.errType',
+          size: 'sponsors.errSize',
+          tooSmall: 'sponsors.errTooSmall',
+          tooLarge: 'sponsors.errTooLarge',
+          ratio: 'sponsors.errRatio',
+        } as const;
+        setErr(t(msg[e.reason]));
+      } else {
+        setErr(e instanceof Error ? e.message : String(e));
+      }
+    }
   }
 
   async function save() {
@@ -80,7 +105,7 @@ export function SponsorModal({
               type="file"
               accept="image/*"
               hidden
-              onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => void onPickFile(e.target.files?.[0] ?? null)}
             />
           </label>
         </div>
