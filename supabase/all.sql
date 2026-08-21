@@ -36,16 +36,6 @@ begin
   return null;
 end; $$;
 
-create or replace function public.is_admin()
-returns boolean language sql stable security definer set search_path = public as $$
-  select exists (select 1 from public.app_user where id = auth.uid() and role in ('admin','delegate'));
-$$;
-
-create or replace function public.is_rep_of_team(p_team_id uuid)
-returns boolean language sql stable security definer set search_path = public as $$
-  select exists (select 1 from public.app_user where id = auth.uid() and role = 'rep' and team_id = p_team_id);
-$$;
-
 -- ════════════════════════════════════════════════════════════ TABLICE
 create table if not exists public.tournament (
   id uuid primary key default gen_random_uuid(),
@@ -235,6 +225,63 @@ create table if not exists public.device (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+alter table public.device add column if not exists enabled boolean not null default true;
+
+-- Funkcije ovlasti definiraju se nakon tablica da all.sql radi i na potpuno
+-- praznom projektu.
+create or replace function public.is_admin()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.app_user where id = auth.uid() and role in ('admin','delegate'));
+$$;
+
+create or replace function public.is_owner_admin()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.app_user where id = auth.uid() and role = 'admin');
+$$;
+
+create or replace function public.is_rep_of_team(p_team_id uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.app_user where id = auth.uid() and role = 'rep' and team_id = p_team_id);
+$$;
+
+revoke all on function public.is_owner_admin() from public;
+grant execute on function public.is_owner_admin() to authenticated;
+
+-- Gledatelj sprema samo vlastiti Expo token kroz RPC. Izravni anonimni
+-- INSERT/UPDATE nad tablicom device nije dopušten.
+create or replace function public.register_device(
+  p_token text,
+  p_language text default 'hr',
+  p_followed uuid[] default '{}',
+  p_prefs jsonb default null,
+  p_enabled boolean default true
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_token is null or length(trim(p_token)) = 0 then return; end if;
+  insert into public.device (expo_push_token, language, followed_team_ids, prefs, enabled)
+  values (
+    p_token,
+    coalesce(p_language, 'hr'),
+    coalesce(p_followed, '{}'),
+    coalesce(p_prefs, '{"team_playing_soon":true,"team_goal":true,"match_end":true,"schedule_change":true,"program":false}'::jsonb),
+    coalesce(p_enabled, true)
+  )
+  on conflict (expo_push_token) do update
+    set language = excluded.language,
+        followed_team_ids = excluded.followed_team_ids,
+        prefs = excluded.prefs,
+        enabled = excluded.enabled,
+        updated_at = now();
+end;
+$$;
+
+revoke all on function public.register_device(text, text, uuid[], jsonb, boolean) from public;
+grant execute on function public.register_device(text, text, uuid[], jsonb, boolean) to anon, authenticated;
 
 -- ════════════════════════════════════════════════════════════ TRIGGERI
 drop trigger if exists trg_tournament_updated on public.tournament;
@@ -303,16 +350,15 @@ drop policy if exists registration_admin_delete on public.registration;
 create policy registration_admin_delete on public.registration for delete to authenticated using (public.is_admin());
 
 drop policy if exists device_insert on public.device;
-create policy device_insert on public.device for insert to anon, authenticated with check (true);
 drop policy if exists device_update on public.device;
-create policy device_update on public.device for update to anon, authenticated using (true) with check (true);
+revoke insert, update, delete on table public.device from anon, authenticated;
 drop policy if exists device_admin_read on public.device;
 create policy device_admin_read on public.device for select to authenticated using (public.is_admin());
 
 drop policy if exists app_user_self_read on public.app_user;
-create policy app_user_self_read on public.app_user for select to authenticated using (id = auth.uid() or public.is_admin());
+create policy app_user_self_read on public.app_user for select to authenticated using (id = auth.uid() or public.is_owner_admin());
 drop policy if exists app_user_admin_write on public.app_user;
-create policy app_user_admin_write on public.app_user for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy app_user_admin_write on public.app_user for all to authenticated using (public.is_owner_admin()) with check (public.is_owner_admin());
 
 drop policy if exists notif_admin_read on public.notification_log;
 create policy notif_admin_read on public.notification_log for select to authenticated using (public.is_admin());
@@ -337,7 +383,7 @@ create policy public_assets_admin_write on storage.objects for all to authentica
   using (bucket_id = 'public-assets' and public.is_admin())
   with check (bucket_id = 'public-assets' and public.is_admin());
 
--- Logotipi ekipa (opcionalni; fallback je krug s kraticom).
+-- Logotipi ekipa (opcionalni; fallback je grb s kraticom).
 insert into storage.buckets (id, name, public) values ('team-logos','team-logos', true)
   on conflict (id) do nothing;
 drop policy if exists team_logos_read on storage.objects;

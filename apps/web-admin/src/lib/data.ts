@@ -844,13 +844,16 @@ export async function fetchAppUsers(): Promise<AppUser[]> {
   return data ?? [];
 }
 
-export async function updateUserRole(id: string, role: string): Promise<void> {
+export async function updateUserAccess(id: string, role: string, teamId: string | null): Promise<void> {
   if (DEMO) {
-    patch(db.appUsers, id, { role });
+    patch(db.appUsers, id, { role, team_id: role === 'rep' ? teamId : null });
     return;
   }
-  const { error } = await client().from('app_user').update({ role }).eq('id', id);
+  const { data, error } = await client().functions.invoke('admin-users', {
+    body: { action: 'update_access', id, role, team_id: role === 'rep' ? teamId : null },
+  });
   if (error) throw error;
+  if (data && data.ok === false) throw new Error(data.error ?? 'Greška.');
 }
 
 export type CreateUserInput = { email: string; password: string; role: string; team_id?: string | null };

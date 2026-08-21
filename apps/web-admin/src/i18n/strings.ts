@@ -23,6 +23,8 @@ export const strings = {
       'Supabase nije konfiguriran. Postavi VITE_SUPABASE_URL i VITE_SUPABASE_ANON_KEY u .env.',
     'login.errEmail': 'Unesi e-mail adresu.',
     'login.errCreds': 'Neispravan e-mail ili lozinka.',
+    'auth.noRoleTitle': 'Račun nema dodijeljenu ulogu',
+    'auth.noRoleBody': 'Admin treba dodati ovaj račun u Korisnike i dodijeliti mu ovlasti.',
 
     // Navigacija
     'nav.dashboard': 'Pregled',
@@ -54,6 +56,8 @@ export const strings = {
     'users.removeConfirm': 'Ukloniti ovog korisnika? Više se neće moći prijaviti.',
     'users.you': 'ti',
     'users.created': 'Korisnik kreiran.',
+    'users.save': 'Spremi',
+    'users.saving': 'Spremanje…',
     'users.demoNote': 'Demo: korisnici se ne spremaju u pravu bazu.',
     'users.repTeam': 'Ekipa predstavnika',
     'users.repTeamPick': 'Odaberi ekipu…',
@@ -385,6 +389,8 @@ export const strings = {
     'nav.registrations': 'Registrations',
     'nav.users': 'Users',
     'nav.logout': 'Log out',
+    'auth.noRoleTitle': 'This account has no assigned role',
+    'auth.noRoleBody': 'An admin must add this account under Users and assign access.',
 
     'users.title': 'Users',
     'users.add': 'Add user',
@@ -401,6 +407,8 @@ export const strings = {
     'users.removeConfirm': 'Remove this user? They will no longer be able to sign in.',
     'users.you': 'you',
     'users.created': 'User created.',
+    'users.save': 'Save',
+    'users.saving': 'Saving…',
     'users.demoNote': 'Demo: users are not saved to a real database.',
     'users.repTeam': 'Representative team',
     'users.repTeamPick': 'Choose a team…',

@@ -54,6 +54,24 @@
   width: 200px;
   min-height: 40px;
 }
+.user-row__access {
+  display: flex;
+  gap: var(--sp-sm);
+}
+.user-row__team {
+  width: 210px;
+  min-height: 40px;
+}
+.user-row__save:disabled {
+  color: var(--mut);
+  cursor: not-allowed;
+  text-decoration: none;
+}
+.user-row__error {
+  color: var(--red);
+  font-size: 11px;
+  margin-top: 3px;
+}
 .user-row__del {
   color: var(--red);
 }
@@ -61,4 +79,18 @@
   color: var(--mut);
   cursor: not-allowed;
   text-decoration: none;
+}
+
+@media (max-width: 980px) {
+  .user-row {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+  .user-row__main {
+    flex-basis: 100%;
+  }
+  .user-row__access {
+    flex: 1;
+    flex-wrap: wrap;
+  }
 }

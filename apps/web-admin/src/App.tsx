@@ -26,8 +26,23 @@ function FullScreenMessage({ text }: { text: string }) {
   );
 }
 
+function MissingRole({ onSignOut }: { onSignOut: () => Promise<void> }) {
+  const { t } = useT();
+  return (
+    <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', padding: 24 }}>
+      <div style={{ maxWidth: 520, textAlign: 'center' }}>
+        <h1 style={{ fontFamily: 'var(--font-head)', marginBottom: 12 }}>{t('auth.noRoleTitle')}</h1>
+        <p style={{ color: 'var(--sub)', marginBottom: 20 }}>{t('auth.noRoleBody')}</p>
+        <button className="btn btn--primary" onClick={() => void onSignOut()}>
+          {t('nav.logout')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function AppRoutes() {
-  const { session, loading, configured, role, isStaff } = useAuth();
+  const { session, loading, role, isStaff, signOut } = useAuth();
   const { t } = useT();
 
   // Dok Supabase nije konfiguriran, dopusti pristup loginu (koji prikazuje uputu).
@@ -44,9 +59,13 @@ function AppRoutes() {
     );
   }
 
+  // Auth korisnik bez app_user profila nema određene ovlasti. Ranije je takav
+  // račun padao kroz provjeru i dobivao cijelu admin navigaciju.
+  if (role === null) return <MissingRole onSignOut={signOut} />;
+
   // Predstavnik ekipe (rep) vidi samo svoj portal — ne admin sučelje.
   // (Baza to i tehnički jamči kroz RLS; ovo je da UI ne nudi ono što ionako ne smije.)
-  if (role === 'rep' || (session && !isStaff && role !== null)) {
+  if (role === 'rep' || !isStaff) {
     return (
       <Routes>
         <Route path="/prijava" element={<PublicRegistration />} />
@@ -94,7 +113,7 @@ function AppRoutes() {
         <Route path="/registrations" element={<Registrations />} />
       </Route>
       <Route element={<Layout title="nav.users" />}>
-        <Route path="/users" element={<Users />} />
+        <Route path="/users" element={role === 'admin' ? <Users /> : <Navigate to="/" replace />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

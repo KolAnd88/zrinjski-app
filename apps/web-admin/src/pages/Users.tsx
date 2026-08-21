@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { AppUser, Team } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import type { StringKey } from '../i18n/strings';
 import { useAuth } from '../auth/AuthProvider';
@@ -11,6 +12,99 @@ const ROLES: { value: string; key: StringKey }[] = [
   { value: 'delegate', key: 'users.role.delegate' },
   { value: 'rep', key: 'users.role.rep' },
 ];
+
+function UserRow({
+  user,
+  teams,
+  isMe,
+  onSave,
+  onRemove,
+}: {
+  user: AppUser;
+  teams: Team[];
+  isMe: boolean;
+  onSave: (role: string, teamId: string | null) => Promise<void>;
+  onRemove: () => void;
+}) {
+  const { t } = useT();
+  const [role, setRole] = useState(user.role);
+  const [teamId, setTeamId] = useState(user.team_id ?? '');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    setRole(user.role);
+    setTeamId(user.team_id ?? '');
+  }, [user.role, user.team_id]);
+
+  const normalizedTeamId = role === 'rep' ? teamId || null : null;
+  const dirty = role !== user.role || normalizedTeamId !== user.team_id;
+  const valid = role !== 'rep' || !!teamId;
+
+  async function save() {
+    if (!dirty || !valid || isMe) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      await onSave(role, normalizedTeamId);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="user-row">
+      <div className="user-row__main">
+        <div className="user-row__email">
+          {user.email}
+          {isMe && <span className="user-row__you"> · {t('users.you')}</span>}
+        </div>
+        {err && <div className="user-row__error">{err}</div>}
+      </div>
+      <div className="user-row__access">
+        <select
+          className="input user-row__role"
+          value={role}
+          disabled={busy || isMe}
+          onChange={(e) => setRole(e.target.value)}
+        >
+          {ROLES.map((r) => (
+            <option key={r.value} value={r.value}>
+              {t(r.key)}
+            </option>
+          ))}
+        </select>
+        {role === 'rep' && (
+          <select
+            className="input user-row__team"
+            value={teamId}
+            disabled={busy || isMe}
+            onChange={(e) => setTeamId(e.target.value)}
+          >
+            <option value="">{t('users.repTeamPick')}</option>
+            {teams.map((team) => (
+              <option key={team.id} value={team.id}>
+                {team.name}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+      <button
+        className="btn-link user-row__save"
+        disabled={!dirty || !valid || busy || isMe}
+        onClick={() => void save()}
+      >
+        {busy ? t('users.saving') : t('users.save')}
+      </button>
+      <button className="btn-link user-row__del" disabled={isMe || busy} onClick={onRemove}>
+        {t('users.remove')}
+      </button>
+    </div>
+  );
+}
 
 export function Users() {
   const { t } = useT();
@@ -26,7 +120,6 @@ export function Users() {
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
-  const roleLabel = (r: string) => t(ROLES.find((x) => x.value === r)?.key ?? 'users.role.delegate');
   // Predstavnik mora biti vezan uz ekipu — inače nema što uređivati.
   const needsTeam = role === 'rep';
 
@@ -122,36 +215,18 @@ export function Users() {
           <div style={{ color: 'var(--sub)' }}>{t('users.empty')}</div>
         ) : (
           <div className="user-list">
-            {data.users.map((u) => (
-              <div key={u.id} className="user-row">
-                <div className="user-row__main">
-                  <div className="user-row__email">
-                    {u.email}
-                    {u.id === meId && <span className="user-row__you"> · {t('users.you')}</span>}
-                  </div>
-                </div>
-                <select
-                  className="input user-row__role"
-                  value={u.role}
-                  onChange={(e) => void data.setRole(u.id, e.target.value)}
-                >
-                  {ROLES.map((r) => (
-                    <option key={r.value} value={r.value}>
-                      {roleLabel(r.value)}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  className="btn-link user-row__del"
-                  disabled={u.id === meId}
-                  onClick={() => {
-                    if (confirm(t('users.removeConfirm'))) void data.remove(u.id);
-                  }}
-                >
-                  {t('users.remove')}
-                </button>
-              </div>
-            ))}
+          {data.users.map((u) => (
+            <UserRow
+              key={u.id}
+              user={u}
+              teams={data.teams}
+              isMe={u.id === meId}
+              onSave={(nextRole, nextTeamId) => data.setAccess(u.id, nextRole, nextTeamId)}
+              onRemove={() => {
+                if (confirm(t('users.removeConfirm'))) void data.remove(u.id);
+              }}
+            />
+          ))}
           </div>
         )}
       </Card>

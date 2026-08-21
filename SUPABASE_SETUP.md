@@ -37,6 +37,22 @@ Claude će:
 - isključiti DEMO mod (automatski, jer sad postoji konfiguracija),
 - pokrenuti obje aplikacije i provjeriti da prijava i podaci rade uživo.
 
+## 6. Nadogradnja već postavljenog projekta
+
+Ako je projekt već postavljen ranijom verzijom `all.sql`, ne pokreći naziv
+datoteke kao SQL naredbu. U **SQL Editor → New query** redom kopiraj cijeli
+sadržaj ovih datoteka i za svaku klikni **Run**:
+
+1. `supabase/migrations/0009_push_devices.sql`
+2. `supabase/migrations/0010_security_hardening.sql`
+
+Obje trebaju završiti porukom **Success**. Druga migracija uklanja stare
+anonimne politike nad uređajima i ograničava upravljanje korisnicima na admina.
+
+Zatim ponovno deployaj Edge Function **admin-users** sadržajem iz
+`supabase/functions/admin-users/index.ts`. Nova verzija sprječava delegate da
+kreiraju ili promoviraju druge admine.
+
 ## Kasnije promjene
 - **Izgled/tekst/funkcije:** mijenjaš kod kad god — ne dira bazu.
 - **Nova polja u bazi:** nova migracija (`0006_…sql`) koju pokreneš u SQL Editoru. Radimo dodavanjem, ne brišemo — podaci ostaju.

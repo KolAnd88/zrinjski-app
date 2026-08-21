@@ -7,7 +7,7 @@ import {
   fetchActiveTournament,
   fetchAllTeams,
   fetchAppUsers,
-  updateUserRole,
+  updateUserAccess,
   type CreateUserInput,
 } from '../../lib/data';
 
@@ -21,7 +21,7 @@ export type UsersData = {
   reload: () => Promise<void>;
   create: (input: CreateUserInput) => Promise<void>;
   remove: (id: string) => Promise<void>;
-  setRole: (id: string, role: string) => Promise<void>;
+  setAccess: (id: string, role: string, teamId: string | null) => Promise<void>;
 };
 
 export function useUsers(): UsersData {
@@ -65,10 +65,13 @@ export function useUsers(): UsersData {
     []
   );
 
-  const setRole = useCallback(async (id: string, role: string) => {
-    await updateUserRole(id, role);
-    setUsers((us) => us.map((u) => (u.id === id ? { ...u, role } : u)));
+  const setAccess = useCallback(async (id: string, role: string, teamId: string | null) => {
+    const normalizedTeamId = role === 'rep' ? teamId : null;
+    await updateUserAccess(id, role, normalizedTeamId);
+    setUsers((us) =>
+      us.map((u) => (u.id === id ? { ...u, role, team_id: normalizedTeamId } : u))
+    );
   }, []);
 
-  return { loading, demo: DEMO, error, users, teams, reload, create, remove, setRole };
+  return { loading, demo: DEMO, error, users, teams, reload, create, remove, setAccess };
 }

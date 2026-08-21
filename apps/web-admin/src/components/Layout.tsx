@@ -40,7 +40,8 @@ function LangToggle() {
 
 export function Layout({ title }: { title: StringKey }) {
   const { t } = useT();
-  const { signOut } = useAuth();
+  const { signOut, role } = useAuth();
+  const visibleNav = role === 'admin' ? NAV : NAV.filter((item) => item.to !== '/users');
 
   return (
     <div className="shell">
@@ -54,7 +55,7 @@ export function Layout({ title }: { title: StringKey }) {
         </div>
 
         <nav className="sidebar__nav">
-          {NAV.map((item) => (
+          {visibleNav.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
