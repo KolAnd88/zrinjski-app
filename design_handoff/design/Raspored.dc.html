@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0}
+    body{background:radial-gradient(120% 80% at 50% 0%,#17181d 0%,#000 60%);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;display:flex;justify-content:center;padding:28px 18px;}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.82)}}
+    @keyframes ptrspin{to{transform:rotate(360deg)}}
+    .ptr-spinning{animation:ptrspin .7s linear infinite;}
+    .rs-scroll::-webkit-scrollbar{display:none}
+  </style>
+</helmet>
+
+<div style="width:402px;background:#0B0B0E;color:#F4F4F5;border-radius:34px;overflow:hidden;border:1px solid #23242c;box-shadow:0 40px 120px -20px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.02);position:relative;height:858px;display:flex;flex-direction:column;isolation:isolate;">
+
+  <div aria-hidden="true" style="position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;">
+    <div style="position:absolute;top:50%;left:50%;width:1300px;height:178px;transform:translate(-50%,-50%) rotate(-62deg);background:linear-gradient(90deg,transparent,rgba(156,12,24,.55) 38%,rgba(225,29,42,.62) 62%,transparent);opacity:.15;"></div>
+    <div style="position:absolute;top:50%;left:50%;width:1300px;height:2px;transform:translate(-50%,-50%) rotate(-62deg);background:linear-gradient(90deg,transparent,rgba(225,29,42,.85) 50%,transparent);opacity:.22;"></div>
+  </div>
+
+  <!-- status bar -->
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 24px 4px;font-size:14px;font-weight:600;color:#F4F4F5;letter-spacing:.2px;flex:none;">
+    <span>9:41</span>
+    <span style="display:flex;gap:7px;align-items:center;color:#F4F4F5;">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"></rect><rect x="5" y="4.5" width="3" height="7.5" rx="1"></rect><rect x="10" y="2" width="3" height="10" rx="1"></rect><rect x="15" y="0" width="3" height="12" rx="1"></rect></svg>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 4.2A11 11 0 0 1 16 4.2"></path><path d="M3.5 6.8a7.2 7.2 0 0 1 10 0"></path><path d="M6 9.3a3.6 3.6 0 0 1 5 0"></path><circle cx="8.5" cy="11" r="0.6" fill="currentColor" stroke="none"></circle></svg>
+      <span style="display:inline-flex;align-items:center;"><svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" stroke="currentColor" stroke-opacity=".4"></rect><rect x="2" y="2" width="16" height="9" rx="2" fill="currentColor"></rect><rect x="24" y="4" width="2" height="5" rx="1" fill="currentColor" fill-opacity=".4"></rect></svg></span>
+    </span>
+  </div>
+
+  <!-- title -->
+  <div style="position:relative;overflow:hidden;padding:8px 22px 6px;flex:none;">
+    <h1 style="position:relative;font-family:'Oswald';font-weight:700;font-size:28px;letter-spacing:.6px;margin:0;">RASPORED</h1>
+  </div>
+
+  <!-- day selector -->
+  <div style="display:flex;gap:9px;padding:8px 18px 14px;flex:none;">
+    <sc-for list="{{ days }}" as="d" hint-placeholder-count="3">
+      <div onClick="{{ d.onClick }}" style="flex:1;text-align:center;padding:9px 0;border-radius:12px;cursor:pointer;background:{{ d.bg }};border:1px solid {{ d.border }};box-shadow:{{ d.shadow }};transition:all .2s;">
+        <div style="font-size:11px;color:{{ d.subColor }};letter-spacing:.4px;">{{ d.dow }}</div>
+        <b style="font-family:'Oswald';font-weight:700;font-size:16px;color:{{ d.dateColor }};">{{ d.date }}</b>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- timeline -->
+  <div class="rs-scroll" style="flex:1;overflow-y:auto;padding:6px 18px 28px;scrollbar-width:none;">
+    <div class="ptr-ind" data-ready="0" style="height:0px;opacity:0;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+      <span class="ptr-ring" style="width:24px;height:24px;border-radius:50%;border:2.5px solid rgba(225,29,42,.25);border-top-color:#E11D2A;display:block;"></span>
+    </div>
+    <div style="position:relative;padding-left:66px;">
+      <div style="position:absolute;left:52px;top:8px;bottom:8px;width:2px;background:#23242c;"></div>
+      <sc-for list="{{ events }}" as="e" hint-placeholder-count="5">
+        <div style="position:relative;margin-bottom:14px;">
+          <span style="position:absolute;left:-66px;top:11px;width:44px;text-align:right;font-family:'Oswald';font-weight:600;color:#9AA0AA;font-size:13px;">{{ e.time }}</span>
+          <span style="position:absolute;left:-19px;top:14px;width:11px;height:11px;border-radius:999px;background:{{ e.dot }};border:2px solid #0B0B0E;box-shadow:{{ e.dotGlow }};animation:{{ e.dotAnim }};"></span>
+
+          <sc-if value="{{ e.isMatch }}" hint-placeholder-val="{{ true }}">
+            <sc-if value="{{ e.finalLabel }}" hint-placeholder-val="FINALE"><span style="display:inline-block;color:#D9B24A;font-family:'Oswald';font-size:11px;letter-spacing:1.4px;border:1px solid rgba(217,178,74,.5);border-radius:6px;padding:2px 8px;margin-bottom:7px;">{{ e.finalLabel }}</span></sc-if>
+            <div onClick="{{ e.onOpen }}" style="display:flex;align-items:center;gap:9px;background:#15161B;border:1px solid {{ e.cardBorder }};border-radius:13px;padding:11px 13px;box-shadow:0 6px 16px -10px rgba(0,0,0,.8);cursor:pointer;transition:transform .12s;" style-active="transform:scale(.985)">
+              <span style="width:28px;height:28px;border-radius:8px;background:{{ e.homeCrest }};display:grid;place-items:center;font-family:'Oswald';font-weight:700;color:#fff;font-size:10px;flex:none;">{{ e.homeAbbr }}</span>
+              <span style="flex:1;font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ e.home }}</span>
+              <span style="min-width:60px;text-align:center;">{{ e.midEl }}</span>
+              <span style="flex:1;text-align:right;font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ e.away }}</span>
+              <span style="width:28px;height:28px;border-radius:8px;background:{{ e.awayCrest }};display:grid;place-items:center;font-family:'Oswald';font-weight:700;color:#fff;font-size:10px;flex:none;">{{ e.awayAbbr }}</span>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ e.isProgram }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:11px;padding:11px 13px;background:#1C1D24;border:1px dashed #2A2B33;border-radius:13px;">
+              <span style="color:{{ e.iconColor }};flex:none;display:flex;">{{ e.iconEl }}</span>
+              <span style="flex:1;font-weight:600;font-size:13px;">{{ e.title }}</span>
+              <span style="color:#2D6CDF;font-weight:600;font-size:12px;border:1px solid rgba(45,108,223,.55);border-radius:7px;padding:5px 11px;cursor:pointer;">Karta</span>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- bottom nav -->
+  <div style="position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-around;align-items:flex-end;background:rgba(14,15,19,.86);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.06);padding:12px 6px 20px;flex:none;">
+    <sc-for list="{{ nav }}" as="item" hint-placeholder-count="5">
+      <a href="{{ item.href }}" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex:1;text-decoration:none;color:{{ item.color }};" style-active="transform:scale(.9)">
+        <div style="position:absolute;top:-3px;width:42px;height:30px;border-radius:11px;background:{{ item.bg }};filter:blur(2px);"></div>
+        <svg style="position:relative;" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="{{ item.sw }}" stroke-linecap="round" stroke-linejoin="round"><path d="{{ item.icon }}"></path></svg>
+        <span style="position:relative;font-family:'Oswald';font-weight:600;font-size:11px;letter-spacing:.4px;">{{ item.label }}</span>
+      </a>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:438,&quot;height&quot;:914},&quot;activeTab&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Raspored&quot;,&quot;options&quot;:[&quot;Početna&quot;,&quot;Raspored&quot;,&quot;Poredak&quot;,&quot;Statist.&quot;,&quot;Info&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { day: 1 };
+
+  componentDidMount() { setTimeout(() => this._initPTR('.rs-scroll'), 60); }
+  _initPTR(sel) {
+    const sc = document.querySelector(sel);
+    const ind = document.querySelector('.ptr-ind');
+    const ring = document.querySelector('.ptr-ring');
+    if (!sc || !ind || !ring || sc._ptr) return;
+    sc._ptr = true;
+    const TH = 70;
+    let startY = 0, pulling = false, refreshing = false;
+    const snap = () => { ind.style.transition = 'height .25s ease,opacity .25s ease'; };
+    const reset = () => { snap(); ind.style.height = '0px'; ind.style.opacity = '0'; ind.dataset.ready = '0'; ring.style.transform = 'rotate(0deg)'; };
+    const start = (y) => { if (sc.scrollTop <= 0 && !refreshing) { startY = y; pulling = true; ind.style.transition = 'none'; } };
+    const move = (y, e) => {
+      if (!pulling || refreshing) return;
+      const dist = y - startY;
+      if (dist <= 0) return;
+      if (e && e.cancelable) e.preventDefault();
+      const d = Math.min(dist * 0.5, 92);
+      ind.style.height = d + 'px'; ind.style.opacity = Math.min(d / TH, 1);
+      ring.style.transform = 'rotate(' + (d * 4) + 'deg)';
+      ind.dataset.ready = d >= TH ? '1' : '0';
+    };
+    const end = () => {
+      if (!pulling) return; pulling = false;
+      if (ind.dataset.ready === '1' && !refreshing) {
+        refreshing = true; snap(); ind.style.height = '52px'; ind.style.opacity = '1';
+        ring.classList.add('ptr-spinning');
+        setTimeout(() => { refreshing = false; ring.classList.remove('ptr-spinning'); reset(); }, 1100);
+      } else reset();
+    };
+    sc.addEventListener('touchstart', (e) => start(e.touches[0].clientY), { passive: true });
+    sc.addEventListener('touchmove', (e) => move(e.touches[0].clientY, e), { passive: false });
+    sc.addEventListener('touchend', end);
+    let mDown = false;
+    sc.addEventListener('mousedown', (e) => { if (sc.scrollTop <= 0) { mDown = true; start(e.clientY); } });
+    window.addEventListener('mousemove', (e) => { if (mDown) move(e.clientY, null); });
+    window.addEventListener('mouseup', () => { if (mDown) { mDown = false; end(); } });
+  }
+
+  _nav(active) {
+    const items = [
+      { label: 'Početna',  icon: 'M4 11.2 12 4l8 7.2M6 9.6V20h4v-5.5h4V20h4V9.6' },
+      { label: 'Raspored', icon: 'M4.5 6.5a1 1 0 0 1 1-1h13a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1zM4.5 10h15M8.5 3.5v3M15.5 3.5v3' },
+      { label: 'Poredak',  icon: 'M7 4h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 0-3 3M9.5 13.4h5M10 17h4v-3.6h-4zM8 20h8' },
+      { label: 'Statist.', icon: 'M5 20V11M12 20V4M19 20v-6.5', sw: 2.4 },
+      { label: 'Info',     icon: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 7.6v.01', sw: 2 },
+    ];
+    const hrefs = { 'Početna':'Pocetna.dc.html','Raspored':'Raspored.dc.html','Poredak':'Poredak.dc.html','Statist.':'Statistika.dc.html','Info':'Info.dc.html' };
+    return items.map(it => {
+      const on = it.label === active;
+      return { ...it, href: hrefs[it.label], sw: it.sw ?? 1.9, color: on ? '#FF4651' : '#7A8089',
+               bg: on ? 'radial-gradient(60% 60% at 50% 45%,rgba(225,29,42,.32),transparent)' : 'transparent' };
+    });
+  }
+
+  _icon(d, color) {
+    return React.createElement('svg', { width:17, height:17, viewBox:'0 0 24 24', fill:'none', stroke:color, strokeWidth:1.9, strokeLinecap:'round', strokeLinejoin:'round' }, React.createElement('path', { d }));
+  }
+
+  _mid(kind, text) {
+    if (kind === 'live') return React.createElement('span', { style:{ background:'linear-gradient(150deg,#E11D2A,#9C0C18)', color:'#fff', fontFamily:'Oswald', fontSize:'11px', padding:'3px 8px', borderRadius:'7px', fontWeight:700, whiteSpace:'nowrap', boxShadow:'0 4px 12px -4px rgba(225,29,42,.7)' } }, text);
+    if (kind === 'done') return React.createElement('span', { style:{ display:'inline-flex', flexDirection:'column', alignItems:'center', gap:'1px' } },
+      React.createElement('span', { style:{ fontFamily:'Oswald', fontWeight:700, fontSize:'16px', color:'#9AA0AA' } }, text),
+      React.createElement('span', { style:{ fontFamily:'Oswald', fontWeight:600, fontSize:'9px', letterSpacing:'1px', color:'#6B7079' } }, 'ZAVRŠENO'));
+    if (kind === 'vs') return React.createElement('span', { style:{ fontFamily:'Oswald', fontWeight:600, fontSize:'14px', color:'#6B7079' } }, text);
+    return React.createElement('span', { style:{ fontFamily:'Oswald', fontWeight:700, fontSize:'16px' } }, text);
+  }
+
+  renderVals() {
+    const days = [
+      { dow:'Pet', date:'6.6.' }, { dow:'Sub', date:'7.6.' }, { dow:'Ned', date:'8.6.' },
+    ].map((d, i) => {
+      const on = i === this.state.day;
+      return { ...d, onClick: () => this.setState({ day: i }),
+        bg: on ? 'linear-gradient(150deg,#E11D2A,#9C0C18)' : '#15161B',
+        border: on ? '#E11D2A' : '#2A2B33',
+        shadow: on ? '0 8px 20px -8px rgba(225,29,42,.6)' : 'none',
+        subColor: on ? 'rgba(255,255,255,.85)' : '#9AA0AA',
+        dateColor: '#F4F4F5',
+      };
+    });
+
+    const C = { ZRI:'linear-gradient(150deg,#E11D2A,#9C0C18)', CAP:'linear-gradient(150deg,#0f9e91,#0D9488)', LJU:'linear-gradient(150deg,#7d27cc,#4a127f)', POS:'linear-gradient(150deg,#d4500f,#C2410C)', LJB:'linear-gradient(150deg,#2f7be0,#2D6CDF)' };
+    const events = [
+      { isMatch:true, time:'17:00', dot:'#6B7079', done:true, home:'Zrinjski', homeAbbr:'ZRI', homeCrest:C.ZRI, away:'Čapljina', awayAbbr:'CAP', awayCrest:C.CAP, midEl:this._mid('done','3:1'), cardBorder:'#2A2B33' },
+      { isMatch:true, time:'17:30', dot:'#6B7079', done:true, home:'Ljubuški', homeAbbr:'LJU', homeCrest:C.LJU, away:'Posušje', awayAbbr:'POS', awayCrest:C.POS, midEl:this._mid('done','2:1'), cardBorder:'#2A2B33' },
+      { isProgram:true, time:'18:15', dot:'#6B7079', title:'Domjenak za ekipe', iconColor:'#9AA0AA', iconEl:this._icon('M5 11h14M6 11V8a6 6 0 0 1 12 0v3M4 11h16v2a8 8 0 0 1-16 0zM10 21h4', '#9AA0AA') },
+      { isMatch:true, time:'19:00', dot:'#E11D2A', dotGlow:'0 0 10px #E11D2A', dotAnim:'pulse 1.4s ease-in-out infinite', live:true, finalLabel:'FINALE', home:'Zrinjski', homeAbbr:'ZRI', homeCrest:C.ZRI, away:'Ljubuški', awayAbbr:'LJU', awayCrest:C.LJU, midEl:this._mid('live','UŽIVO 4:2'), cardBorder:'rgba(217,178,74,.5)' },
+      { isProgram:true, time:'20:30', dot:'#6B7079', title:'Završna večera i dodjela', iconColor:'#D9B24A', iconEl:this._icon('M7 4h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 0-3 3M9.5 13.4h5M10 17h4v-3.6h-4zM8 20h8', '#D9B24A') },
+    ].map(e => ({ ...e, isMatch: !!e.isMatch, isProgram: !!e.isProgram, dotGlow: e.dotGlow || 'none', dotAnim: e.dotAnim || 'none', finalLabel: e.finalLabel || '', onOpen: () => { window.location.href = e.live ? 'Uzivo.dc.html' : 'Utakmica.dc.html'; } }));
+
+    return { days, events, nav: this._nav(this.props.activeTab ?? 'Raspored') };
+  }
+}
+</script>
+</body>
+</html>

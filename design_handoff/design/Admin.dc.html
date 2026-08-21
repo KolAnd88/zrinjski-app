@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0}
+    body{background:radial-gradient(120% 90% at 50% 0%,#15161b 0%,#000 70%);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;display:flex;justify-content:center;align-items:flex-start;padding:32px 24px;}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.82)}}
+    @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(225,29,42,.5)}50%{box-shadow:0 0 0 5px rgba(225,29,42,0)}}
+    .ad-main::-webkit-scrollbar{width:8px}
+    .ad-main::-webkit-scrollbar-thumb{background:#2A2B33;border-radius:8px}
+  </style>
+</helmet>
+
+<div style="width:1200px;height:780px;display:grid;grid-template-columns:236px 1fr;background:#0B0B0E;color:#F4F4F5;border:1px solid #23242c;border-radius:18px;overflow:hidden;box-shadow:0 50px 130px -30px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.02);position:relative;isolation:isolate;">
+
+  <div aria-hidden="true" style="position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;">
+    <div style="position:absolute;top:50%;left:50%;width:1700px;height:240px;transform:translate(-50%,-50%) rotate(-33deg);background:linear-gradient(90deg,transparent,rgba(156,12,24,.5) 40%,rgba(225,29,42,.58) 62%,transparent);opacity:.12;"></div>
+    <div style="position:absolute;top:50%;left:50%;width:1700px;height:2px;transform:translate(-50%,-50%) rotate(-33deg);background:linear-gradient(90deg,transparent,rgba(225,29,42,.8) 50%,transparent);opacity:.18;"></div>
+  </div>
+
+  <!-- sidebar -->
+  <div style="background:linear-gradient(180deg,#15161B,#101116);border-right:1px solid #23242c;padding:20px 16px;display:flex;flex-direction:column;">
+    <div style="display:flex;gap:11px;align-items:center;padding:4px 6px 22px;">
+      <div style="width:40px;height:40px;border-radius:11px;background:linear-gradient(150deg,#E11D2A,#9C0C18);display:grid;place-items:center;font-family:'Oswald';font-weight:700;color:#fff;font-size:13px;box-shadow:0 8px 20px -6px rgba(225,29,42,.6);flex:none;">ZRI</div>
+      <div>
+        <b style="font-family:'Oswald';font-size:15px;letter-spacing:.3px;">VHMRK Zrinjski</b>
+        <small style="color:#6B7079;font-size:10px;letter-spacing:1.4px;display:block;margin-top:2px;">WEB ADMIN</small>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <sc-for list="{{ menu }}" as="m" hint-placeholder-count="10">
+        <div onClick="{{ m.onClick }}" style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;cursor:pointer;font-size:14px;font-weight:{{ m.weight }};color:{{ m.color }};background:{{ m.bg }};box-shadow:{{ m.shadow }};transition:all .15s;" style-hover="background:rgba(255,255,255,.04)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ m.icon }}"></path></svg>
+          {{ m.label }}
+          <sc-if value="{{ m.live }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;width:7px;height:7px;border-radius:999px;background:#fff;animation:pulse 1.4s ease-in-out infinite;"></span></sc-if>
+        </div>
+      </sc-for>
+    </div>
+    <div style="margin-top:auto;border-top:1px solid #23242c;padding-top:14px;display:flex;align-items:center;gap:10px;color:#9AA0AA;font-size:14px;cursor:pointer;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3M10 8l-4 4 4 4M6 12h11"></path></svg>
+      Odjava
+    </div>
+  </div>
+
+  <!-- main -->
+  <div style="display:flex;flex-direction:column;overflow:hidden;">
+    <div style="position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;padding:20px 28px;border-bottom:1px solid #23242c;flex:none;">
+      <h1 style="position:relative;font-family:'Oswald';font-size:23px;text-transform:uppercase;letter-spacing:.6px;margin:0;">Nadzorna ploča</h1>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <span style="display:flex;align-items:center;gap:6px;color:#9AA0AA;font-size:13px;"><span style="font-weight:600;color:#F4F4F5;">HR</span>·<span>EN</span></span>
+        <div style="width:34px;height:34px;border-radius:999px;background:linear-gradient(150deg,#2D6CDF,#1c4fa8);display:grid;place-items:center;font-family:'Oswald';font-weight:700;font-size:12px;color:#fff;">AK</div>
+      </div>
+    </div>
+
+    <div class="ad-main" style="padding:24px 28px;overflow-y:auto;display:flex;flex-direction:column;gap:22px;">
+
+      <!-- live match + unos po igraču -->
+      <div style="flex:none;position:relative;overflow:hidden;background:linear-gradient(135deg,#23090c,#15161B 60%);border:1px solid #4a1117;border-radius:16px;padding:20px 22px;box-shadow:0 18px 40px -18px rgba(225,29,42,.4);">
+        <div style="position:absolute;right:-40px;top:14%;width:200px;height:60px;background:linear-gradient(90deg,#9C0C18,#E11D2A);transform:rotate(-12deg);opacity:.16;"></div>
+
+        <div style="position:relative;display:flex;align-items:center;gap:9px;margin-bottom:16px;">
+          <span style="display:flex;align-items:center;gap:8px;background:rgba(225,29,42,.14);border:1px solid rgba(225,29,42,.4);padding:5px 12px 5px 9px;border-radius:999px;animation:glow 2.2s ease-in-out infinite;">
+            <span style="width:8px;height:8px;border-radius:999px;background:#E11D2A;animation:pulse 1.4s ease-in-out infinite;box-shadow:0 0 8px #E11D2A;"></span>
+            <span style="font-family:'Oswald';font-weight:700;font-size:11px;letter-spacing:1.4px;color:#FF5662;">UTAKMICA U TIJEKU · FINALE</span>
+          </span>
+          <span style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:#9AA0AA;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+            Sinkronizirano · prije 4s
+          </span>
+          <div onClick="{{ undoLast }}" style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid #2A2B33;border-radius:9px;padding:8px 13px;cursor:pointer;font-size:12px;font-weight:600;color:#C9CDD4;transition:transform .1s;" style-active="transform:scale(.96)" style-hover="border-color:#3a3b45">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11"></path></svg>
+            Poništi zadnje
+          </div>
+        </div>
+
+        <div style="position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;">
+          <div style="display:flex;align-items:center;gap:13px;">
+            <span style="width:50px;height:50px;border-radius:13px;background:linear-gradient(150deg,#E11D2A,#9C0C18);display:grid;place-items:center;font-family:'Oswald';font-weight:700;color:#fff;font-size:16px;box-shadow:0 10px 24px -8px rgba(225,29,42,.7);">ZRI</span>
+            <span style="font-family:'Oswald';font-size:21px;">Zrinjski</span>
+          </div>
+          <div style="font-family:'Oswald';font-weight:700;font-size:44px;letter-spacing:1px;">{{ homeScore }} : {{ awayScore }}</div>
+          <div style="display:flex;align-items:center;gap:13px;justify-content:flex-end;">
+            <span style="font-family:'Oswald';font-size:21px;">Ljubuški</span>
+            <span style="width:50px;height:50px;border-radius:13px;background:linear-gradient(150deg,#7d27cc,#4a127f);display:grid;place-items:center;font-family:'Oswald';font-weight:700;color:#fff;font-size:16px;box-shadow:0 10px 24px -8px rgba(106,31,176,.6);">LJU</span>
+          </div>
+        </div>
+        <div style="position:relative;text-align:center;color:#9AA0AA;font-family:'Oswald';font-size:12px;letter-spacing:.5px;margin-top:12px;">2. POLUVRIJEME · {{ minute }}'</div>
+
+        <div style="position:relative;display:flex;align-items:center;gap:9px;margin:16px 0 12px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07);">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF5662" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5v14"></path></svg>
+          <span style="font-family:'Oswald';font-weight:600;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:#9AA0AA;">Tko je zabio? Tapni + uz igrača</span>
+        </div>
+
+        <div style="position:relative;display:grid;grid-template-columns:1fr 1fr;gap:22px;">
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <sc-for list="{{ homeSquad }}" as="p" hint-placeholder-count="8">
+              <div style="display:flex;align-items:center;gap:11px;padding:6px 8px 6px 10px;background:rgba(255,255,255,.03);border:1px solid #2A2B33;border-radius:10px;">
+                <span style="font-family:'Oswald';font-weight:700;font-size:14px;color:{{ p.numColor }};width:24px;text-align:center;flex:none;">{{ p.num }}</span>
+                <span style="flex:1;font-size:13px;font-weight:500;">{{ p.name }}</span>
+                <sc-if value="{{ p.hasGoals }}" hint-placeholder-val="{{ false }}">
+                  <span style="display:flex;align-items:center;gap:3px;font-family:'Oswald';font-weight:700;font-size:12px;color:#FF8A93;flex:none;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 5 1.5 3.2 3.5.4-2.6 2.4.7 3.5L12 16.8 8.9 18.5l.7-3.5L7 12.6l3.5-.4z"></path></svg>{{ p.goals }}
+                  </span>
+                </sc-if>
+                <div onClick="{{ p.onAdd }}" title="Dodaj gol" style="width:32px;height:32px;border-radius:9px;background:linear-gradient(150deg,#E11D2A,#9C0C18);display:grid;place-items:center;cursor:pointer;flex:none;box-shadow:0 6px 14px -6px rgba(225,29,42,.7);transition:transform .1s;" style-active="transform:scale(.9)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14M12 5v14"></path></svg>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <sc-for list="{{ awaySquad }}" as="p" hint-placeholder-count="8">
+              <div style="display:flex;align-items:center;gap:11px;padding:6px 8px 6px 10px;background:rgba(255,255,255,.03);border:1px solid #2A2B33;border-radius:10px;">
+                <span style="font-family:'Oswald';font-weight:700;font-size:14px;color:{{ p.numColor }};width:24px;text-align:center;flex:none;">{{ p.num }}</span>
+                <span style="flex:1;font-size:13px;font-weight:500;">{{ p.name }}</span>
+                <sc-if value="{{ p.hasGoals }}" hint-placeholder-val="{{ false }}">
+                  <span style="display:flex;align-items:center;gap:3px;font-family:'Oswald';font-weight:700;font-size:12px;color:#c79af0;flex:none;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 5 1.5 3.2 3.5.4-2.6 2.4.7 3.5L12 16.8 8.9 18.5l.7-3.5L7 12.6l3.5-.4z"></path></svg>{{ p.goals }}
+                  </span>
+                </sc-if>
+                <div onClick="{{ p.onAdd }}" title="Dodaj gol" style="width:32px;height:32px;border-radius:9px;background:linear-gradient(150deg,#7d27cc,#4a127f);display:grid;place-items:center;cursor:pointer;flex:none;box-shadow:0 6px 14px -6px rgba(106,31,176,.6);transition:transform .1s;" style-active="transform:scale(.9)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14M12 5v14"></path></svg>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div onClick="{{ goZapisnik }}" style="position:relative;display:inline-flex;align-items:center;gap:8px;margin-top:14px;color:#FF8A93;font-size:12px;font-weight:600;cursor:pointer;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4zM8 4v16M4 9h4M4 14h4"></path></svg>
+          Puni zapisnik (kartoni, 7m, izmjene) →
+        </div>
+      </div>
+
+      <!-- stats -->
+      <div style="flex:none;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+        <sc-for list="{{ stats }}" as="s" hint-placeholder-count="4">
+          <div style="background:#15161B;border:1px solid #2A2B33;border-radius:14px;padding:18px;box-shadow:0 6px 16px -10px rgba(0,0,0,.8);">
+            <div style="display:flex;align-items:center;gap:8px;color:{{ s.iconColor }};margin-bottom:10px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ s.icon }}"></path></svg>
+              <span style="font-family:'Oswald';font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:#6B7079;">{{ s.label }}</span>
+            </div>
+            <b style="font-family:'Oswald';font-weight:700;font-size:32px;display:block;line-height:1;">{{ s.value }}</b>
+            <span style="color:#9AA0AA;font-size:12px;">{{ s.sub }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- red čekanja + povijest unosa -->
+      <div style="flex:none;display:grid;grid-template-columns:1.1fr 1fr;gap:16px;">
+        <div>
+          <div style="font-family:'Oswald';font-weight:600;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:#9AA0AA;margin:0 2px 12px;">Sljedeće u dvorani</div>
+          <div style="background:#15161B;border:1px solid #2A2B33;border-radius:14px;padding:2px 0;box-shadow:0 6px 16px -10px rgba(0,0,0,.8);">
+            <sc-for list="{{ queue }}" as="q" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:{{ q.border }};">
+                <span style="font-family:'Oswald';font-weight:700;font-size:14px;color:{{ q.timeColor }};width:44px;flex:none;">{{ q.time }}</span>
+                <span style="font-family:'Oswald';font-weight:600;font-size:10px;letter-spacing:.6px;color:#9AA0AA;background:rgba(255,255,255,.05);border:1px solid #2A2B33;border-radius:6px;padding:3px 8px;flex:none;text-transform:uppercase;">{{ q.teren }}</span>
+                <span style="flex:1;font-size:13px;font-weight:600;">{{ q.match }}</span>
+                <span style="font-size:11px;font-weight:600;color:{{ q.noteColor }};flex:none;">{{ q.note }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'Oswald';font-weight:600;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:#9AA0AA;margin:0 2px 12px;">Povijest unosa</div>
+          <div style="background:#15161B;border:1px solid #2A2B33;border-radius:14px;padding:2px 0;box-shadow:0 6px 16px -10px rgba(0,0,0,.8);">
+            <sc-for list="{{ history }}" as="h" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:11px;padding:11px 16px;border-bottom:{{ h.border }};">
+                <span style="width:8px;height:8px;border-radius:999px;background:{{ h.dot }};flex:none;"></span>
+                <span style="flex:1;font-size:13px;color:#C9CDD4;">{{ h.text }}</span>
+                <span style="font-family:'Oswald';font-weight:700;font-size:13px;color:{{ h.scoreColor }};flex:none;">{{ h.score }}</span>
+                <sc-if value="{{ h.canUndo }}" hint-placeholder-val="{{ false }}">
+                  <span onClick="{{ undoLast }}" title="Poništi" style="display:grid;place-items:center;width:28px;height:28px;border-radius:8px;border:1px solid #2A2B33;cursor:pointer;color:#9AA0AA;flex:none;" style-hover="border-color:#3a3b45;color:#F4F4F5">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11"></path></svg>
+                  </span>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <!-- quick actions -->
+      <div style="flex:none;">
+        <div style="font-family:'Oswald';font-weight:600;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:#9AA0AA;margin:0 2px 12px;">Brze akcije</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:13px;">
+          <sc-for list="{{ actions }}" as="a" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:11px;background:#1C1D24;border:1px solid #2A2B33;border-radius:12px;padding:15px 16px;cursor:pointer;transition:all .15s;" style-hover="border-color:#3a3b45;transform:translateY(-2px)">
+              <span style="width:36px;height:36px;border-radius:10px;background:{{ a.chip }};display:grid;place-items:center;flex:none;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ a.stroke }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ a.icon }}"></path></svg>
+              </span>
+              <span style="font-family:'Oswald';font-weight:600;font-size:13px;line-height:1.2;">{{ a.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- za odraditi -->
+      <div style="flex:none;">
+        <div style="font-family:'Oswald';font-weight:600;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:#9AA0AA;margin:0 2px 12px;">Za odraditi</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <sc-for list="{{ todos }}" as="t" hint-placeholder-count="2">
+            <div style="display:flex;align-items:center;gap:13px;background:#15161B;border:1px solid #2A2B33;border-radius:13px;padding:14px 18px;">
+              <span style="width:24px;height:24px;border-radius:8px;border:2px solid {{ t.boxColor }};background:{{ t.boxBg }};display:grid;place-items:center;flex:none;">{{ t.checkEl }}</span>
+              <span style="flex:1;font-size:14px;color:{{ t.textColor }};text-decoration:{{ t.strike }};">{{ t.label }}</span>
+              <span style="font-size:11px;color:#6B7079;">{{ t.due }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1248,&quot;height&quot;:840},&quot;liveTick&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;homeScore&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:4,&quot;min&quot;:0,&quot;max&quot;:60,&quot;tsType&quot;:&quot;number&quot;},&quot;awayScore&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;min&quot;:0,&quot;max&quot;:60,&quot;tsType&quot;:&quot;number&quot;}}">
+class Component extends DCLogic {
+  state = { minute: 12, active: 'Pregled', hs: null, as: null, history: [
+    { side:'h', kind:'goal', player:'Josip Marić', text:"Gol · Josip Marić (ZRI) · 17'", score:'4:2' },
+    { side:'a', kind:'susp', text:"Isključenje 2 min · Danijel Brkić (LJU) · 15'", score:'' },
+    { side:'a', kind:'goal', player:'Mario Pavić', text:"Gol · Mario Pavić (LJU) · 14'", score:'3:2' },
+    { side:'h', kind:'goal', player:'Ante Kožul', text:"Gol · Ante Kožul (ZRI) · 4'", score:'3:1' },
+  ] };
+
+  _squad(side) {
+    if (side === 'h') return [
+      { num:1, name:'Luka Bevanda' }, { num:3, name:'Ante Kožul' }, { num:5, name:'Josip Marić' }, { num:7, name:'Zoran Sušac' },
+      { num:9, name:'Dario Zovko' }, { num:11, name:'Ivica Prskalo' }, { num:14, name:'Marin Ćorić' }, { num:17, name:'Petar Bošnjak' },
+    ];
+    return [
+      { num:12, name:'Ivan Jurič' }, { num:4, name:'Mario Pavić' }, { num:6, name:'Danijel Brkić' }, { num:8, name:'Ante Herceg' },
+      { num:10, name:'Stipe Grbavac' }, { num:13, name:'Mario Vukoja' }, { num:15, name:'Karlo Nižić' }, { num:19, name:'Jure Boras' },
+    ];
+  }
+
+  _score(hs, as) { return hs + ':' + as; }
+
+  _addGoal(side, player) {
+    this.setState(s => {
+      const hs = (s.hs ?? (this.props.homeScore ?? 4)) + (side === 'h' ? 1 : 0);
+      const as = (s.as ?? (this.props.awayScore ?? 2)) + (side === 'a' ? 1 : 0);
+      const abbr = side === 'h' ? 'ZRI' : 'LJU';
+      return { hs, as, history: [{ side, kind:'goal', player, text:'Gol · ' + player + ' (' + abbr + ') · ' + s.minute + "'", score: this._score(hs, as) }, ...s.history].slice(0, 8) };
+    });
+  }
+
+  _undo() {
+    this.setState(s => {
+      if (!s.history.length) return {};
+      const [last, ...rest] = s.history;
+      let hs = s.hs ?? (this.props.homeScore ?? 4);
+      let as = s.as ?? (this.props.awayScore ?? 2);
+      if (last.kind === 'goal') { if (last.side === 'h') hs = Math.max(0, hs - 1); else as = Math.max(0, as - 1); }
+      return { hs, as, history: rest };
+    });
+  }
+
+  componentDidMount() {
+    if (this.props.liveTick ?? true) {
+      this._t = setInterval(() => this.setState(s => ({ minute: s.minute >= 30 ? 12 : s.minute + 1 })), 5000);
+    }
+  }
+  componentWillUnmount() { clearInterval(this._t); }
+
+  renderVals() {
+    const I = {
+      pregled:'M4 13h7V4H4zM13 9h7V4h-7zM13 20h7v-9h-7zM4 20h7v-5H4z',
+      uzivo:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM10 9l5 3-5 3z',
+      raspored:'M4.5 6.5a1 1 0 0 1 1-1h13a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1zM4.5 10h15M8.5 3.5v3M15.5 3.5v3',
+      ekipe:'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 20a6 6 0 0 1 12 0M16 4.5a3.5 3.5 0 0 1 0 6.8M21 20a6 6 0 0 0-4-5.6',
+      turnir:'M7 4h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 0-3 3M9.5 13.4h5M10 17h4v-3.6h-4zM8 20h8',
+      sponzori:'M20.8 11.5 12.5 19.8a2 2 0 0 1-2.8 0l-5.5-5.5a2 2 0 0 1 0-2.8L11.5 3a2 2 0 0 1 1.4-.6H19a2 2 0 0 1 2 2v6.1a2 2 0 0 1-.2.9zM16.5 7.5h.01',
+      obavijesti:'M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0',
+      promo:'M3 11l18-5v12L3 14zM11.6 16.8A3 3 0 0 1 6 16v-2',
+      prijave:'M15 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M9 13l2 2 8-8M18.5 5.5l1 1',
+      korisnici:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9',
+    };
+    const items = [
+      { label:'Pregled', icon:I.pregled }, { label:'Uživo', icon:I.uzivo, live:true }, { label:'Raspored', icon:I.raspored },
+      { label:'Ekipe', icon:I.ekipe }, { label:'Turnir', icon:I.turnir }, { label:'Sponzori', icon:I.sponzori },
+      { label:'Obavijesti', icon:I.obavijesti }, { label:'Promo', icon:I.promo }, { label:'Prijave', icon:I.prijave }, { label:'Korisnici', icon:I.korisnici },
+    ];
+    const menu = items.map(m => {
+      const on = m.label === this.state.active;
+      return { ...m, live: !!m.live, onClick: () => this.setState({ active: m.label }),
+        weight: on ? 600 : 500,
+        color: on ? '#fff' : '#9AA0AA',
+        bg: on ? 'linear-gradient(150deg,#E11D2A,#9C0C18)' : 'transparent',
+        shadow: on ? '0 8px 20px -8px rgba(225,29,42,.6)' : 'none' };
+    });
+
+    const stats = [
+      { label:'Ekipe', value:'24', sub:'12 M · 12 Ž', icon:I.ekipe, iconColor:'#2D6CDF' },
+      { label:'Odigrano', value:'34/36', sub:'95% turnira', icon:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7.5V12l3 2', iconColor:'#22C55E' },
+      { label:'Golova', value:'412', sub:'⌀ 11.4 / utak.', icon:'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 7l1.5 3.2 3.5.4-2.6 2.4.7 3.5L12 16.8 8.9 18.5l.7-3.5L7 12.6l3.5-.4z', iconColor:'#E11D2A' },
+      { label:'Sponzori', value:'5', sub:'1 zlatni', icon:I.sponzori, iconColor:'#D9B24A' },
+    ];
+
+    const actions = [
+      { label:'Unesi rezultat', icon:'M5 12h14M12 5v14', chip:'rgba(225,29,42,.16)', stroke:'#FF5662' },
+      { label:'Pošalji obavijest', icon:'M22 2 11 13M22 2l-7 20-4-9-9-4z', chip:'rgba(45,108,223,.16)', stroke:'#5b8ce8' },
+      { label:'Generiraj satnicu', icon:'M4.5 6.5a1 1 0 0 1 1-1h13a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1zM4.5 10h15M9 14l2 2 4-4', chip:'rgba(34,197,94,.16)', stroke:'#2fd06f' },
+      { label:'Dodaj sponzora', icon:'M12 5v14M5 12h14', chip:'rgba(217,178,74,.16)', stroke:'#D9B24A' },
+    ];
+
+    const check = (color) => React.createElement('svg', { width:14, height:14, viewBox:'0 0 24 24', fill:'none', stroke:color, strokeWidth:3, strokeLinecap:'round', strokeLinejoin:'round' }, React.createElement('path', { d:'M20 6 9 17l-5-5' }));
+    const todos = [
+      { label:'Postavi najboljeg igrača turnira', due:'do 21:00', done:false },
+      { label:'Objavi fotke s polufinala', due:'gotovo', done:true },
+    ].map(t => ({ ...t,
+      boxColor: t.done ? '#22C55E' : '#3a3b45',
+      boxBg: t.done ? 'rgba(34,197,94,.18)' : 'transparent',
+      checkEl: t.done ? check('#22C55E') : '',
+      textColor: t.done ? '#6B7079' : '#F4F4F5',
+      strike: t.done ? 'line-through' : 'none',
+    }));
+
+    const H = 'linear-gradient(150deg,#E11D2A,#9C0C18)', A = 'linear-gradient(150deg,#7d27cc,#4a127f)';
+    const history = this.state.history.map((h, i, arr) => ({
+      ...h,
+      dot: h.side === 'h' ? '#E11D2A' : '#7d27cc',
+      scoreColor: h.score ? '#F4F4F5' : '#6B7079',
+      canUndo: i === 0,
+      border: i === arr.length - 1 ? 'none' : '1px solid #1d1e25',
+    }));
+
+    const queue = [
+      { time:'20:15', teren:'Za 3. mj.', match:'ŽRK Lasta — Mostar Ž', note:'Sljedeća · nakon finala', noteColor:'#22C55E' },
+      { time:'20:45', teren:'Program', match:'Dodjela pehara i medalja', note:'', noteColor:'#9AA0AA' },
+      { time:'21:00', teren:'Program', match:'Završna večera uz glazbu', note:'', noteColor:'#9AA0AA' },
+    ].map((q, i, arr) => ({ ...q, timeColor:'#FF5662', border: i === arr.length - 1 ? 'none' : '1px solid #1d1e25' }));
+
+    const goalsBy = {};
+    this.state.history.forEach(h => { if (h.kind === 'goal' && h.player) goalsBy[h.player] = (goalsBy[h.player] || 0) + 1; });
+    const squad = (side, numColor) => this._squad(side).map(p => ({
+      ...p, numColor, goals: goalsBy[p.name] || 0, hasGoals: (goalsBy[p.name] || 0) > 0,
+      onAdd: () => this._addGoal(side, p.name),
+    }));
+
+    return {
+      menu, stats, actions, todos, history, queue,
+      homeSquad: squad('h', '#FF8A93'),
+      awaySquad: squad('a', '#c79af0'),
+      undoLast: () => this._undo(),
+      homeScore: this.state.hs ?? (this.props.homeScore ?? 4),
+      awayScore: this.state.as ?? (this.props.awayScore ?? 2),
+      minute: this.state.minute,
+      noop: () => {},
+      goZapisnik: () => { window.location.href = 'Zapisnik.dc.html'; },
+    };
+  }
+}
+</script>
+</body>
+</html>

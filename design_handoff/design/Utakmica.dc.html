@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0}
+    body{background:radial-gradient(120% 80% at 50% 0%,#17181d 0%,#000 60%);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;display:flex;justify-content:center;padding:28px 18px;}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.82)}}
+    .ut-scroll::-webkit-scrollbar{display:none}
+  </style>
+</helmet>
+
+<div data-screen-label="Utakmica" style="width:402px;background:#0B0B0E;color:#F4F4F5;border-radius:34px;overflow:hidden;border:1px solid #23242c;box-shadow:0 40px 120px -20px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.02);position:relative;height:858px;display:flex;flex-direction:column;isolation:isolate;">
+
+  <div aria-hidden="true" style="position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;">
+    <div style="position:absolute;top:50%;left:50%;width:1300px;height:178px;transform:translate(-50%,-50%) rotate(-62deg);background:linear-gradient(90deg,transparent,rgba(156,12,24,.55) 38%,rgba(225,29,42,.62) 62%,transparent);opacity:.15;"></div>
+    <div style="position:absolute;top:50%;left:50%;width:1300px;height:2px;transform:translate(-50%,-50%) rotate(-62deg);background:linear-gradient(90deg,transparent,rgba(225,29,42,.85) 50%,transparent);opacity:.22;"></div>
+  </div>
+
+  <!-- status bar -->
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 24px 4px;font-size:14px;font-weight:600;color:#F4F4F5;letter-spacing:.2px;flex:none;">
+    <span>9:41</span>
+    <span style="display:flex;gap:7px;align-items:center;color:#F4F4F5;">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"></rect><rect x="5" y="4.5" width="3" height="7.5" rx="1"></rect><rect x="10" y="2" width="3" height="10" rx="1"></rect><rect x="15" y="0" width="3" height="12" rx="1"></rect></svg>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 4.2A11 11 0 0 1 16 4.2"></path><path d="M3.5 6.8a7.2 7.2 0 0 1 10 0"></path><path d="M6 9.3a3.6 3.6 0 0 1 5 0"></path><circle cx="8.5" cy="11" r="0.6" fill="currentColor" stroke="none"></circle></svg>
+      <span style="display:inline-flex;align-items:center;"><svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" stroke="currentColor" stroke-opacity=".4"></rect><rect x="2" y="2" width="16" height="9" rx="2" fill="currentColor"></rect><rect x="24" y="4" width="2" height="5" rx="1" fill="currentColor" fill-opacity=".4"></rect></svg></span>
+    </span>
+  </div>
+
+  <!-- header: back + context -->
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 18px 10px;flex:none;">
+    <a href="Raspored.dc.html" style="width:38px;height:38px;border-radius:11px;background:#15161B;border:1px solid #2A2B33;display:grid;place-items:center;flex:none;color:#F4F4F5;text-decoration:none;cursor:pointer;" style-active="transform:scale(.92)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+    </a>
+    <div style="flex:1;">
+      <div style="font-family:'Oswald';font-weight:700;font-size:19px;letter-spacing:.5px;line-height:1;">{{ stageTitle }}</div>
+      <div style="color:#9AA0AA;font-size:12px;margin-top:3px;">Danas · 19:00 · Dvorana Bijeli Brijeg</div>
+    </div>
+    <sc-if value="{{ isLive }}" hint-placeholder-val="{{ true }}">
+      <span style="display:flex;align-items:center;gap:7px;background:rgba(225,29,42,.14);border:1px solid rgba(225,29,42,.4);padding:5px 11px 5px 9px;border-radius:999px;">
+        <span style="width:7px;height:7px;border-radius:999px;background:#E11D2A;animation:pulse 1.4s ease-in-out infinite;box-shadow:0 0 8px #E11D2A;"></span>
+        <span style="font-family:'Oswald';font-weight:700;font-size:11px;letter-spacing:1.2px;color:#FF5662;">UŽIVO</span>
+      </span>
+    </sc-if>
+    <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+      <span style="font-family:'Oswald';font-weight:600;font-size:11px;letter-spacing:1.2px;color:#9AA0AA;border:1px solid #2A2B33;border-radius:999px;padding:5px 11px;">ZAVRŠENO</span>
+    </sc-if>
+  </div>
+
+  <div class="ut-scroll" style="flex:1;overflow-y:auto;padding:2px 18px 92px;scrollbar-width:none;">
+
+    <!-- score hero -->
+    <div style="position:relative;border-radius:20px;overflow:hidden;padding:18px 18px 16px;background:linear-gradient(165deg,{{ heroTopColor }} 0%,#15161B 52%,#121217 100%);border:1px solid {{ heroBorder }};box-shadow:0 20px 44px -16px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.04);">
+      <div style="position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:9px;">
+          <div style="width:56px;height:56px;border-radius:15px;background:linear-gradient(150deg,#E11D2A,#9C0C18);display:grid;place-items:center;font-family:'Oswald';font-weight:700;font-size:18px;color:#fff;box-shadow:0 10px 24px -8px rgba(225,29,42,.7);">ZRI</div>
+          <b style="font-family:'Oswald';font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:.4px;">Zrinjski</b>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-family:'Oswald';font-weight:700;font-size:54px;line-height:.9;letter-spacing:1px;display:flex;align-items:baseline;gap:10px;">
+            <span>{{ homeScore }}</span><span style="color:#6B7079;font-size:30px;">:</span><span>{{ awayScore }}</span>
+          </div>
+          <div style="font-family:'Oswald';font-weight:600;font-size:12px;color:#9AA0AA;letter-spacing:.5px;margin-top:8px;">{{ statusLine }}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:9px;">
+          <div style="width:56px;height:56px;border-radius:15px;background:linear-gradient(150deg,#7d27cc,#4a127f);display:grid;place-items:center;font-family:'Oswald';font-weight:700;font-size:18px;color:#fff;box-shadow:0 10px 24px -8px rgba(106,31,176,.6);">LJU</div>
+          <b style="font-family:'Oswald';font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:.4px;">Ljubuški</b>
+        </div>
+      </div>
+      <sc-if value="{{ isLive }}" hint-placeholder-val="{{ true }}">
+        <a href="Uzivo.dc.html" style="position:relative;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;background:linear-gradient(150deg,#E11D2A,#9C0C18);border-radius:12px;padding:12px;color:#fff;text-decoration:none;font-family:'Oswald';font-weight:600;font-size:14px;letter-spacing:.6px;box-shadow:0 10px 24px -10px rgba(225,29,42,.7);cursor:pointer;" style-active="transform:scale(.98)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM10 9l5 3-5 3z"></path></svg>
+          OTVORI PRIJENOS
+        </a>
+      </sc-if>
+    </div>
+
+    <!-- brze brojke -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;">
+      <sc-for list="{{ quickStats }}" as="q" hint-placeholder-count="3">
+        <div style="background:#15161B;border:1px solid #2A2B33;border-radius:13px;padding:11px 8px;text-align:center;">
+          <b style="font-family:'Oswald';font-weight:700;font-size:19px;display:block;line-height:1;">{{ q.value }}</b>
+          <span style="font-size:11px;color:#9AA0AA;letter-spacing:.3px;text-transform:uppercase;">{{ q.label }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- tijek utakmice -->
+    <div style="font-family:'Oswald';font-weight:600;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:#9AA0AA;margin:22px 4px 9px;">Tijek utakmice</div>
+    <div style="background:#15161B;border:1px solid #2A2B33;border-radius:14px;padding:4px 0;box-shadow:0 6px 16px -10px rgba(0,0,0,.8);">
+      <sc-for list="{{ events }}" as="ev" hint-placeholder-count="8">
+
+        <sc-if value="{{ ev.isDivider }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;">
+            <span style="flex:1;height:1px;background:#23242c;"></span>
+            <span style="font-family:'Oswald';font-weight:600;font-size:11px;letter-spacing:1.2px;color:#9AA0AA;text-transform:uppercase;">{{ ev.label }}</span>
+            <span style="flex:1;height:1px;background:#23242c;"></span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ ev.isEvent }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;flex-direction:{{ ev.dir }};">
+            <span style="width:34px;text-align:center;font-family:'Oswald';font-weight:700;font-size:13px;color:#9AA0AA;flex:none;">{{ ev.min }}'</span>
+            <span style="width:30px;height:30px;border-radius:9px;background:{{ ev.chipBg }};display:grid;place-items:center;flex:none;">{{ ev.iconEl }}</span>
+            <span style="flex:1;display:flex;flex-direction:column;gap:1px;align-items:{{ ev.align }};">
+              <b style="font-size:13px;font-weight:600;">{{ ev.player }}</b>
+              <span style="font-size:11px;color:#9AA0AA;">{{ ev.note }}</span>
+            </span>
+            <span style="font-family:'Oswald';font-weight:700;font-size:13px;color:{{ ev.scoreColor }};flex:none;letter-spacing:.5px;">{{ ev.score }}</span>
+          </div>
+        </sc-if>
+
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- bottom nav -->
+  <div style="position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-around;align-items:flex-end;background:rgba(14,15,19,.86);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.06);padding:12px 6px 20px;flex:none;">
+    <sc-for list="{{ nav }}" as="item" hint-placeholder-count="5">
+      <a href="{{ item.href }}" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex:1;text-decoration:none;color:{{ item.color }};" style-active="transform:scale(.9)">
+        <div style="position:absolute;top:-3px;width:42px;height:30px;border-radius:11px;background:{{ item.bg }};filter:blur(2px);"></div>
+        <svg style="position:relative;" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="{{ item.sw }}" stroke-linecap="round" stroke-linejoin="round"><path d="{{ item.icon }}"></path></svg>
+        <span style="position:relative;font-family:'Oswald';font-weight:600;font-size:11px;letter-spacing:.4px;">{{ item.label }}</span>
+      </a>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:438,&quot;height&quot;:914},&quot;liveMatch&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;liveTick&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;homeScore&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:4,&quot;min&quot;:0,&quot;max&quot;:60,&quot;tsType&quot;:&quot;number&quot;},&quot;awayScore&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;min&quot;:0,&quot;max&quot;:60,&quot;tsType&quot;:&quot;number&quot;}}">
+class Component extends DCLogic {
+  state = { minute: 17 };
+
+  componentDidMount() {
+    if ((this.props.liveMatch ?? true) && (this.props.liveTick ?? true)) {
+      this._t = setInterval(() => this.setState(s => ({ minute: s.minute >= 30 ? 12 : s.minute + 1 })), 5000);
+    }
+  }
+  componentWillUnmount() { clearInterval(this._t); }
+
+  _nav(active) {
+    const items = [
+      { label: 'Početna',  icon: 'M4 11.2 12 4l8 7.2M6 9.6V20h4v-5.5h4V20h4V9.6' },
+      { label: 'Raspored', icon: 'M4.5 6.5a1 1 0 0 1 1-1h13a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1zM4.5 10h15M8.5 3.5v3M15.5 3.5v3' },
+      { label: 'Poredak',  icon: 'M7 4h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 0-3 3M9.5 13.4h5M10 17h4v-3.6h-4zM8 20h8' },
+      { label: 'Statist.', icon: 'M5 20V11M12 20V4M19 20v-6.5', sw: 2.4 },
+      { label: 'Info',     icon: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 7.6v.01', sw: 2 },
+    ];
+    const hrefs = { 'Početna':'Pocetna.dc.html','Raspored':'Raspored.dc.html','Poredak':'Poredak.dc.html','Statist.':'Statistika.dc.html','Info':'Info.dc.html' };
+    return items.map(it => {
+      const on = it.label === active;
+      return { ...it, href: hrefs[it.label], sw: it.sw ?? 1.9, color: on ? '#FF4651' : '#7A8089',
+               bg: on ? 'radial-gradient(60% 60% at 50% 45%,rgba(225,29,42,.32),transparent)' : 'transparent' };
+    });
+  }
+
+  _icon(kind) {
+    const paths = {
+      goal: { d:'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 7l1.5 3.2 3.5.4-2.6 2.4.7 3.5L12 16.8 8.9 18.5l.7-3.5L7 12.6l3.5-.4z', color:'#fff' },
+      seven: { d:'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM9 8h6l-4 8', color:'#fff' },
+      timeout: { d:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7.5V12l3 2', color:'#9AA0AA' },
+    };
+    if (kind === 'yellow') return React.createElement('span', { style:{ width:'12px', height:'16px', borderRadius:'3px', background:'#EAB308', display:'block' } });
+    if (kind === 'susp') return React.createElement('span', { style:{ fontFamily:'Oswald', fontWeight:700, fontSize:'11px', color:'#FF5662' } }, "2'");
+    const p = paths[kind] || paths.goal;
+    return React.createElement('svg', { width:16, height:16, viewBox:'0 0 24 24', fill:'none', stroke:p.color, strokeWidth:2, strokeLinecap:'round', strokeLinejoin:'round' }, React.createElement('path', { d:p.d }));
+  }
+
+  renderVals() {
+    const isLive = this.props.liveMatch ?? true;
+    const H = 'linear-gradient(150deg,#E11D2A,#9C0C18)', A = 'linear-gradient(150deg,#7d27cc,#4a127f)', N = 'rgba(255,255,255,.08)';
+    // side: 'h' = domaći (lijevo poravnato), 'a' = gosti (zrcalno)
+    const raw = [
+      { divider:'2. poluvrijeme' },
+      { min:17, side:'h', kind:'goal', player:'Josip Marić', note:'Gol · asist. Ante Kožul', score:'4:2' },
+      { min:15, side:'a', kind:'susp', player:'Danijel Brkić', note:'Isključenje 2 min', score:'' },
+      { min:14, side:'a', kind:'goal', player:'Mario Pavić', note:'Gol iz sedmerca', score:'3:2' },
+      { min:9,  side:'h', kind:'yellow', player:'Zoran Sušac', note:'Žuti karton', score:'' },
+      { min:4,  side:'h', kind:'goal', player:'Ante Kožul', note:'Gol · protunapad', score:'3:1' },
+      { divider:'1. poluvrijeme' },
+      { min:28, side:'h', kind:'goal', player:'Josip Marić', note:'Gol', score:'2:1' },
+      { min:24, side:'a', kind:'goal', player:'Mario Pavić', note:'Gol', score:'1:1' },
+      { min:21, side:'n', kind:'timeout', player:'Time-out', note:'Zrinjski · 1 min', score:'' },
+      { min:14, side:'h', kind:'goal', player:'Josip Marić', note:'Gol iz sedmerca', score:'1:0' },
+    ];
+    const events = raw.map(e => {
+      if (e.divider) return { isDivider:true, isEvent:false, label:e.divider };
+      const home = e.side === 'h', neutral = e.side === 'n';
+      return {
+        isDivider:false, isEvent:true,
+        min:e.min, player:e.player, note:e.note, score:e.score,
+        dir: home || neutral ? 'row' : 'row-reverse',
+        align: home || neutral ? 'flex-start' : 'flex-end',
+        chipBg: e.kind === 'yellow' ? N : (neutral ? N : (home ? H : A)),
+        iconEl: this._icon(e.kind),
+        scoreColor: e.score ? '#F4F4F5' : '#6B7079',
+      };
+    });
+
+    return {
+      isLive, isDone: !isLive,
+      stageTitle: 'Finale',
+      heroTopColor: isLive ? '#23090c' : '#1a1b21',
+      heroBorder: isLive ? '#4a1117' : '#2A2B33',
+      statusLine: isLive ? '2. POLUVRIJEME · ' + this.state.minute + "'" : 'ZAVRŠENO · 2×30 MIN',
+      homeScore: this.props.homeScore ?? 4,
+      awayScore: this.props.awayScore ?? 2,
+      quickStats: [
+        { value:'6', label:'Golova' },
+        { value:'2', label:'Kartona' },
+        { value:'1', label:'Time-out' },
+      ],
+      events,
+      nav: this._nav(''),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,11 +1,13 @@
 // theme.ts — tema mobilne app iz dijeljenih tokena (@zrinjski/ui-tokens).
 // Tamna tema je jedina. Crvena = akcent/UŽIVO; zlatna SAMO finale + zlatni sponzor.
-import { colors, radius, spacing } from '@zrinjski/ui-tokens';
+import { colors, radius, space, spacing } from '@zrinjski/ui-tokens';
 import { TextStyle } from 'react-native';
 
 export const C = colors;
 export const S = spacing;
 export const R = radius;
+/** Skala razmaka iz hifi makete (4/6/9/11/13/14/18/22) — za redizajnirane ekrane. */
+export const SP = space;
 
 // Obitelji fontova (@expo-google-fonts).
 export const F = {

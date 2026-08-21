@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0}
+    body{background:radial-gradient(120% 80% at 50% 0%,#17181d 0%,#000 60%);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;display:flex;justify-content:center;padding:28px 18px;}
+    @keyframes barfill{from{width:0}}
+    @keyframes ptrspin{to{transform:rotate(360deg)}}
+    .ptr-spinning{animation:ptrspin .7s linear infinite;}
+    .st-scroll::-webkit-scrollbar{display:none}
+  </style>
+</helmet>
+
+<div style="width:402px;background:#0B0B0E;color:#F4F4F5;border-radius:34px;overflow:hidden;border:1px solid #23242c;box-shadow:0 40px 120px -20px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.02);position:relative;height:858px;display:flex;flex-direction:column;isolation:isolate;">
+
+  <div aria-hidden="true" style="position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;">
+    <div style="position:absolute;top:50%;left:50%;width:1300px;height:178px;transform:translate(-50%,-50%) rotate(-62deg);background:linear-gradient(90deg,transparent,rgba(156,12,24,.55) 38%,rgba(225,29,42,.62) 62%,transparent);opacity:.15;"></div>
+    <div style="position:absolute;top:50%;left:50%;width:1300px;height:2px;transform:translate(-50%,-50%) rotate(-62deg);background:linear-gradient(90deg,transparent,rgba(225,29,42,.85) 50%,transparent);opacity:.22;"></div>
+  </div>
+
+  <!-- status bar -->
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 24px 4px;font-size:14px;font-weight:600;color:#F4F4F5;letter-spacing:.2px;flex:none;">
+    <span>9:41</span>
+    <span style="display:flex;gap:7px;align-items:center;color:#F4F4F5;">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"></rect><rect x="5" y="4.5" width="3" height="7.5" rx="1"></rect><rect x="10" y="2" width="3" height="10" rx="1"></rect><rect x="15" y="0" width="3" height="12" rx="1"></rect></svg>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 4.2A11 11 0 0 1 16 4.2"></path><path d="M3.5 6.8a7.2 7.2 0 0 1 10 0"></path><path d="M6 9.3a3.6 3.6 0 0 1 5 0"></path><circle cx="8.5" cy="11" r="0.6" fill="currentColor" stroke="none"></circle></svg>
+      <span style="display:inline-flex;align-items:center;"><svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" stroke="currentColor" stroke-opacity=".4"></rect><rect x="2" y="2" width="16" height="9" rx="2" fill="currentColor"></rect><rect x="24" y="4" width="2" height="5" rx="1" fill="currentColor" fill-opacity=".4"></rect></svg></span>
+    </span>
+  </div>
+
+  <!-- title with lenta -->
+  <div style="position:relative;overflow:hidden;padding:8px 22px 6px;flex:none;">
+    <div style="position:relative;display:flex;align-items:center;gap:12px;">
+      <h1 style="font-family:'Oswald';font-weight:700;font-size:28px;letter-spacing:.6px;margin:0;flex:1;">STATISTIKA</h1>
+      <div style="display:flex;gap:3px;padding:3px;background:#1C1D24;border:1px solid #2A2B33;border-radius:999px;">
+        <sc-for list="{{ comps }}" as="c" hint-placeholder-count="2">
+          <div onClick="{{ c.onClick }}" style="padding:7px 15px;border-radius:999px;font-family:'Oswald';font-weight:600;font-size:12px;letter-spacing:.5px;cursor:pointer;background:{{ c.bg }};color:{{ c.color }};box-shadow:{{ c.shadow }};transition:all .2s;">{{ c.label }}</div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- segmented -->
+  <div style="display:flex;gap:4px;margin:8px 18px 4px;padding:4px;background:#1C1D24;border:1px solid #2A2B33;border-radius:11px;flex:none;">
+    <sc-for list="{{ segs }}" as="s" hint-placeholder-count="3">
+      <div onClick="{{ s.onClick }}" style="flex:1;text-align:center;padding:9px 0;border-radius:8px;font-family:'Oswald';font-weight:600;font-size:13px;cursor:pointer;background:{{ s.bg }};color:{{ s.color }};box-shadow:{{ s.shadow }};transition:all .2s;">{{ s.label }}</div>
+    </sc-for>
+  </div>
+
+  <!-- content -->
+  <div class="st-scroll" style="flex:1;overflow-y:auto;padding:10px 18px 28px;scrollbar-width:none;">
+    <div class="ptr-ind" data-ready="0" style="height:0px;opacity:0;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+      <span class="ptr-ring" style="width:24px;height:24px;border-radius:50%;border:2.5px solid rgba(225,29,42,.25);border-top-color:#E11D2A;display:block;"></span>
+    </div>
+
+    <!-- leader hero -->
+    <div style="position:relative;overflow:hidden;border-radius:16px;padding:16px 18px;background:linear-gradient(150deg,#23090c,#15161B 60%);border:1px solid #4a1117;box-shadow:0 16px 36px -16px rgba(225,29,42,.4);margin-bottom:18px;">
+      <div style="position:absolute;left:-15%;right:-15%;top:48%;height:60px;background:linear-gradient(90deg,#9C0C18,#E11D2A);transform:rotate(-9deg);opacity:.16;"></div>
+      <div style="position:relative;font-family:'Oswald';font-weight:600;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#FF5662;margin-bottom:12px;">{{ leaderLabel }}</div>
+      <div style="position:relative;display:flex;align-items:center;gap:14px;">
+        <div style="width:54px;height:54px;border-radius:14px;background:linear-gradient(150deg,#E11D2A,#9C0C18);display:grid;place-items:center;font-family:'Oswald';font-weight:700;font-size:20px;color:#fff;box-shadow:0 10px 24px -8px rgba(225,29,42,.7);flex:none;">{{ leaderInit }}</div>
+        <div style="flex:1;">
+          <b style="font-family:'Oswald';font-size:19px;letter-spacing:.3px;">{{ leaderName }}</b>
+          <div style="color:#9AA0AA;font-size:13px;margin-top:2px;">{{ leaderTeam }}</div>
+        </div>
+        <div style="text-align:right;">
+          <b style="font-family:'Oswald';font-weight:700;font-size:34px;line-height:1;">{{ leaderValue }}</b>
+          <div style="color:#9AA0AA;font-size:11px;letter-spacing:.5px;text-transform:uppercase;">{{ leaderUnit }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ranked list -->
+    <div style="font-family:'Oswald';font-weight:600;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:#6B7079;margin:0 4px 9px;">{{ listTitle }}</div>
+    <div style="background:#15161B;border:1px solid #2A2B33;border-radius:14px;overflow:hidden;box-shadow:0 6px 16px -10px rgba(0,0,0,.8);">
+      <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 15px;border-top:{{ r.border }};">
+          <span style="font-family:'Oswald';font-weight:700;font-size:14px;color:{{ r.rankColor }};width:18px;text-align:center;">{{ r.rank }}</span>
+          <div style="width:30px;height:30px;border-radius:8px;background:{{ r.crest }};display:grid;place-items:center;font-family:'Oswald';font-weight:700;font-size:10px;color:#fff;flex:none;">{{ r.abbr }}</div>
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:14px;">{{ r.name }}</div>
+            <div style="color:#9AA0AA;font-size:12px;margin-top:1px;">{{ r.team }}</div>
+          </div>
+          <div style="position:relative;width:88px;height:8px;border-radius:999px;background:#1C1D24;overflow:hidden;">
+            <span style="position:absolute;left:0;top:0;bottom:0;width:{{ r.pct }};background:linear-gradient(90deg,#9C0C18,#E11D2A);border-radius:999px;animation:barfill 1s ease;"></span>
+          </div>
+          <b style="font-family:'Oswald';font-weight:700;font-size:17px;width:34px;text-align:right;">{{ r.value }}</b>
+        </div>
+      </sc-for>
+    </div>
+
+  </div>
+
+  <!-- bottom nav -->
+  <div style="position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-around;align-items:flex-end;background:rgba(14,15,19,.86);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.06);padding:12px 6px 20px;flex:none;">
+    <sc-for list="{{ nav }}" as="item" hint-placeholder-count="5">
+      <a href="{{ item.href }}" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex:1;text-decoration:none;color:{{ item.color }};" style-active="transform:scale(.9)">
+        <div style="position:absolute;top:-3px;width:42px;height:30px;border-radius:11px;background:{{ item.bg }};filter:blur(2px);"></div>
+        <svg style="position:relative;" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="{{ item.sw }}" stroke-linecap="round" stroke-linejoin="round"><path d="{{ item.icon }}"></path></svg>
+        <span style="position:relative;font-family:'Oswald';font-weight:600;font-size:11px;letter-spacing:.4px;">{{ item.label }}</span>
+      </a>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:438,&quot;height&quot;:914}}">
+class Component extends DCLogic {
+  state = { seg: 0, comp: 0 };
+
+  componentDidMount() { setTimeout(() => this._initPTR('.st-scroll'), 60); }
+  _initPTR(sel) {
+    const sc = document.querySelector(sel);
+    const ind = document.querySelector('.ptr-ind');
+    const ring = document.querySelector('.ptr-ring');
+    if (!sc || !ind || !ring || sc._ptr) return;
+    sc._ptr = true;
+    const TH = 70;
+    let startY = 0, pulling = false, refreshing = false;
+    const snap = () => { ind.style.transition = 'height .25s ease,opacity .25s ease'; };
+    const reset = () => { snap(); ind.style.height = '0px'; ind.style.opacity = '0'; ind.dataset.ready = '0'; ring.style.transform = 'rotate(0deg)'; };
+    const start = (y) => { if (sc.scrollTop <= 0 && !refreshing) { startY = y; pulling = true; ind.style.transition = 'none'; } };
+    const move = (y, e) => {
+      if (!pulling || refreshing) return;
+      const dist = y - startY;
+      if (dist <= 0) return;
+      if (e && e.cancelable) e.preventDefault();
+      const d = Math.min(dist * 0.5, 92);
+      ind.style.height = d + 'px'; ind.style.opacity = Math.min(d / TH, 1);
+      ring.style.transform = 'rotate(' + (d * 4) + 'deg)';
+      ind.dataset.ready = d >= TH ? '1' : '0';
+    };
+    const end = () => {
+      if (!pulling) return; pulling = false;
+      if (ind.dataset.ready === '1' && !refreshing) {
+        refreshing = true; snap(); ind.style.height = '52px'; ind.style.opacity = '1';
+        ring.classList.add('ptr-spinning');
+        setTimeout(() => { refreshing = false; ring.classList.remove('ptr-spinning'); reset(); }, 1100);
+      } else reset();
+    };
+    sc.addEventListener('touchstart', (e) => start(e.touches[0].clientY), { passive: true });
+    sc.addEventListener('touchmove', (e) => move(e.touches[0].clientY, e), { passive: false });
+    sc.addEventListener('touchend', end);
+    let mDown = false;
+    sc.addEventListener('mousedown', (e) => { if (sc.scrollTop <= 0) { mDown = true; start(e.clientY); } });
+    window.addEventListener('mousemove', (e) => { if (mDown) move(e.clientY, null); });
+    window.addEventListener('mouseup', () => { if (mDown) { mDown = false; end(); } });
+  }
+
+  _nav(active) {
+    const items = [
+      { label: 'Početna',  icon: 'M4 11.2 12 4l8 7.2M6 9.6V20h4v-5.5h4V20h4V9.6' },
+      { label: 'Raspored', icon: 'M4.5 6.5a1 1 0 0 1 1-1h13a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1zM4.5 10h15M8.5 3.5v3M15.5 3.5v3' },
+      { label: 'Poredak',  icon: 'M7 4h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 0-3 3M9.5 13.4h5M10 17h4v-3.6h-4zM8 20h8' },
+      { label: 'Statist.', icon: 'M5 20V11M12 20V4M19 20v-6.5', sw: 2.4 },
+      { label: 'Info',     icon: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 7.6v.01', sw: 2 },
+    ];
+    const hrefs = { 'Početna':'Pocetna.dc.html','Raspored':'Raspored.dc.html','Poredak':'Poredak.dc.html','Statist.':'Statistika.dc.html','Info':'Info.dc.html' };
+    return items.map(it => {
+      const on = it.label === active;
+      return { ...it, href: hrefs[it.label], sw: it.sw ?? 1.9, color: on ? '#FF4651' : '#7A8089',
+               bg: on ? 'radial-gradient(60% 60% at 50% 45%,rgba(225,29,42,.32),transparent)' : 'transparent' };
+    });
+  }
+
+  renderVals() {
+    const C = { ZRI:'linear-gradient(150deg,#E11D2A,#9C0C18)', LJU:'linear-gradient(150deg,#7d27cc,#4a127f)', GRU:'linear-gradient(150deg,#258ea0,#1F7A8C)', POS:'linear-gradient(150deg,#d4500f,#C2410C)', CAP:'linear-gradient(150deg,#0f9e91,#0D9488)', LAS:'linear-gradient(150deg,#2596a8,#1F7A8C)', MOS:'linear-gradient(150deg,#E11D2A,#9C0C18)', SIR:'linear-gradient(150deg,#2f7be0,#2D6CDF)', CIT:'linear-gradient(150deg,#b28a1f,#8a6a12)' };
+    const dataZ = [
+      { // strijelke
+        leaderLabel:'Najbolja strijelka', listTitle:'Top strijelke', unit:'golova',
+        rows:[
+          { abbr:'LAS', name:'Ivana Primorac', team:'ŽRK Lasta', value:28, crest:C.LAS },
+          { abbr:'MOS', name:'Marija Zelenika', team:'Mostar Ž', value:25, crest:C.MOS },
+          { abbr:'SIR', name:'Katarina Ćavar', team:'Široki Ž', value:21, crest:C.SIR },
+          { abbr:'LAS', name:'Ana Miletić', team:'ŽRK Lasta', value:18, crest:C.LAS },
+          { abbr:'CIT', name:'Jelena Pehar', team:'Čitluk Ž', value:16, crest:C.CIT },
+          { abbr:'MOS', name:'Lucija Šaravanja', team:'Mostar Ž', value:13, crest:C.MOS },
+        ] },
+      { // vratarke
+        leaderLabel:'Najbolja vratarka', listTitle:'Top vratarke', unit:'obrana',
+        rows:[
+          { abbr:'MOS', name:'Petra Knezović', team:'Mostar Ž', value:54, crest:C.MOS },
+          { abbr:'LAS', name:'Martina Bošnjak', team:'ŽRK Lasta', value:49, crest:C.LAS },
+          { abbr:'SIR', name:'Iva Kvesić', team:'Široki Ž', value:44, crest:C.SIR },
+          { abbr:'CIT', name:'Monika Ostojić', team:'Čitluk Ž', value:39, crest:C.CIT },
+          { abbr:'LAS', name:'Nikolina Jurić', team:'ŽRK Lasta', value:31, crest:C.LAS },
+        ] },
+      { // momčadi Ž
+        leaderLabel:'Najefikasnija ekipa', listTitle:'Golovi po ekipi', unit:'golova',
+        rows:[
+          { abbr:'LAS', name:'ŽRK Lasta', team:'Skupina Ž', value:81, crest:C.LAS },
+          { abbr:'MOS', name:'Mostar Ž', team:'Skupina Ž', value:74, crest:C.MOS },
+          { abbr:'SIR', name:'Široki Ž', team:'Skupina Ž', value:66, crest:C.SIR },
+          { abbr:'CIT', name:'Čitluk Ž', team:'Skupina Ž', value:59, crest:C.CIT },
+        ] },
+    ];
+    const data = [
+      { // strijelci
+        leaderLabel:'Najbolji strijelac', listTitle:'Top strijelci', unit:'golova',
+        rows:[
+          { abbr:'ZRI', name:'Josip Marić', team:'Zrinjski', value:31, crest:C.ZRI },
+          { abbr:'LJU', name:'Ivan Lučić', team:'Ljubuški', value:27, crest:C.LJU },
+          { abbr:'GRU', name:'Marko Soldo', team:'Grude', value:22, crest:C.GRU },
+          { abbr:'ZRI', name:'Ante Kožul', team:'Zrinjski', value:19, crest:C.ZRI },
+          { abbr:'POS', name:'Tomislav Bago', team:'Posušje', value:17, crest:C.POS },
+          { abbr:'CAP', name:'Dario Zovko', team:'Čapljina', value:14, crest:C.CAP },
+        ] },
+      { // vratari
+        leaderLabel:'Najbolji vratar', listTitle:'Top vratari', unit:'obrana',
+        rows:[
+          { abbr:'LJU', name:'Ivan Penavić', team:'Ljubuški', value:58, crest:C.LJU },
+          { abbr:'ZRI', name:'Davor Soldo', team:'Zrinjski', value:52, crest:C.ZRI },
+          { abbr:'GRU', name:'Kristijan Rozić', team:'Grude', value:47, crest:C.GRU },
+          { abbr:'CAP', name:'Mario Vukoja', team:'Čapljina', value:41, crest:C.CAP },
+          { abbr:'POS', name:'Stipe Galić', team:'Posušje', value:38, crest:C.POS },
+          { abbr:'ZRI', name:'Luka Bevanda', team:'Zrinjski', value:33, crest:C.ZRI },
+        ] },
+      { // momčadi
+        leaderLabel:'Najefikasnija momčad', listTitle:'Golovi po momčadi', unit:'golova',
+        rows:[
+          { abbr:'ZRI', name:'VHMRK Zrinjski', team:'Grupa A', value:89, crest:C.ZRI },
+          { abbr:'LJU', name:'Ljubuški', team:'Grupa A', value:76, crest:C.LJU },
+          { abbr:'GRU', name:'Grude', team:'Grupa A', value:71, crest:C.GRU },
+          { abbr:'POS', name:'Posušje', team:'Grupa A', value:64, crest:C.POS },
+          { abbr:'CAP', name:'Čapljina', team:'Grupa A', value:58, crest:C.CAP },
+        ] },
+    ];
+
+    const segs = ['Strijelci','Vratari','Momčadi'].map((label, i) => {
+      const on = i === this.state.seg;
+      return { label, onClick: () => this.setState({ seg: i }),
+        bg: on ? 'linear-gradient(150deg,#E11D2A,#9C0C18)' : 'transparent',
+        color: on ? '#fff' : '#9AA0AA',
+        shadow: on ? '0 6px 14px -6px rgba(225,29,42,.6)' : 'none' };
+    });
+
+    const comps = ['Muški','Žene'].map((label, i) => {
+      const on = i === this.state.comp;
+      return { label, onClick: () => this.setState({ comp: i }),
+        bg: on ? 'linear-gradient(150deg,#E11D2A,#9C0C18)' : 'transparent',
+        color: on ? '#fff' : '#9AA0AA',
+        shadow: on ? '0 6px 14px -6px rgba(225,29,42,.6)' : 'none' };
+    });
+
+    const d = (this.state.comp === 1 ? dataZ : data)[this.state.seg];
+    const max = d.rows[0].value;
+    const rows = d.rows.map((r, i) => ({
+      ...r, rank: i + 1,
+      rankColor: i === 0 ? '#D9B24A' : '#6B7079',
+      pct: Math.round((r.value / max) * 100) + '%',
+      border: i === 0 ? 'none' : '1px solid #1d1e25',
+    }));
+    const top = d.rows[0];
+
+    return {
+      comps, segs, rows,
+      listTitle: d.listTitle,
+      leaderLabel: d.leaderLabel,
+      leaderName: top.name, leaderTeam: top.team, leaderValue: top.value, leaderUnit: d.unit,
+      leaderInit: top.abbr,
+      nav: this._nav('Statist.'),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -24,29 +24,39 @@ Tokeni u kodu: vidi `dizajn/tokens.ts`. Vizualne ploče sustava: `ekrani/ds_foun
 
 ## Grbovi ekipa (boje i logotipi)
 
-**Nema master tablice ekipa → boja.** Boja grba se **računa iz indeksa ekipe**
-(`crestColorFor(team.sort_order)`); ponavljanje boja je dopušteno i **nije greška**.
+**Nema master tablice ekipa → boja.** Grb se **računa iz indeksa ekipe**
+(`crestGradientFor(team.sort_order)`); ponavljanje boja je dopušteno i **nije greška**.
 
 Boja grba **nije nositelj informacije** — ne označava grupu, plasman ni status.
 
-| # | Hex | |
-|---|-----|---|
-| 0 | #1F6F6B | teal |
-| 1 | #4A127F | ljubičasta |
-| 2 | #C2571B | narančasta |
-| 3 | #1E4FA3 | plava |
-| 4 | #2F7D4F | zelenkasta |
-| 5 | #6B2233 | burgundy |
+Oblik je **zaobljeni kvadrat**, ne krug, s gradijentom pod 150°:
 
-U paleti namjerno **nema** brend-crvene (`#E11D2A`/`#9C0C18`), zlatne (`#D9B24A`)
-ni zelene (`#22C55E`) — te tri imaju svoje značenje.
+| # | Gradijent | |
+|---|-----------|---|
+| 0 | #2596A8 → #1F7A8C | teal |
+| 1 | #7D27CC → #4A127F | ljubičasta |
+| 2 | #D4500F → #C2410C | narančasta |
+| 3 | #2D6CDF → #1E4FA3 | plava |
+| 4 | #2FA36A → #1F7A4F | zelena |
+| 5 | #B23A54 → #6B2233 | burgundy |
+
+Brend-crveni grb (`#E11D2A → #9C0C18`, `crestRed`) **nije u paleti** — dodjeljuje se
+samo ekipi kojoj je izričito zadan (klub domaćin), preko `Crest color`.
+
+**Par u istoj utakmici mora se razlikovati.** Paleta ima 6 boja, konkurencija zna
+imati 12+ ekipa, pa se dvije mogu poklopiti. `crestPair(homeIndex, awayIndex)` tada
+pomiče boju **samo gostu** — kad bi se pomicale obje, opet bi završile na istoj.
+Koristi ga svugdje gdje dvije ekipe stoje jedna uz drugu (hero, red rasporeda, semafor).
 
 **Logotip je opcionalan.** Jedna komponenta (`Crest`, mobilna + web) crta grb svugdje:
 1. ima li ekipa `logo_url` → slika uklopljena (`contain`), **nikad obrezana**, na neutralnoj podlozi;
-2. inače → **krug** u boji iz palete s 2–3 slovnom kraticom (Oswald, bijelo, centrirano).
+2. inače → zaobljeni kvadrat s gradijentom i 2–3 slovnom kraticom (Oswald, bijelo, centrirano).
 
-Nikad prazna rupa ni generička placeholder ikona. Veličine: popis/raspored 32,
-poredak 28, zaglavlje ekipe i detalj utakmice 56, uživo 72, TV semafor 120.
+Nikad prazna rupa ni generička placeholder ikona.
+
+Radijus prati veličinu: ≤32 px → 9 px · ≤46 px → 11 px · veći → 15 px.
+Veličine: popis/raspored 30, poredak 28, „Pratiš" 42, hero i detalj utakmice 56,
+uživo 72, TV semafor 120.
 Upload logotipa: web admin → Ekipe → „Logo ekipe" (PNG/SVG, prozirna pozadina,
 preporučeno 512×512, najviše 512 KB; sprema se u Storage bucket `team-logos`).
 
@@ -57,12 +67,12 @@ preporučeno 512×512, najviše 512 KB; sprema se u Storage bucket `team-logos`)
 
 ## Razmaci i oblici
 - Razmak: 4 / 8 / 12 / 16 / 24 / 32 (8pt baza).
-- Radijusi: kartica **12**, chip **8**, pill **999**.
+- Radijusi: kartica **14**, chip **11**, hero **20**, grb 9/11/15 po veličini, pill **999**.
 - Phone ekrani 390px širine; web admin 1280×800 landscape.
 
 ## Ključne komponente (vidi ds_components.png)
 Gumbi (primarni crveni / sekundarni obrub / ghost / tap-+), chipovi (izbor događaja, M/Ž toggle), oznake (UŽIVO crveno, ZAVRŠENO, FINALE zlatni obrub, „nema sudara" zeleno), red utakmice (grb + naziv + rezultat/UŽIVO), red igrača s „+", donja navigacija (6: Početna/Raspored/Poredak/Statist./Galerija/Info), istaknuti blokovi (zlatni sponzor, finale).
-Grb ekipe = **krug** s logotipom ekipe ili, ako logotipa nema, s 2–3 slovnom kraticom (npr. ZRI, GRU) u automatski dodijeljenoj boji — vidi „Grbovi ekipa". Donja navigacija (korisnička) i crveno zaglavlje + izbornik u pločicama (admin).
+Grb ekipe = **zaobljeni kvadrat** s logotipom ekipe ili, ako logotipa nema, s 2–3 slovnom kraticom (npr. ZRI, GRU) u automatski dodijeljenom gradijentu — vidi „Grbovi ekipa". Donja navigacija (korisnička) i crveno zaglavlje + izbornik u pločicama (admin).
 
 ## Mapa ekrana → mockup datoteke (sve u `ekrani/`)
 
@@ -107,6 +117,6 @@ Grb ekipe = **krug** s logotipom ekipe ili, ako logotipa nema, s 2–3 slovnom k
 ## Pravila primjene
 - Ne odstupaj od tokena; sve boje/razmaci/radijusi dolaze iz `tokens.ts`.
 - UŽIVO/realtime stanja uvijek crvena. Finale i zlatni sponzor jedini smiju biti zlatni.
-- Boje ekipa se NE biraju ručno niti hardkodiraju po nazivu kluba — uvijek `crestColorFor(team.sort_order)`.
+- Boje ekipa se NE biraju ručno niti hardkodiraju po nazivu kluba — uvijek `crestGradientFor(team.sort_order)`, a za par u istoj utakmici `crestPair`.
 - Admin = crveno zaglavlje + izbornik u pločicama; korisnik = donja navigacija sa 6 stavki.
 - Mockupi su smjernica za raspored i hijerarhiju, ne piksel-savršen zahtjev; drži se sustava i proporcija.

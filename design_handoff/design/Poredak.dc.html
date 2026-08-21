@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0}
+    body{background:radial-gradient(120% 80% at 50% 0%,#17181d 0%,#000 60%);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;display:flex;justify-content:center;padding:28px 18px;}
+    @keyframes ptrspin{to{transform:rotate(360deg)}}
+    .ptr-spinning{animation:ptrspin .7s linear infinite;}
+    .pr-scroll::-webkit-scrollbar{display:none}
+  </style>
+</helmet>
+
+<div style="width:402px;background:#0B0B0E;color:#F4F4F5;border-radius:34px;overflow:hidden;border:1px solid #23242c;box-shadow:0 40px 120px -20px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.02);position:relative;height:858px;display:flex;flex-direction:column;isolation:isolate;">
+
+  <div aria-hidden="true" style="position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;">
+    <div style="position:absolute;top:50%;left:50%;width:1300px;height:178px;transform:translate(-50%,-50%) rotate(-62deg);background:linear-gradient(90deg,transparent,rgba(156,12,24,.55) 38%,rgba(225,29,42,.62) 62%,transparent);opacity:.15;"></div>
+    <div style="position:absolute;top:50%;left:50%;width:1300px;height:2px;transform:translate(-50%,-50%) rotate(-62deg);background:linear-gradient(90deg,transparent,rgba(225,29,42,.85) 50%,transparent);opacity:.22;"></div>
+  </div>
+
+  <!-- status bar -->
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 24px 4px;font-size:14px;font-weight:600;color:#F4F4F5;letter-spacing:.2px;flex:none;">
+    <span>9:41</span>
+    <span style="display:flex;gap:7px;align-items:center;color:#F4F4F5;">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"></rect><rect x="5" y="4.5" width="3" height="7.5" rx="1"></rect><rect x="10" y="2" width="3" height="10" rx="1"></rect><rect x="15" y="0" width="3" height="12" rx="1"></rect></svg>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 4.2A11 11 0 0 1 16 4.2"></path><path d="M3.5 6.8a7.2 7.2 0 0 1 10 0"></path><path d="M6 9.3a3.6 3.6 0 0 1 5 0"></path><circle cx="8.5" cy="11" r="0.6" fill="currentColor" stroke="none"></circle></svg>
+      <span style="display:inline-flex;align-items:center;"><svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" stroke="currentColor" stroke-opacity=".4"></rect><rect x="2" y="2" width="16" height="9" rx="2" fill="currentColor"></rect><rect x="24" y="4" width="2" height="5" rx="1" fill="currentColor" fill-opacity=".4"></rect></svg></span>
+    </span>
+  </div>
+
+  <!-- title -->
+  <div style="position:relative;overflow:hidden;padding:8px 22px 6px;flex:none;">
+    <h1 style="position:relative;font-family:'Oswald';font-weight:700;font-size:28px;letter-spacing:.6px;margin:0;">POREDAK</h1>
+  </div>
+
+  <!-- toggle M/Ž -->
+  <div style="display:flex;gap:4px;margin:8px 18px 4px;padding:4px;background:#1C1D24;border:1px solid #2A2B33;border-radius:11px;flex:none;">
+    <sc-for list="{{ segs }}" as="s" hint-placeholder-count="2">
+      <div onClick="{{ s.onClick }}" style="flex:1;text-align:center;padding:9px 0;border-radius:8px;font-family:'Oswald';font-weight:600;font-size:14px;cursor:pointer;background:{{ s.bg }};color:{{ s.color }};box-shadow:{{ s.shadow }};transition:all .2s;">{{ s.label }}</div>
+    </sc-for>
+  </div>
+
+  <!-- content -->
+  <div class="pr-scroll" style="flex:1;overflow-y:auto;padding:8px 18px 28px;scrollbar-width:none;">
+    <div class="ptr-ind" data-ready="0" style="height:0px;opacity:0;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+      <span class="ptr-ring" style="width:24px;height:24px;border-radius:50%;border:2.5px solid rgba(225,29,42,.25);border-top-color:#E11D2A;display:block;"></span>
+    </div>
+
+    <div style="font-family:'Oswald';font-weight:600;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:#6B7079;margin:10px 4px 9px;">Grupa A</div>
+
+    <!-- table -->
+    <div style="background:#15161B;border:1px solid #2A2B33;border-radius:14px;overflow:hidden;box-shadow:0 6px 16px -10px rgba(0,0,0,.8);">
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:#1C1D24;font-family:'Oswald';font-weight:600;font-size:10px;letter-spacing:.6px;color:#6B7079;text-transform:uppercase;">
+        <span style="width:16px;text-align:center;">#</span><span style="flex:1;">Ekipa</span><span style="width:26px;text-align:center;">O</span><span style="width:36px;text-align:center;">GR</span><span style="width:24px;text-align:center;color:#9AA0AA;">B</span>
+      </div>
+      <sc-for list="{{ table }}" as="r" hint-placeholder-count="6">
+        <div onClick="{{ r.onOpen }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid #1d1e25;background:{{ r.rowBg }};cursor:pointer;">
+          <span style="width:16px;text-align:center;display:flex;align-items:center;justify-content:center;position:relative;">
+            <span style="font-family:'Oswald';font-weight:700;font-size:13px;color:{{ r.rankColor }};">{{ r.rank }}</span>
+            <sc-if value="{{ r.qual }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:-9px;top:2px;bottom:2px;width:3px;border-radius:2px;background:#22C55E;"></span></sc-if>
+          </span>
+          <div style="width:26px;height:26px;border-radius:7px;background:{{ r.crest }};display:grid;place-items:center;font-family:'Oswald';font-weight:700;font-size:9px;color:#fff;flex:none;">{{ r.abbr }}</div>
+          <span style="flex:1;font-weight:{{ r.weight }};font-size:13px;color:{{ r.nameColor }};">{{ r.name }}</span>
+          <span style="width:26px;text-align:center;font-size:13px;color:#9AA0AA;">{{ r.played }}</span>
+          <span style="width:36px;text-align:center;font-size:13px;color:{{ r.grColor }};">{{ r.gr }}</span>
+          <span style="width:24px;text-align:center;font-family:'Oswald';font-weight:700;font-size:15px;">{{ r.pts }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;align-items:center;gap:7px;color:#22C55E;font-size:12px;margin:9px 4px 0;">
+      <span style="width:7px;height:7px;border-radius:999px;background:#22C55E;"></span>Prve 2 prolaze u završnicu
+    </div>
+
+    <!-- završnica -->
+    <div style="font-family:'Oswald';font-weight:600;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:#6B7079;margin:22px 4px 10px;">Završnica</div>
+    <sc-for list="{{ bracket }}" as="b" hint-placeholder-count="3">
+      <div style="background:#15161B;border:1px solid {{ b.border }};border-radius:14px;padding:13px 15px;margin-bottom:10px;box-shadow:0 6px 16px -10px rgba(0,0,0,.8);">
+        <div style="font-family:'Oswald';font-weight:600;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:{{ b.lblColor }};margin-bottom:10px;">{{ b.label }}</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="display:flex;align-items:center;gap:8px;flex:1;font-weight:600;font-size:13px;"><span style="width:24px;height:24px;border-radius:7px;background:{{ b.homeCrest }};display:grid;place-items:center;font-family:'Oswald';font-weight:700;font-size:9px;color:#fff;flex:none;">{{ b.homeAbbr }}</span>{{ b.home }}</span>
+          <span style="color:{{ b.scoreColor }};font-family:'Oswald';font-weight:{{ b.scoreWeight }};font-size:{{ b.scoreSize }};">{{ b.score }}</span>
+          <span style="display:flex;align-items:center;gap:8px;flex:1;justify-content:flex-end;font-weight:600;font-size:13px;">{{ b.away }}<span style="width:24px;height:24px;border-radius:7px;background:{{ b.awayCrest }};display:grid;place-items:center;font-family:'Oswald';font-weight:700;font-size:9px;color:#fff;flex:none;">{{ b.awayAbbr }}</span></span>
+        </div>
+      </div>
+    </sc-for>
+
+  </div>
+
+  <!-- bottom nav -->
+  <div style="position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-around;align-items:flex-end;background:rgba(14,15,19,.86);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.06);padding:12px 6px 20px;flex:none;">
+    <sc-for list="{{ nav }}" as="item" hint-placeholder-count="5">
+      <a href="{{ item.href }}" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex:1;text-decoration:none;color:{{ item.color }};" style-active="transform:scale(.9)">
+        <div style="position:absolute;top:-3px;width:42px;height:30px;border-radius:11px;background:{{ item.bg }};filter:blur(2px);"></div>
+        <svg style="position:relative;" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="{{ item.sw }}" stroke-linecap="round" stroke-linejoin="round"><path d="{{ item.icon }}"></path></svg>
+        <span style="position:relative;font-family:'Oswald';font-weight:600;font-size:11px;letter-spacing:.4px;">{{ item.label }}</span>
+      </a>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:438,&quot;height&quot;:914},&quot;activeTab&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Poredak&quot;,&quot;options&quot;:[&quot;Početna&quot;,&quot;Raspored&quot;,&quot;Poredak&quot;,&quot;Statist.&quot;,&quot;Info&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { seg: 0 };
+
+  componentDidMount() { setTimeout(() => this._initPTR('.pr-scroll'), 60); }
+  _initPTR(sel) {
+    const sc = document.querySelector(sel);
+    const ind = document.querySelector('.ptr-ind');
+    const ring = document.querySelector('.ptr-ring');
+    if (!sc || !ind || !ring || sc._ptr) return;
+    sc._ptr = true;
+    const TH = 70;
+    let startY = 0, pulling = false, refreshing = false;
+    const snap = () => { ind.style.transition = 'height .25s ease,opacity .25s ease'; };
+    const reset = () => { snap(); ind.style.height = '0px'; ind.style.opacity = '0'; ind.dataset.ready = '0'; ring.style.transform = 'rotate(0deg)'; };
+    const start = (y) => { if (sc.scrollTop <= 0 && !refreshing) { startY = y; pulling = true; ind.style.transition = 'none'; } };
+    const move = (y, e) => {
+      if (!pulling || refreshing) return;
+      const dist = y - startY;
+      if (dist <= 0) return;
+      if (e && e.cancelable) e.preventDefault();
+      const d = Math.min(dist * 0.5, 92);
+      ind.style.height = d + 'px'; ind.style.opacity = Math.min(d / TH, 1);
+      ring.style.transform = 'rotate(' + (d * 4) + 'deg)';
+      ind.dataset.ready = d >= TH ? '1' : '0';
+    };
+    const end = () => {
+      if (!pulling) return; pulling = false;
+      if (ind.dataset.ready === '1' && !refreshing) {
+        refreshing = true; snap(); ind.style.height = '52px'; ind.style.opacity = '1';
+        ring.classList.add('ptr-spinning');
+        setTimeout(() => { refreshing = false; ring.classList.remove('ptr-spinning'); reset(); }, 1100);
+      } else reset();
+    };
+    sc.addEventListener('touchstart', (e) => start(e.touches[0].clientY), { passive: true });
+    sc.addEventListener('touchmove', (e) => move(e.touches[0].clientY, e), { passive: false });
+    sc.addEventListener('touchend', end);
+    let mDown = false;
+    sc.addEventListener('mousedown', (e) => { if (sc.scrollTop <= 0) { mDown = true; start(e.clientY); } });
+    window.addEventListener('mousemove', (e) => { if (mDown) move(e.clientY, null); });
+    window.addEventListener('mouseup', () => { if (mDown) { mDown = false; end(); } });
+  }
+
+  _nav(active) {
+    const items = [
+      { label: 'Početna',  icon: 'M4 11.2 12 4l8 7.2M6 9.6V20h4v-5.5h4V20h4V9.6' },
+      { label: 'Raspored', icon: 'M4.5 6.5a1 1 0 0 1 1-1h13a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1zM4.5 10h15M8.5 3.5v3M15.5 3.5v3' },
+      { label: 'Poredak',  icon: 'M7 4h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 0-3 3M9.5 13.4h5M10 17h4v-3.6h-4zM8 20h8' },
+      { label: 'Statist.', icon: 'M5 20V11M12 20V4M19 20v-6.5', sw: 2.4 },
+      { label: 'Info',     icon: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 7.6v.01', sw: 2 },
+    ];
+    const hrefs = { 'Početna':'Pocetna.dc.html','Raspored':'Raspored.dc.html','Poredak':'Poredak.dc.html','Statist.':'Statistika.dc.html','Info':'Info.dc.html' };
+    return items.map(it => {
+      const on = it.label === active;
+      return { ...it, href: hrefs[it.label], sw: it.sw ?? 1.9, color: on ? '#FF4651' : '#7A8089',
+               bg: on ? 'radial-gradient(60% 60% at 50% 45%,rgba(225,29,42,.32),transparent)' : 'transparent' };
+    });
+  }
+
+  renderVals() {
+    const segs = ['Muški','Žene'].map((label, i) => {
+      const on = i === this.state.seg;
+      return { label, onClick: () => this.setState({ seg: i }),
+        bg: on ? 'linear-gradient(150deg,#E11D2A,#9C0C18)' : 'transparent',
+        color: on ? '#fff' : '#9AA0AA',
+        shadow: on ? '0 6px 14px -6px rgba(225,29,42,.6)' : 'none' };
+    });
+
+    const C = { ZRI:'linear-gradient(150deg,#E11D2A,#9C0C18)', GRU:'linear-gradient(150deg,#7d27cc,#4a127f)', IZV:'linear-gradient(150deg,#258ea0,#1F7A8C)', POS:'linear-gradient(150deg,#d4500f,#C2410C)', CAP:'linear-gradient(150deg,#0f9e91,#0D9488)', SIR:'linear-gradient(150deg,#c1426f,#B03060)', CIT:'linear-gradient(150deg,#2f7be0,#2D6CDF)', LJU:'linear-gradient(150deg,#258ea0,#1F7A8C)' };
+    const CZ = { LAS:'linear-gradient(150deg,#2596a8,#1F7A8C)', MOS:'linear-gradient(150deg,#E11D2A,#9C0C18)', SIR:'linear-gradient(150deg,#2f7be0,#2D6CDF)', CIT:'linear-gradient(150deg,#b28a1f,#8a6a12)', GRU:'linear-gradient(150deg,#7d27cc,#4a127f)', POS:'linear-gradient(150deg,#d4500f,#C2410C)' };
+    const rawZ = [
+      { rank:1, abbr:'LAS', name:'ŽRK Lasta', played:5, gr:'+15', pts:9, crest:CZ.LAS, qual:true },
+      { rank:2, abbr:'MOS', name:'Mostar Ž', played:5, gr:'+11', pts:8, crest:CZ.MOS, qual:true },
+      { rank:3, abbr:'SIR', name:'Široki Ž', played:5, gr:'+1', pts:6, crest:CZ.SIR },
+      { rank:4, abbr:'CIT', name:'Čitluk Ž', played:5, gr:'−4', pts:4, crest:CZ.CIT },
+      { rank:5, abbr:'GRU', name:'Grude Ž', played:5, gr:'−9', pts:2, crest:CZ.GRU },
+      { rank:6, abbr:'POS', name:'Posušje Ž', played:5, gr:'−14', pts:1, crest:CZ.POS },
+    ];
+    const rawM = [
+      { rank:1, abbr:'ZRI', name:'Zrinjski', played:5, gr:'+18', pts:10, crest:C.ZRI, qual:true, me:true },
+      { rank:2, abbr:'GRU', name:'Grude', played:5, gr:'+9', pts:8, crest:C.GRU, qual:true },
+      { rank:3, abbr:'IZV', name:'Izviđač', played:5, gr:'+2', pts:6, crest:C.IZV },
+      { rank:4, abbr:'POS', name:'Posušje', played:5, gr:'−3', pts:4, crest:C.POS },
+      { rank:5, abbr:'CAP', name:'Čapljina', played:5, gr:'−10', pts:2, crest:C.CAP },
+      { rank:6, abbr:'SIR', name:'Široki', played:5, gr:'−16', pts:0, crest:C.SIR },
+    ];
+    const raw = this.state.seg === 1 ? rawZ : rawM;
+    const table = raw.map(r => ({
+      ...r, qual: !!r.qual, onOpen: () => { window.location.href = 'Ekipa.dc.html'; },
+      rankColor: r.rank===1 ? '#D9B24A' : (r.qual ? '#22C55E' : '#6B7079'),
+      weight: r.me ? 700 : 500,
+      nameColor: r.me ? '#F4F4F5' : '#C9CDD4',
+      grColor: r.gr.startsWith('+') ? '#9AA0AA' : '#7A8089',
+      rowBg: r.me ? 'rgba(225,29,42,.06)' : 'transparent',
+    }));
+
+    const bracketZ = [
+      { label:'Polufinale 1', home:'ŽRK Lasta', homeAbbr:'LAS', homeCrest:CZ.LAS, away:'Čitluk Ž', awayAbbr:'CIT', awayCrest:CZ.CIT, score:'6:4', border:'#2A2B33', lblColor:'#9AA0AA', scoreColor:'#9AA0AA', scoreWeight:600, scoreSize:'15px' },
+      { label:'Polufinale 2', home:'Mostar Ž', homeAbbr:'MOS', homeCrest:CZ.MOS, away:'Široki Ž', awayAbbr:'SIR', awayCrest:CZ.SIR, score:'8:7', border:'#2A2B33', lblColor:'#9AA0AA', scoreColor:'#9AA0AA', scoreWeight:600, scoreSize:'15px' },
+      { label:'Finale · danas 18:00', home:'ŽRK Lasta', homeAbbr:'LAS', homeCrest:CZ.LAS, away:'Mostar Ž', awayAbbr:'MOS', awayCrest:CZ.MOS, score:'18:00', border:'rgba(217,178,74,.5)', lblColor:'#D9B24A', scoreColor:'#D9B24A', scoreWeight:600, scoreSize:'12px' },
+    ];
+    const bracketM = [
+      { label:'Polufinale 1', home:'Zrinjski', homeAbbr:'ZRI', homeCrest:C.ZRI, away:'Čitluk', awayAbbr:'CIT', awayCrest:C.CIT, score:'10:8', border:'#2A2B33', lblColor:'#9AA0AA', scoreColor:'#9AA0AA', scoreWeight:600, scoreSize:'15px' },
+      { label:'Polufinale 2', home:'Grude', homeAbbr:'GRU', homeCrest:C.GRU, away:'Ljubuški', awayAbbr:'LJU', awayCrest:C.LJU, score:'7:9', border:'#2A2B33', lblColor:'#9AA0AA', scoreColor:'#9AA0AA', scoreWeight:600, scoreSize:'15px' },
+      { label:'Finale · danas 19:00', home:'Zrinjski', homeAbbr:'ZRI', homeCrest:C.ZRI, away:'Ljubuški', awayAbbr:'LJU', awayCrest:C.LJU, score:'19:00', border:'rgba(217,178,74,.5)', lblColor:'#D9B24A', scoreColor:'#D9B24A', scoreWeight:600, scoreSize:'12px' },
+    ];
+
+    const bracket = this.state.seg === 1 ? bracketZ : bracketM;
+    return { segs, table, bracket, nav: this._nav(this.props.activeTab ?? 'Poredak') };
+  }
+}
+</script>
+</body>
+</html>

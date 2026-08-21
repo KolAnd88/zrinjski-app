@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0}
+    body{background:radial-gradient(120% 80% at 50% 0%,#17181d 0%,#000 60%);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;display:flex;justify-content:center;padding:28px 18px;}
+    .in-scroll::-webkit-scrollbar{display:none}
+  </style>
+</helmet>
+
+<div style="width:402px;background:#0B0B0E;color:#F4F4F5;border-radius:34px;overflow:hidden;border:1px solid #23242c;box-shadow:0 40px 120px -20px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.02);position:relative;height:858px;display:flex;flex-direction:column;isolation:isolate;">
+
+  <div aria-hidden="true" style="position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;">
+    <div style="position:absolute;top:50%;left:50%;width:1300px;height:178px;transform:translate(-50%,-50%) rotate(-62deg);background:linear-gradient(90deg,transparent,rgba(156,12,24,.55) 38%,rgba(225,29,42,.62) 62%,transparent);opacity:.15;"></div>
+    <div style="position:absolute;top:50%;left:50%;width:1300px;height:2px;transform:translate(-50%,-50%) rotate(-62deg);background:linear-gradient(90deg,transparent,rgba(225,29,42,.85) 50%,transparent);opacity:.22;"></div>
+  </div>
+
+  <!-- status bar -->
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 24px 4px;font-size:14px;font-weight:600;color:#F4F4F5;letter-spacing:.2px;flex:none;">
+    <span>9:41</span>
+    <span style="display:flex;gap:7px;align-items:center;color:#F4F4F5;">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"></rect><rect x="5" y="4.5" width="3" height="7.5" rx="1"></rect><rect x="10" y="2" width="3" height="10" rx="1"></rect><rect x="15" y="0" width="3" height="12" rx="1"></rect></svg>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 4.2A11 11 0 0 1 16 4.2"></path><path d="M3.5 6.8a7.2 7.2 0 0 1 10 0"></path><path d="M6 9.3a3.6 3.6 0 0 1 5 0"></path><circle cx="8.5" cy="11" r="0.6" fill="currentColor" stroke="none"></circle></svg>
+      <span style="display:inline-flex;align-items:center;"><svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" stroke="currentColor" stroke-opacity=".4"></rect><rect x="2" y="2" width="16" height="9" rx="2" fill="currentColor"></rect><rect x="24" y="4" width="2" height="5" rx="1" fill="currentColor" fill-opacity=".4"></rect></svg></span>
+    </span>
+  </div>
+
+  <!-- title with lenta -->
+  <div style="position:relative;overflow:hidden;padding:8px 22px 6px;flex:none;">
+    <h1 style="position:relative;font-family:'Oswald';font-weight:700;font-size:28px;letter-spacing:.6px;margin:0;">INFO</h1>
+  </div>
+
+  <div class="in-scroll" style="flex:1;overflow-y:auto;padding:10px 18px 28px;scrollbar-width:none;">
+
+    <!-- about turnir -->
+    <div style="position:relative;overflow:hidden;border-radius:16px;padding:18px;background:linear-gradient(150deg,#23090c,#15161B 62%);border:1px solid #4a1117;box-shadow:0 16px 36px -16px rgba(225,29,42,.4);margin-bottom:18px;">
+      <div style="position:absolute;left:-15%;right:-15%;top:50%;height:60px;background:linear-gradient(90deg,#9C0C18,#E11D2A);transform:rotate(-9deg);opacity:.16;"></div>
+      <div style="position:relative;display:flex;align-items:center;gap:13px;">
+        <div style="width:48px;height:48px;border-radius:13px;background:linear-gradient(150deg,#E11D2A,#9C0C18);display:grid;place-items:center;font-family:'Oswald';font-weight:700;font-size:16px;color:#fff;box-shadow:0 10px 24px -8px rgba(225,29,42,.7);flex:none;">ZC</div>
+        <div>
+          <b style="font-family:'Oswald';font-size:18px;letter-spacing:.4px;">VHMRK Zrinjski Cup 2026</b>
+          <div style="color:#9AA0AA;font-size:13px;margin-top:2px;">7. izdanje · Turnir veterana</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- detalji -->
+    <div style="background:#15161B;border:1px solid #2A2B33;border-radius:14px;overflow:hidden;box-shadow:0 6px 16px -10px rgba(0,0,0,.8);margin-bottom:18px;">
+      <sc-for list="{{ details }}" as="d" hint-placeholder-count="4">
+        <div style="display:flex;align-items:center;gap:13px;padding:14px 16px;border-top:{{ d.border }};">
+          <span style="width:34px;height:34px;border-radius:10px;background:#1C1D24;display:grid;place-items:center;color:#FF5662;flex:none;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ d.icon }}"></path></svg>
+          </span>
+          <div style="flex:1;">
+            <div style="color:#9AA0AA;font-size:11px;letter-spacing:.5px;text-transform:uppercase;">{{ d.label }}</div>
+            <div style="font-weight:600;font-size:14px;margin-top:2px;">{{ d.value }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- dvorana -->
+    <div style="background:#15161B;border:1px solid #2A2B33;border-radius:16px;overflow:hidden;box-shadow:0 6px 16px -10px rgba(0,0,0,.8);margin-bottom:18px;">
+      <x-import component-from-global-scope="image-slot" from="./image-slot.js" id="info-dvorana" placeholder="Dovuci fotku dvorane" shape="rect" style="display:block;width:100%;height:170px;" hint-size="100%,170px"></x-import>
+      <div style="padding:12px 16px 14px;">
+        <b style="font-size:14px;font-weight:600;">SD Bijeli Brijeg</b>
+        <div style="color:#9AA0AA;font-size:12px;margin-top:2px;">Domaćin svih utakmica turnira</div>
+      </div>
+    </div>
+
+    <!-- povijest turnira -->
+    <div style="font-family:'Oswald';font-weight:600;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:#9AA0AA;margin:0 4px 10px;">Povijest turnira</div>
+    <div style="position:relative;display:flex;align-items:center;gap:14px;border:1px solid rgba(217,178,74,.45);border-radius:16px;padding:13px;overflow:hidden;background:linear-gradient(100deg,rgba(217,178,74,.12),rgba(217,178,74,.02) 60%,transparent);box-shadow:0 8px 22px -12px rgba(217,178,74,.4);margin-bottom:10px;">
+      <x-import component-from-global-scope="image-slot" from="./image-slot.js" id="info-pobjednik-2025" placeholder="Fotka pobjednika 2025." shape="rounded" radius="12" style="display:block;width:88px;height:66px;flex:none;" hint-size="88px,66px"></x-import>
+      <div style="flex:1;">
+        <div style="font-family:'Oswald';font-weight:600;font-size:11px;letter-spacing:1.2px;color:#D9B24A;text-transform:uppercase;">Branitelj naslova · 2025.</div>
+        <b style="font-family:'Oswald';font-size:17px;letter-spacing:.3px;">VHMRK Zrinjski</b>
+        <div style="color:#9AA0AA;font-size:12px;margin-top:1px;">U finalu svladao Ljubuški 5:3</div>
+      </div>
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#D9B24A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M7 4h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 0-3 3M9.5 13.4h5M10 17h4v-3.6h-4zM8 20h8"></path></svg>
+    </div>
+    <div style="background:#15161B;border:1px solid #2A2B33;border-radius:14px;overflow:hidden;box-shadow:0 6px 16px -10px rgba(0,0,0,.8);margin-bottom:18px;">
+      <sc-for list="{{ champions }}" as="c" hint-placeholder-count="4">
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 16px;border-top:{{ c.border }};">
+          <span style="font-family:'Oswald';font-weight:700;font-size:14px;color:#9AA0AA;width:38px;flex:none;">{{ c.year }}</span>
+          <span style="flex:1;font-weight:600;font-size:13px;">{{ c.winner }}</span>
+          <span style="font-size:12px;color:#6B7079;">{{ c.score }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- links -->
+    <div style="font-family:'Oswald';font-weight:600;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:#6B7079;margin:0 4px 10px;">Poveznice</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+      <sc-for list="{{ links }}" as="l" hint-placeholder-count="3">
+        <div style="display:flex;align-items:center;gap:13px;background:#15161B;border:1px solid #2A2B33;border-radius:13px;padding:14px 16px;cursor:pointer;transition:all .15s;" style-hover="border-color:#3a3b45" style-active="transform:scale(.99)">
+          <span style="width:34px;height:34px;border-radius:10px;background:{{ l.chip }};display:grid;place-items:center;flex:none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ l.stroke }}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ l.icon }}"></path></svg>
+          </span>
+          <span style="flex:1;font-weight:600;font-size:14px;">{{ l.label }}</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7079" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- organizator -->
+    <div style="text-align:center;padding:8px 0 4px;color:#6B7079;font-size:12px;line-height:1.7;">
+      Organizator: HRK Zrinjski Veterani<br>
+      Bijeli Brijeg bb, 88000 Mostar<br>
+      <span style="color:#9AA0AA;">info@zrinjskicup.ba · +387 36 000 000</span>
+    </div>
+
+  </div>
+
+  <!-- bottom nav -->
+  <div style="position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-around;align-items:flex-end;background:rgba(14,15,19,.86);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.06);padding:12px 6px 20px;flex:none;">
+    <sc-for list="{{ nav }}" as="item" hint-placeholder-count="5">
+      <a href="{{ item.href }}" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex:1;text-decoration:none;color:{{ item.color }};" style-active="transform:scale(.9)">
+        <div style="position:absolute;top:-3px;width:42px;height:30px;border-radius:11px;background:{{ item.bg }};filter:blur(2px);"></div>
+        <svg style="position:relative;" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="{{ item.sw }}" stroke-linecap="round" stroke-linejoin="round"><path d="{{ item.icon }}"></path></svg>
+        <span style="position:relative;font-family:'Oswald';font-weight:600;font-size:11px;letter-spacing:.4px;">{{ item.label }}</span>
+      </a>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:438,&quot;height&quot;:914}}">
+class Component extends DCLogic {
+  _nav(active) {
+    const items = [
+      { label: 'Početna',  icon: 'M4 11.2 12 4l8 7.2M6 9.6V20h4v-5.5h4V20h4V9.6' },
+      { label: 'Raspored', icon: 'M4.5 6.5a1 1 0 0 1 1-1h13a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1zM4.5 10h15M8.5 3.5v3M15.5 3.5v3' },
+      { label: 'Poredak',  icon: 'M7 4h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 0-3 3M9.5 13.4h5M10 17h4v-3.6h-4zM8 20h8' },
+      { label: 'Statist.', icon: 'M5 20V11M12 20V4M19 20v-6.5', sw: 2.4 },
+      { label: 'Info',     icon: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 7.6v.01', sw: 2 },
+    ];
+    const hrefs = { 'Početna':'Pocetna.dc.html','Raspored':'Raspored.dc.html','Poredak':'Poredak.dc.html','Statist.':'Statistika.dc.html','Info':'Info.dc.html' };
+    return items.map(it => {
+      const on = it.label === active;
+      return { ...it, href: hrefs[it.label], sw: it.sw ?? 1.9, color: on ? '#FF4651' : '#7A8089',
+               bg: on ? 'radial-gradient(60% 60% at 50% 45%,rgba(225,29,42,.32),transparent)' : 'transparent' };
+    });
+  }
+
+  renderVals() {
+    const details = [
+      { label:'Termin', value:'6. – 8. lipnja 2026.', icon:'M4.5 6.5a1 1 0 0 1 1-1h13a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1zM4.5 10h15M8.5 3.5v3M15.5 3.5v3' },
+      { label:'Lokacija', value:'SD Bijeli Brijeg, Mostar', icon:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0zM12 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z' },
+      { label:'Ekipe', value:'24 momčadi · 12 M, 12 Ž', icon:'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 20a6 6 0 0 1 12 0M16 4.5a3.5 3.5 0 0 1 0 6.8M21 20a6 6 0 0 0-4-5.6' },
+      { label:'Format', value:'Grupna faza + završnica', icon:'M7 4h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 0-3 3M9.5 13.4h5M10 17h4v-3.6h-4zM8 20h8' },
+    ].map((d, i) => ({ ...d, border: i === 0 ? 'none' : '1px solid #1d1e25' }));
+
+    const links = [
+      { label:'Kako do dvorane', chip:'rgba(45,108,223,.16)', stroke:'#5b8ce8', icon:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0zM12 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z' },
+      { label:'Propozicije turnira', chip:'rgba(34,197,94,.16)', stroke:'#2fd06f', icon:'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6' },
+      { label:'Kontakt organizatora', chip:'rgba(217,178,74,.16)', stroke:'#D9B24A', icon:'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8.1 9.6a16 16 0 0 0 6 6l1.2-1.1a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2z' },
+    ];
+
+    const champions = [
+      { year:'2024.', winner:'Ljubuški', score:'finale 4:2' },
+      { year:'2023.', winner:'VHMRK Zrinjski', score:'finale 3:2' },
+      { year:'2022.', winner:'Grude', score:'finale 5:4' },
+      { year:'2021.', winner:'VHMRK Zrinjski', score:'finale 2:1' },
+    ].map((c, i) => ({ ...c, border: i === 0 ? 'none' : '1px solid #1d1e25' }));
+
+    return { details, links, champions, nav: this._nav('Info') };
+  }
+}
+</script>
+</body>
+</html>
