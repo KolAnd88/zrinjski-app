@@ -22,6 +22,7 @@ export function Notices() {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [busy, setBusy] = useState(false);
+  const [sendErr, setSendErr] = useState<string | null>(null);
 
   if (!data.configured) return <Card style={{ maxWidth: 560 }}>{t('common.notConfigured')}</Card>;
   if (tournament.loading || data.loading) return <Card style={{ maxWidth: 560 }}>{t('common.loading')}</Card>;
@@ -49,10 +50,14 @@ export function Notices() {
   async function send() {
     if (!canSend) return;
     setBusy(true);
+    setSendErr(null);
     try {
       await data.send(tr.id, audienceString(), title, body);
       setTitle('');
       setBody('');
+    } catch (e) {
+      // Obavijest je već u povijesti — pao je samo push. Reci točno to.
+      setSendErr(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
     }
@@ -108,6 +113,18 @@ export function Notices() {
         <Button variant="primary" size="lg" block disabled={!canSend || busy} onClick={() => void send()}>
           {busy ? t('notices.sending') : t('notices.send')}
         </Button>
+        {sendErr && (
+          <div className="banner banner--error" style={{ marginTop: 'var(--sp-md)' }}>
+            {t('notices.sendFailed', { e: sendErr })}
+          </div>
+        )}
+        {!sendErr && data.sentCount != null && (
+          <div className="banner banner--ok" style={{ marginTop: 'var(--sp-md)' }}>
+            {data.sentCount > 0
+              ? t('notices.delivered', { n: data.sentCount })
+              : t('notices.deliveredNone')}
+          </div>
+        )}
         <p className="notices__pushnote">{t('notices.pushNote')}</p>
       </Card>
 

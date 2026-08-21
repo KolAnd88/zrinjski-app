@@ -400,6 +400,7 @@ export type Database = {
           language: string;
           followed_team_ids: string[];
           prefs: NotificationPrefs;
+          enabled: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -409,6 +410,7 @@ export type Database = {
           language?: string;
           followed_team_ids?: string[];
           prefs?: NotificationPrefs;
+          enabled?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -420,6 +422,16 @@ export type Database = {
     Functions: {
       is_admin: { Args: Record<string, never>; Returns: boolean };
       is_rep_of_team: { Args: { p_team_id: string }; Returns: boolean };
+      register_device: {
+        Args: {
+          p_token: string;
+          p_language?: string;
+          p_followed?: string[];
+          p_prefs?: NotificationPrefs;
+          p_enabled?: boolean;
+        };
+        Returns: undefined;
+      };
     };
     Enums: {
       gender: Gender;

@@ -671,6 +671,26 @@ export async function fetchNotifications(tournamentId: string): Promise<Notifica
   return data ?? [];
 }
 
+/**
+ * Pošalji push obavijest uređajima. Vraća broj isporučenih.
+ * Zapis u notification_log je zaseban korak — obavijest ostaje zabilježena i
+ * kad slanje padne (npr. nema uređaja ili je Expo nedostupan).
+ */
+export async function sendPush(input: {
+  audience: string;
+  title: string;
+  body?: string | null;
+  type: string;
+}): Promise<number> {
+  if (DEMO) return 0;
+  const { data, error } = await client().functions.invoke('send-push', {
+    body: { audience: input.audience, title: input.title, body: input.body ?? undefined, type: input.type },
+  });
+  if (error) throw new Error(error.message);
+  if (data && data.error) throw new Error(data.error);
+  return Number(data?.sent ?? 0);
+}
+
 export async function insertNotification(row: TablesInsert<'notification_log'>): Promise<NotificationLog> {
   if (DEMO) {
     const n: NotificationLog = {

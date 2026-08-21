@@ -1,7 +1,9 @@
 // useFollow.tsx — praćene ekipe + postavke obavijesti (AsyncStorage).
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NotificationPrefs } from '@zrinjski/core';
+import { getPushToken, registerDevice } from './push';
+import { useT } from '../i18n/I18nProvider';
 
 const FOLLOW_KEY = 'zrinjski.followed';
 const PREFS_KEY = 'zrinjski.notifPrefs';
@@ -28,9 +30,14 @@ type FollowCtx = {
 const Ctx = createContext<FollowCtx | null>(null);
 
 export function FollowProvider({ children }: { children: ReactNode }) {
+  const { locale } = useT();
   const [followed, setFollowed] = useState<string[]>([]);
   const [prefs, setPrefs] = useState<NotificationPrefs>(defaultPrefs);
   const [master, setMasterState] = useState(true);
+  const [token, setToken] = useState<string | null>(null);
+  // Dok se postavke ne učitaju iz AsyncStorage držimo se podalje od baze —
+  // inače bismo poslali početne vrijednosti i pregazili ono što je korisnik već odabrao.
+  const loaded = useRef(false);
 
   useEffect(() => {
     void (async () => {
@@ -42,8 +49,25 @@ export function FollowProvider({ children }: { children: ReactNode }) {
       if (f) setFollowed(JSON.parse(f));
       if (p) setPrefs({ ...defaultPrefs, ...JSON.parse(p) });
       if (mst != null) setMasterState(mst === '1');
+      loaded.current = true;
     })();
   }, []);
+
+  // Token tražimo tek kad su obavijesti uključene — da dopuštenje ne iskoči
+  // korisniku koji ih ne želi. Jednom dobiven, token ostaje za cijelu sesiju.
+  useEffect(() => {
+    if (!master || token) return;
+    void getPushToken().then((t) => {
+      if (t) setToken(t);
+    });
+  }, [master, token]);
+
+  // Svaka promjena (praćene ekipe, vrste obavijesti, prekidač, jezik) ide u bazu,
+  // jer slanje se odlučuje na serveru — uređaj mora imati točno stanje.
+  useEffect(() => {
+    if (!token || !loaded.current) return;
+    void registerDevice({ token, language: locale, followed, prefs, enabled: master });
+  }, [token, followed, prefs, master, locale]);
 
   const value = useMemo<FollowCtx>(
     () => ({

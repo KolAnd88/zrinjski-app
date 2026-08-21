@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { NotificationLog, Team } from '@zrinjski/core';
 import { HAS_DATA } from '../../lib/supabase';
-import { fetchAllTeams, fetchNotifications, insertNotification } from '../../lib/data';
+import { fetchAllTeams, fetchNotifications, insertNotification, sendPush } from '../../lib/data';
 
 export type NoticesData = {
   loading: boolean;
@@ -9,6 +9,8 @@ export type NoticesData = {
   error: string | null;
   notifications: NotificationLog[];
   teams: Team[];
+  /** Broj uređaja kojima je zadnja obavijest stvarno isporučena; null prije slanja. */
+  sentCount: number | null;
   send: (tournamentId: string, audience: string, title: string, body: string) => Promise<void>;
 };
 
@@ -17,6 +19,7 @@ export function useNotices(tournamentId: string | null): NoticesData {
   const [error, setError] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<NotificationLog[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [sentCount, setSentCount] = useState<number | null>(null);
 
   const reload = useCallback(async () => {
     if (!tournamentId) {
@@ -45,7 +48,6 @@ export function useNotices(tournamentId: string | null): NoticesData {
 
   const send = useCallback(
     async (tId: string, audience: string, title: string, body: string) => {
-      // Zapis u log; stvarni push šalje servis u Fazi 5 (Expo Notifications).
       const created = await insertNotification({
         tournament_id: tId,
         type: 'custom',
@@ -54,6 +56,9 @@ export function useNotices(tournamentId: string | null): NoticesData {
         body: body.trim() || null,
       });
       setNotifications((xs) => [created, ...xs]);
+      // Log je zapisan; sad stvarno slanje. Ako padne, obavijest ostaje u
+      // povijesti i korisnik vidi grešku — ne gubimo trag da je pokušano.
+      setSentCount(await sendPush({ audience, title: title.trim(), body: body.trim() || null, type: 'custom' }));
     },
     []
   );
@@ -64,6 +69,7 @@ export function useNotices(tournamentId: string | null): NoticesData {
     error,
     notifications,
     teams,
+    sentCount,
     send,
   };
 }
