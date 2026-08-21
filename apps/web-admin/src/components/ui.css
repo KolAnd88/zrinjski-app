@@ -79,12 +79,12 @@
 }
 
 /* ── Grb ekipe (zaobljeni kvadrat u boji ekipe, 3-slovna kratica) ───────────── */
-/* Grb ekipe — krug (logo ili kratica u boji iz crestColorFor). */
+/* Grb ekipe — zaobljeni kvadrat (logo ili kratica u gradijentu iz palete).
+   Radijus se postavlja inline jer ovisi o veličini — vidi Crest u ui.tsx. */
 .crest {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--r-pill);
   overflow: hidden;
   color: #fff;
   font-family: var(--font-head);
