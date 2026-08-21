@@ -64,6 +64,8 @@ export type Database = {
           points_loss: number;
           advance_per_group: number;
           reminder_prefs: ReminderPrefs;
+          registration_open: boolean;
+          registration_deadline: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -78,6 +80,8 @@ export type Database = {
           points_loss?: number;
           advance_per_group?: number;
           reminder_prefs?: ReminderPrefs;
+          registration_open?: boolean;
+          registration_deadline?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -320,6 +324,9 @@ export type Database = {
           /** Nacrt sastava iz javne prijave; kod odobrenja se prepisuje u `player`. */
           players: RegistrationPlayer[];
           status: RegistrationStatus;
+          approved_team_id: string | null;
+          processed_at: string | null;
+          processed_by: string | null;
           created_at: string;
         };
         Insert: {
@@ -332,6 +339,9 @@ export type Database = {
           player_count?: number | null;
           players?: RegistrationPlayer[];
           status?: RegistrationStatus;
+          approved_team_id?: string | null;
+          processed_at?: string | null;
+          processed_by?: string | null;
           created_at?: string;
         };
         Update: Partial<Database['public']['Tables']['registration']['Insert']>;
@@ -430,6 +440,26 @@ export type Database = {
           p_prefs?: NotificationPrefs;
           p_enabled?: boolean;
         };
+        Returns: undefined;
+      };
+      submit_registration: {
+        Args: {
+          p_tournament_id: string;
+          p_team_name: string;
+          p_gender: Gender;
+          p_rep_name: string;
+          p_rep_email: string;
+          p_player_count?: number | null;
+          p_players?: RegistrationPlayer[];
+        };
+        Returns: string;
+      };
+      approve_registration: {
+        Args: { p_registration_id: string; p_short_code?: string | null };
+        Returns: string;
+      };
+      reject_registration: {
+        Args: { p_registration_id: string };
         Returns: undefined;
       };
     };

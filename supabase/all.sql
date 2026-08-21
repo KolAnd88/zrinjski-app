@@ -48,10 +48,14 @@ create table if not exists public.tournament (
   points_loss int not null default 0,
   advance_per_group int not null default 2,
   reminder_prefs jsonb not null default '{"day_before_18":true,"thirty_min_before":true,"schedule_change":true}'::jsonb,
+  registration_open boolean not null default true,
+  registration_deadline timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 alter table public.tournament add column if not exists reminder_prefs jsonb not null default '{"day_before_18":true,"thirty_min_before":true,"schedule_change":true}'::jsonb;
+alter table public.tournament add column if not exists registration_open boolean not null default true;
+alter table public.tournament add column if not exists registration_deadline timestamptz;
 
 create table if not exists public.day (
   id uuid primary key default gen_random_uuid(),
@@ -182,11 +186,18 @@ create table if not exists public.registration (
   player_count int,
   players jsonb not null default '[]'::jsonb,
   status registration_status not null default 'pending',
+  approved_team_id uuid references public.team(id) on delete set null,
+  processed_at timestamptz,
+  processed_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now()
 );
 -- Nacrt sastava iz javne prijave: [{name, number}]; kod odobrenja ide u `player`.
 alter table public.registration add column if not exists players jsonb not null default '[]'::jsonb;
+alter table public.registration add column if not exists approved_team_id uuid references public.team(id) on delete set null;
+alter table public.registration add column if not exists processed_at timestamptz;
+alter table public.registration add column if not exists processed_by uuid references auth.users(id) on delete set null;
 create index if not exists idx_registration_tournament on public.registration(tournament_id, status);
+create index if not exists idx_registration_email_recent on public.registration(lower(rep_email), created_at desc);
 
 create table if not exists public.gallery_photo (
   id uuid primary key default gen_random_uuid(),
@@ -283,6 +294,161 @@ $$;
 revoke all on function public.register_device(text, text, uuid[], jsonb, boolean) from public;
 grant execute on function public.register_device(text, text, uuid[], jsonb, boolean) to anon, authenticated;
 
+-- Javne prijave idu kroz provjerenu RPC funkciju, bez izravnog INSERT prava.
+create or replace function public.submit_registration(
+  p_tournament_id uuid,
+  p_team_name text,
+  p_gender public.gender,
+  p_rep_name text,
+  p_rep_email text,
+  p_player_count integer default null,
+  p_players jsonb default '[]'::jsonb
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_id uuid;
+  v_open boolean;
+  v_deadline timestamptz;
+  v_team text := trim(coalesce(p_team_name, ''));
+  v_rep text := trim(coalesce(p_rep_name, ''));
+  v_email text := lower(trim(coalesce(p_rep_email, '')));
+  v_players jsonb := coalesce(p_players, '[]'::jsonb);
+  v_count integer;
+begin
+  select registration_open, registration_deadline into v_open, v_deadline
+  from public.tournament where id = p_tournament_id;
+  if not found then raise exception using errcode = 'P0001', message = 'registration_unavailable'; end if;
+  if not v_open or (v_deadline is not null and now() > v_deadline) then
+    raise exception using errcode = 'P0001', message = 'registration_closed';
+  end if;
+  if length(v_team) < 2 or length(v_team) > 120
+     or length(v_rep) < 2 or length(v_rep) > 120
+     or length(v_email) > 254
+     or v_email !~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$' then
+    raise exception using errcode = 'P0001', message = 'registration_invalid';
+  end if;
+  if jsonb_typeof(v_players) <> 'array' or jsonb_array_length(v_players) > 40 then
+    raise exception using errcode = 'P0001', message = 'registration_invalid';
+  end if;
+  if exists (
+    select 1 from jsonb_array_elements(v_players) as roster_item(value)
+    where jsonb_typeof(roster_item.value) <> 'object'
+       or length(trim(coalesce(roster_item.value->>'name', ''))) < 2
+       or length(trim(coalesce(roster_item.value->>'name', ''))) > 120
+       or (roster_item.value ? 'number' and jsonb_typeof(roster_item.value->'number') <> 'null'
+           and case
+             when jsonb_typeof(roster_item.value->'number') <> 'number' then true
+             when coalesce(roster_item.value->>'number', '') !~ '^[0-9]{1,3}$' then true
+             else (roster_item.value->>'number')::integer > 999
+           end)
+  ) then raise exception using errcode = 'P0001', message = 'registration_invalid'; end if;
+  if p_player_count is not null and (p_player_count < 0 or p_player_count > 40) then
+    raise exception using errcode = 'P0001', message = 'registration_invalid';
+  end if;
+  if exists (
+    select 1 from public.registration r
+    where r.tournament_id = p_tournament_id and r.gender = p_gender
+      and lower(trim(r.team_name)) = lower(v_team)
+      and r.status in ('pending', 'approved')
+  ) then raise exception using errcode = 'P0001', message = 'registration_duplicate'; end if;
+  if (select count(*) from public.registration r
+      where lower(r.rep_email) = v_email and r.created_at > now() - interval '1 hour') >= 3 then
+    raise exception using errcode = 'P0001', message = 'registration_rate_limited';
+  end if;
+  v_count := jsonb_array_length(v_players);
+  insert into public.registration
+    (tournament_id, team_name, gender, rep_name, rep_email, player_count, players)
+  values
+    (p_tournament_id, v_team, p_gender, v_rep, v_email,
+     case when v_count > 0 then v_count else p_player_count end, v_players)
+  returning id into v_id;
+  return v_id;
+end;
+$$;
+revoke all on function public.submit_registration(uuid, text, public.gender, text, text, integer, jsonb) from public;
+grant execute on function public.submit_registration(uuid, text, public.gender, text, text, integer, jsonb) to anon, authenticated;
+
+-- Odobravanje je atomsko i idempotentno: ekipa, igrači i status nastaju zajedno.
+create or replace function public.approve_registration(p_registration_id uuid, p_short_code text default null)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_reg public.registration%rowtype;
+  v_team_id uuid;
+  v_code text;
+  v_sort integer;
+  v_player_sort integer;
+begin
+  if not public.is_admin() then raise exception using errcode = '42501', message = 'insufficient_privilege'; end if;
+  select * into v_reg from public.registration where id = p_registration_id for update;
+  if not found then raise exception using errcode = 'P0001', message = 'registration_not_found'; end if;
+  if v_reg.status = 'approved' and v_reg.approved_team_id is not null then return v_reg.approved_team_id; end if;
+  if v_reg.status = 'rejected' then raise exception using errcode = 'P0001', message = 'registration_already_rejected'; end if;
+
+  select id into v_team_id from public.team
+  where tournament_id = v_reg.tournament_id and gender = v_reg.gender
+    and lower(trim(name)) = lower(trim(v_reg.team_name))
+  order by created_at limit 1;
+
+  if v_team_id is null then
+    select coalesce(max(sort_order), -1) + 1 into v_sort from public.team
+    where tournament_id = v_reg.tournament_id and gender = v_reg.gender;
+    v_code := left(regexp_replace(upper(coalesce(p_short_code, '')), '[^A-Z0-9]', '', 'g'), 3);
+    if length(v_code) < 2 then v_code := left(regexp_replace(upper(v_reg.team_name), '[^A-Z0-9]', '', 'g'), 3); end if;
+    if length(v_code) < 2 then v_code := 'EKP'; end if;
+    insert into public.team (tournament_id, name, short_code, gender, rep_email, sort_order)
+    values (v_reg.tournament_id, trim(v_reg.team_name), v_code, v_reg.gender, lower(trim(v_reg.rep_email)), v_sort)
+    returning id into v_team_id;
+  end if;
+
+  select coalesce(max(sort_order), -1) + 1 into v_player_sort from public.player where team_id = v_team_id;
+  insert into public.player (team_id, name, number, sort_order)
+  select v_team_id, trim(item.value->>'name'),
+    case when item.value->>'number' is null or item.value->>'number' = '' then null else (item.value->>'number')::integer end,
+    v_player_sort + item.ordinality::integer - 1
+  from jsonb_array_elements(coalesce(v_reg.players, '[]'::jsonb)) with ordinality as item(value, ordinality)
+  where length(trim(coalesce(item.value->>'name', ''))) > 0
+    and not exists (
+      select 1 from public.player p where p.team_id = v_team_id
+        and lower(trim(p.name)) = lower(trim(item.value->>'name'))
+        and p.number is not distinct from case
+          when item.value->>'number' is null or item.value->>'number' = '' then null else (item.value->>'number')::integer end
+    );
+
+  update public.registration set status = 'approved', approved_team_id = v_team_id,
+    processed_at = now(), processed_by = auth.uid() where id = p_registration_id;
+  return v_team_id;
+end;
+$$;
+revoke all on function public.approve_registration(uuid, text) from public;
+grant execute on function public.approve_registration(uuid, text) to authenticated;
+
+create or replace function public.reject_registration(p_registration_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare v_status public.registration_status;
+begin
+  if not public.is_admin() then raise exception using errcode = '42501', message = 'insufficient_privilege'; end if;
+  select status into v_status from public.registration where id = p_registration_id for update;
+  if not found then raise exception using errcode = 'P0001', message = 'registration_not_found'; end if;
+  if v_status = 'approved' then raise exception using errcode = 'P0001', message = 'registration_already_approved'; end if;
+  update public.registration set status = 'rejected', processed_at = now(), processed_by = auth.uid()
+  where id = p_registration_id;
+end;
+$$;
+revoke all on function public.reject_registration(uuid) from public;
+grant execute on function public.reject_registration(uuid) to authenticated;
+
 -- ════════════════════════════════════════════════════════════ TRIGGERI
 drop trigger if exists trg_tournament_updated on public.tournament;
 create trigger trg_tournament_updated before update on public.tournament
@@ -341,13 +507,11 @@ drop policy if exists player_rep_write on public.player;
 create policy player_rep_write on public.player for all to authenticated using (public.is_rep_of_team(team_id)) with check (public.is_rep_of_team(team_id));
 
 drop policy if exists registration_insert on public.registration;
-create policy registration_insert on public.registration for insert to anon, authenticated with check (true);
 drop policy if exists registration_admin_read on public.registration;
 create policy registration_admin_read on public.registration for select to authenticated using (public.is_admin());
 drop policy if exists registration_admin_update on public.registration;
-create policy registration_admin_update on public.registration for update to authenticated using (public.is_admin()) with check (public.is_admin());
 drop policy if exists registration_admin_delete on public.registration;
-create policy registration_admin_delete on public.registration for delete to authenticated using (public.is_admin());
+revoke insert, update, delete on table public.registration from anon, authenticated;
 
 drop policy if exists device_insert on public.device;
 drop policy if exists device_update on public.device;
