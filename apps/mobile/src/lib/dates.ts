@@ -28,6 +28,17 @@ export function shortDayLabel(isoDate: string, locale: Locale): string {
   return `${weekdayLong(isoDate, locale).slice(0, 3)} ${d.getUTCDate()}.${d.getUTCMonth() + 1}.`;
 }
 
+/** Kratica dana u tjednu: "Pet". */
+export function weekdayShort(isoDate: string, locale: Locale): string {
+  return weekdayLong(isoDate, locale).slice(0, 3);
+}
+
+/** Datum bez godine: "6.6." — za birač dana u Rasporedu. */
+export function dayMonth(isoDate: string): string {
+  const d = parseIsoDate(isoDate);
+  return `${d.getUTCDate()}.${d.getUTCMonth() + 1}.`;
+}
+
 /** Oznaka taba: "Sub 10." (kratki dan + datum). */
 export function tabLabel(isoDate: string, locale: Locale): string {
   const d = parseIsoDate(isoDate);
