@@ -105,8 +105,9 @@ export function Card({
   );
 }
 
-/** Radijus grba prati veličinu: mali u listi 9px, veliki u herou 15px. */
+/** Radijus grba prati veličinu (vidi DIZAJN.md): 7 → 9 → 11 → 15. */
 function crestRadius(size: number) {
+  if (size <= 26) return 7;
   if (size <= 32) return R.crestSm;
   if (size <= 46) return R.chip;
   return R.crestLg;

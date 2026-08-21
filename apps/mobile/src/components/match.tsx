@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { Match, Team } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
-import { C, F, R, S } from '../theme';
+import { C, F, R, S, SP } from '../theme';
 import { isoToHHMM } from '../lib/dates';
 import { Badge, Crest, Txt } from './base';
 
@@ -113,6 +113,7 @@ const styles = StyleSheet.create({
   mid: { minWidth: 56, alignItems: 'center' },
   score: { fontFamily: F.head, fontSize: 16, color: C.txt },
   vs: { color: C.mut, fontSize: 12 },
+  // Segmentirani M/Ž prekidač iz makete: nosač #1C1D24 r11, segment r8.
   toggle: {
     flexDirection: 'row',
     backgroundColor: C.card2,
@@ -122,7 +123,20 @@ const styles = StyleSheet.create({
     padding: 4,
     gap: 4,
   },
-  toggleBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', height: 40, borderRadius: 6 },
-  toggleOn: { backgroundColor: C.red },
-  toggleTxt: { fontFamily: F.headSemi, fontSize: 15, color: C.sub },
+  toggleBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SP.gap,
+    borderRadius: 8,
+  },
+  toggleOn: {
+    backgroundColor: C.red,
+    shadowColor: C.red,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  toggleTxt: { fontFamily: F.headSemi, fontSize: 14, color: C.sub },
 });
