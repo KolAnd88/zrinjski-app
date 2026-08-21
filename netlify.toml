@@ -6,6 +6,10 @@
 # (Site settings → Environment variables): VITE_SUPABASE_URL i VITE_SUPABASE_ANON_KEY.
 
 [build]
+  # Korijen repozitorija, izričito. Bez ovoga Netlify sam pogodi da je projekt u
+  # apps/mobile, pa instalira samo njegove pakete (web-admin ostane bez vite →
+  # "Cannot find type definition file for 'vite/client'") i objavi krivu mapu.
+  base = "."
   command = "npm run build -w @zrinjski/web-admin"
   publish = "apps/web-admin/dist"
 
