@@ -12,6 +12,7 @@ import { Schedule } from './pages/Schedule';
 import { Teams } from './pages/Teams';
 import { Live } from './pages/Live';
 import { Tv } from './pages/Tv';
+import { MatchReport } from './pages/MatchReport';
 import { Sponsors } from './pages/Sponsors';
 import { Registrations } from './pages/Registrations';
 import { Notices } from './pages/Notices';
@@ -82,6 +83,8 @@ function AppRoutes() {
     <Routes>
       {/* TV / semafor — preko cijelog ekrana, bez sidebar layouta */}
       <Route path="/tv" element={<Tv />} />
+      {/* Zapisnik za ispis — bez sidebara, da papir ostane čist */}
+      <Route path="/zapisnik" element={<MatchReport />} />
       {/* Javna prijava ekipe (radi i dok je admin prijavljen — za dijeljenje linka) */}
       <Route path="/prijava" element={<PublicRegistration />} />
 

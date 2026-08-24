@@ -242,6 +242,13 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
               {t('live.open')} →
             </button>
           </div>
+          {/* Zapisnik za ispis i potpis — otvara se u istoj kartici. */}
+          <div className="live__tvline">
+            <span>{t('report.open')}</span>
+            <button className="btn-link" onClick={() => navigate(`/zapisnik?match=${matchId}`)}>
+              {t('live.open')} →
+            </button>
+          </div>
         </Card>
 
         <div className={`live__jersey ${clash ? 'is-clash' : 'is-ok'}`}>
