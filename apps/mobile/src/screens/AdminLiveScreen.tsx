@@ -11,6 +11,7 @@ import { useT } from '../i18n/I18nProvider';
 import type { StringKey } from '../i18n/strings';
 import { useData } from '../lib/useData';
 import { useAuth } from '../lib/useAuth';
+import { subscribeOutbox } from '../lib/outbox';
 import { C, F, R, SP } from '../theme';
 import { Crest, Txt } from '../components/base';
 import type { RootStackParamList } from '../navigation/types';
@@ -40,6 +41,9 @@ export function AdminLiveScreen() {
   const wide = width >= 900;
 
   const [picker, setPicker] = useState<{ team: Team; type: EventType } | null>(null);
+  // Koliko akcija još nije stiglo u bazu — zapisničar mora znati stoji li nešto.
+  const [sync, setSync] = useState({ pending: 0, failing: false });
+  useEffect(() => subscribeOutbox(setSync), []);
   const running = m?.status === 'live';
   const [sec, setSec] = useState(0);
 
@@ -155,6 +159,17 @@ export function AdminLiveScreen() {
         )}
 
         <View style={{ flex: 1 }} />
+
+        <View style={[styles.syncChip, sync.failing && styles.syncBad]}>
+          <Ionicons
+            name={sync.pending === 0 ? 'checkmark-circle' : sync.failing ? 'warning' : 'cloud-upload-outline'}
+            size={14}
+            color={sync.pending === 0 ? C.green : sync.failing ? C.redLt : C.gold}
+          />
+          <Txt style={styles.syncTxt}>
+            {sync.pending === 0 ? t('sync.ok') : t('sync.pending', { n: sync.pending })}
+          </Txt>
+        </View>
 
         <Pressable style={styles.chipBtn} onPress={() => nav.navigate('AdminTv', { matchId: m.id })}>
           <Ionicons name="tv-outline" size={15} color={C.sub} />
@@ -348,6 +363,18 @@ const styles = StyleSheet.create({
     paddingVertical: SP.gap,
   },
   chipTxt: { fontFamily: F.bodySemi, fontSize: 13, color: C.sub },
+  syncChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: SP.rowY,
+    paddingVertical: 6,
+    borderRadius: R.pill,
+    borderWidth: 1,
+    borderColor: C.line,
+  },
+  syncBad: { borderColor: 'rgba(225,29,42,.5)' },
+  syncTxt: { fontFamily: F.body, fontSize: 12, color: C.sub },
   livePill: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -20,6 +20,7 @@ import type {
 } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import { isSupabaseConfigured, supabase } from './supabase';
+import { enqueue, flushOutbox, loadOutbox } from './outbox';
 import {
   demoDays,
   demoEvents,
@@ -72,8 +73,18 @@ export type DataStore = {
 const DataContext = createContext<DataStore | null>(null);
 const LIVE = isSupabaseConfigured;
 
-let evtSeq = 0;
-const newId = () => `evt-${Date.now()}-${++evtSeq}`;
+/**
+ * UUID v4 za događaj. Isti ID vrijedi lokalno I u bazi — zato ponovljeno slanje
+ * iz reda čekanja ne može napraviti duplikat, a poništavanje zna koji red
+ * obrisati. (Stupac je uuid; raniji oblik "evt-…" ne bi ni prošao upis.)
+ */
+function newId(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
 
 const GALLERY_COLORS = ['#E11D2A', '#2D6CDF', '#6A1FB0', '#1F7A8C', '#C2410C', '#0D9488'];
 
@@ -200,6 +211,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (!LIVE) return;
     setReloading(true);
     try {
+      // Prvo isprazni red čekanja pa učitaj — inače bi svježi podaci iz baze
+      // pregazili akcije koje još nisu poslane.
+      await flushOutbox();
       const all = await loadAll();
       setData(all);
       setLoadError(false);
@@ -216,7 +230,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (!LIVE || !supabase) return;
     const sb = supabase;
 
-    void reload();
+    // Red čekanja preživi gašenje app — učitaj ga prije nego išta drugo,
+    // pa se neposlane akcije pošalju čim mreža proradi.
+    void loadOutbox().then(() => reload());
 
     const ch = sb
       .channel('public-live')
@@ -262,13 +278,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
       eventsOf: (matchId) => events.filter((e) => e.match_id === matchId),
 
       startMatch: (id) => {
-        patchMatchLocal(id, { status: 'live', current_half: 1, current_minute: 0 });
-        if (LIVE && sb)
-          checkWrite(sb.from('match').update({ status: 'live', current_half: 1, current_minute: 0 }).eq('id', id).select('id'));
+        const patch = { status: 'live' as const, current_half: 1, current_minute: 0 };
+        patchMatchLocal(id, patch);
+        if (LIVE && sb) enqueue({ kind: 'match.update', id, patch });
       },
       finishMatch: (id) => {
         patchMatchLocal(id, { status: 'finished' });
-        if (LIVE && sb) checkWrite(sb.from('match').update({ status: 'finished' }).eq('id', id).select('id'));
+        if (LIVE && sb) enqueue({ kind: 'match.update', id, patch: { status: 'finished' } });
       },
       setMinute: (id, minute) => {
         // Kozmetički tik (svake minute) — bez alarma da ne spamamo; greška se vidi na pravim akcijama.
@@ -282,7 +298,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           ? { home_score: Math.max(0, m.home_score + delta) }
           : { away_score: Math.max(0, m.away_score + delta) };
         patchMatchLocal(id, next);
-        if (LIVE && sb) checkWrite(sb.from('match').update(next).eq('id', id).select('id'));
+        if (LIVE && sb) enqueue({ kind: 'match.update', id, patch: next });
       },
       addEvent: (matchId, teamId, playerId, type, minute) => {
         // Optimistično lokalno (gol diže rezultat); u živo modu DB trigger radi isto na serveru.
@@ -298,10 +314,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
               : d.matches;
           return { ...d, events: [...d.events, ev], matches: matchesNext };
         });
+        // ID je isti lokalno i u bazi — ponovljeno slanje ne pravi duplikat,
+        // a poništavanje zna koji red obrisati.
         if (LIVE && sb)
-          checkWrite(
-            sb.from('match_event').insert({ match_id: matchId, team_id: teamId, player_id: playerId, type, minute }).select('id')
-          );
+          enqueue({
+            kind: 'event.insert',
+            id: ev.id,
+            match_id: matchId,
+            team_id: teamId,
+            player_id: playerId,
+            type,
+            minute,
+            created_at: ev.created_at,
+          });
       },
       undoLastEvent: (matchId) => {
         const matchEvents = events.filter((e) => e.match_id === matchId);
@@ -318,29 +343,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
               : d.matches;
           return { ...d, events: d.events.filter((e) => e.id !== last.id), matches: matchesNext };
         });
-        if (LIVE && sb) {
-          const client = sb;
-          const doDelete = async () => {
-            // Ako je zadnji događaj još lokalni (optimistični) id, obriši najnoviji DB red te utakmice.
-            let targetId = last.id;
-            if (targetId.startsWith('evt-')) {
-              const { data: rows } = await client
-                .from('match_event')
-                .select('id')
-                .eq('match_id', matchId)
-                .order('created_at', { ascending: false })
-                .limit(1);
-              targetId = rows?.[0]?.id ?? '';
-            }
-            if (!targetId) {
-              notifyWriteError();
-              return;
-            }
-            const { error, data: rows } = await client.from('match_event').delete().eq('id', targetId).select('id');
-            if (error || !rows || rows.length === 0) notifyWriteError();
-          };
-          doDelete().catch(() => notifyWriteError());
-        }
+        // ID događaja je isti lokalno i u bazi, pa brisanje ide kroz red
+        // čekanja kao i sve ostalo. Ako još nije poslan, red ga samo izbaci.
+        if (LIVE && sb) enqueue({ kind: 'event.delete', id: last.id });
       },
     };
   }, [data, loading, loadError, reloading, reload, notifyWriteError]);
