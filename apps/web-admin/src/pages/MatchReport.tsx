@@ -105,7 +105,11 @@ export function MatchReport() {
   const teamShort = (id: string) =>
     id === home.team?.id ? home.team?.short_code ?? '' : away.team?.short_code ?? '';
 
-  const ordered = [...events].sort((a, b) => a.created_at.localeCompare(b.created_at));
+  // Po minuti utakmice, ne po vremenu upisa — zakasnjeli unos inace zavrsi
+  // na krivom mjestu u zapisniku.
+  const ordered = [...events].sort(
+    (a, b) => a.minute - b.minute || a.created_at.localeCompare(b.created_at)
+  );
 
   const Roster = ({ side }: { side: Side }) => (
     <table className="report__roster">

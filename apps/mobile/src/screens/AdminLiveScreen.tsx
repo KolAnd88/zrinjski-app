@@ -83,7 +83,10 @@ export function AdminLiveScreen() {
   const matchEvents = d.eventsOf(m.id);
 
   // Tijek: najnovije na vrhu, s tekućim rezultatom uz golove.
-  const asc = matchEvents.slice().sort((a, b) => a.created_at.localeCompare(b.created_at));
+  // Po minuti utakmice; vrijeme upisa razrjesava samo istu minutu.
+  const asc = matchEvents
+    .slice()
+    .sort((a, b) => a.minute - b.minute || a.created_at.localeCompare(b.created_at));
   let h = 0;
   let a = 0;
   const feed = asc

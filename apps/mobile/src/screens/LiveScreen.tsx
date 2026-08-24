@@ -57,8 +57,14 @@ export function LiveScreen() {
   const isDone = m.status === 'finished';
   const crests = crestPair(home?.sort_order ?? 0, away?.sort_order ?? 1);
 
-  // Tijek s tekućim rezultatom; najnoviji događaj je na vrhu.
-  const asc = d.eventsOf(m.id).slice().sort((a, b) => a.created_at.localeCompare(b.created_at));
+  // Redoslijed je po MINUTI utakmice, ne po vremenu upisa: zapisničar koji
+  // upiše gol s zakašnjenjem inače završi na krivom mjestu. Vrijeme upisa
+  // ostaje samo kao razrješenje kad su dva događaja u istoj minuti.
+  const asc = d
+    .eventsOf(m.id)
+    .slice()
+    .sort((x, y) => x.minute - y.minute || x.created_at.localeCompare(y.created_at));
+
   let h = 0;
   let a = 0;
   const feed = asc.map((e) => {
@@ -68,7 +74,10 @@ export function LiveScreen() {
     }
     return { e, score: e.type === 'goal' ? `${h}:${a}` : null };
   });
-  feed.reverse();
+
+  // Dok traje — najnovije na vrhu (gledatelj prati zadnju akciju).
+  // Kad završi — od početka prema kraju, jer se tada čita kao izvještaj.
+  if (m.status !== 'finished') feed.reverse();
 
   const stageTitle =
     m.stage === 'group'
