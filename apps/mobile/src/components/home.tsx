@@ -1,7 +1,7 @@
 // home.tsx — komadi Početne koji su dovoljno samostalni da imaju svoje mjesto:
 // dekorativna lenta, rotirajuća traka sponzora i odbrojavanje.
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Image, StyleSheet, View } from 'react-native';
+import { Animated, Easing, Image, Platform, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { C, F, R, SP } from '../theme';
 import { Txt } from './base';
@@ -60,15 +60,23 @@ export function useCountdown(targetIso: string | null | undefined): string | nul
 /** Sponzor u traci: logo ako postoji, inače ime. */
 export type MarqueeSponsor = { name: string; logo_url: string | null };
 
+/** Pločica i razmak — širina trake se računa iz njih, ne mjeri. */
+const TILE_W = 148;
+const TILE_H = 68;
+const TILE_GAP = 9;
+
 export function SponsorMarquee({
   sponsors,
-  durationMs = 22000,
+  durationMs = 14000,
 }: {
   sponsors: MarqueeSponsor[];
   durationMs?: number;
 }) {
   const x = useRef(new Animated.Value(0)).current;
-  const [half, setHalf] = useState(0);
+  // Širinu jedne kopije znamo unaprijed. Mjerenje kroz onLayout vraćalo je
+  // širinu spremnika (koji je uži od sadržaja), pa se traka pomicala
+  // premalo ili nikako.
+  const half = sponsors.length * (TILE_W + TILE_GAP);
 
   useEffect(() => {
     if (half <= 0) return;
@@ -78,7 +86,8 @@ export function SponsorMarquee({
         toValue: -half,
         duration: durationMs,
         easing: Easing.linear,
-        useNativeDriver: true,
+        // Na webu nativni pogon ne pomiče stil, pa bi traka stajala.
+        useNativeDriver: Platform.OS !== 'web',
       })
     );
     loop.start();
@@ -91,8 +100,7 @@ export function SponsorMarquee({
   return (
     <View style={styles.mqMask}>
       <Animated.View
-        style={[styles.mqTrack, { transform: [{ translateX: x }] }]}
-        onLayout={(e) => setHalf(e.nativeEvent.layout.width / 2)}
+        style={[styles.mqTrack, { width: half * 2, transform: [{ translateX: x }] }]}
       >
         {doubled.map((sp, i) => (
           <View key={`${sp.name}-${i}`} style={[styles.mqTile, sp.logo_url && styles.mqTileLogo]}>
@@ -125,24 +133,27 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '-62deg' }],
   },
   mqMask: { overflow: 'hidden' },
-  mqTrack: { flexDirection: 'row', gap: SP.gap },
+  mqTrack: { flexDirection: 'row', gap: TILE_GAP },
   mqTile: {
-    width: 110,
-    height: 50,
+    width: TILE_W,
+    height: TILE_H,
+    // Bez ovoga se pločice stisnu na širinu ekrana i traka nema što klizati.
+    flexGrow: 0,
+    flexShrink: 0,
     backgroundColor: C.card,
     borderWidth: 1,
     borderColor: C.line,
     borderRadius: R.chip,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: 10,
     overflow: 'hidden',
   },
-  mqTileLogo: { backgroundColor: '#fff', borderColor: 'rgba(255,255,255,.25)', padding: 6 },
+  mqTileLogo: { backgroundColor: '#fff', borderColor: 'rgba(255,255,255,.25)', padding: 9 },
   mqLogo: { width: '100%', height: '100%' },
   mqName: {
     fontFamily: F.headSemi,
-    fontSize: 12,
+    fontSize: 14,
     letterSpacing: 0.5,
     color: C.sub,
   },
