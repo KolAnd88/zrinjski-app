@@ -19,6 +19,8 @@ type AuthContextValue = {
   /** Ima li pristup admin sučelju (admin ili delegate). */
   isStaff: boolean;
   signInWithPassword: (email: string, password: string) => Promise<{ error: string | null }>;
+  /** Otvaranje racuna predstavnika. Okidac u bazi dodijeli ulogu 'rep' bez ekipe. */
+  signUp: (email: string, password: string) => Promise<{ error: string | null; needsConfirm: boolean }>;
   signInWithMagicLink: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 };
@@ -88,6 +90,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role,
       teamId,
       isStaff: role === 'admin' || role === 'delegate',
+      async signUp(email, password) {
+        if (DEMO) {
+          setSession(demoSession);
+          return { error: null, needsConfirm: false };
+        }
+        if (!supabase) return { error: 'not_configured', needsConfirm: false };
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin },
+        });
+        // Bez sesije znaci da Supabase trazi potvrdu e-maila prije prijave.
+        return { error: error?.message ?? null, needsConfirm: !error && !data.session };
+      },
       async signInWithPassword(email, password) {
         if (DEMO) {
           setSession(demoSession);

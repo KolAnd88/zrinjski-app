@@ -13,6 +13,7 @@ import type {
   Player,
   Registration,
   RegistrationPlayer,
+  RegistrationStatus,
   Sponsor,
   Team,
   Tournament,
@@ -924,6 +925,7 @@ export async function submitRegistration(input: PublicRegistrationInput): Promis
       rep_email: input.rep_email,
       player_count: input.player_count,
       players: input.players,
+      created_by: null,
       status: 'pending',
       approved_team_id: null,
       processed_at: null,
@@ -1077,4 +1079,68 @@ export async function uploadPublicAsset(file: File, folder: string): Promise<str
   const { error } = await c.storage.from(ASSETS_BUCKET).upload(path, file, { cacheControl: '3600', upsert: false });
   if (error) throw error;
   return c.storage.from(ASSETS_BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+// ── Prijava ekipe iz računa predstavnika ───────────────────────────────────
+// Predstavnik sam otvara račun i prijavljuje svoju ekipu. Dok prijava čeka
+// odobrenje, uređuje NACRT sastava (registration.players); nakon odobrenja
+// isti ekran radi s pravim igračima.
+
+export type MyRegistration = {
+  id: string;
+  team_name: string;
+  gender: Gender;
+  status: RegistrationStatus;
+  players: RegistrationPlayer[];
+  approved_team_id: string | null;
+};
+
+/** Prijava koju je poslao prijavljeni korisnik; null ako je još nema. */
+export async function fetchMyRegistration(): Promise<MyRegistration | null> {
+  if (DEMO) return null;
+  const c = client();
+  const { data: auth } = await c.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) return null;
+
+  const { data, error } = await c
+    .from('registration')
+    .select('id, team_name, gender, status, players, approved_team_id')
+    .eq('created_by', uid)
+    .neq('status', 'rejected')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as MyRegistration) ?? null;
+}
+
+/** Prijavi vlastitu ekipu. Ponovni poziv vraća postojeću prijavu. */
+export async function submitMyRegistration(input: {
+  team_name: string;
+  gender: Gender;
+  rep_name: string;
+}): Promise<void> {
+  if (DEMO) return;
+  const { error } = await client().rpc('submit_my_registration', {
+    p_team_name: input.team_name,
+    p_gender: input.gender,
+    p_rep_name: input.rep_name,
+  });
+  if (!error) return;
+
+  const message = error.message.toLowerCase();
+  if (message.includes('registration_closed')) throw new RegistrationSubmissionError('closed');
+  if (message.includes('registration_invalid')) throw new RegistrationSubmissionError('invalid');
+  if (message.includes('registration_unavailable')) throw new RegistrationSubmissionError('unavailable');
+  throw error;
+}
+
+/** Spremi nacrt sastava dok prijava još čeka odobrenje. */
+export async function saveMyRegistrationPlayers(players: RegistrationPlayer[]): Promise<void> {
+  if (DEMO) return;
+  const { error } = await client().rpc('update_my_registration_players', {
+    p_players: players,
+  });
+  if (error) throw error;
 }

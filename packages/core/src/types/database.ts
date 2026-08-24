@@ -314,6 +314,7 @@ export type Database = {
       };
       registration: {
         Row: {
+          created_by: string | null;
           id: string;
           tournament_id: string;
           team_name: string;
@@ -330,6 +331,7 @@ export type Database = {
           created_at: string;
         };
         Insert: {
+          created_by?: string | null;
           id?: string;
           tournament_id: string;
           team_name: string;
@@ -457,6 +459,14 @@ export type Database = {
       approve_registration: {
         Args: { p_registration_id: string; p_short_code?: string | null };
         Returns: string;
+      };
+      submit_my_registration: {
+        Args: { p_team_name: string; p_gender: Gender; p_rep_name: string };
+        Returns: string;
+      };
+      update_my_registration_players: {
+        Args: { p_players: RegistrationPlayer[] };
+        Returns: undefined;
       };
       reject_registration: {
         Args: { p_registration_id: string };

@@ -110,7 +110,7 @@ export function Login() {
         <div className="login__note">{t('login.note')}</div>
 
         <div style={{ textAlign: 'center', marginTop: 'var(--sp-md)' }}>
-          <Link to="/prijava" className="btn-link">
+          <Link to="/registracija" className="btn-link">
             {t('login.registerLink')}
           </Link>
         </div>

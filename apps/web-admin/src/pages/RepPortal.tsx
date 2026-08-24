@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { Player, Team } from '@zrinjski/core';
+import type { Player, RegistrationPlayer, Team } from '@zrinjski/core';
 import { useAuth } from '../auth/AuthProvider';
 import { useT } from '../i18n/I18nProvider';
 import { Button, Card, Crest } from '../components/ui';
 import {
   createPlayer,
   deletePlayer,
+  fetchMyRegistration,
   fetchTeamWithPlayers,
+  saveMyRegistrationPlayers,
+  type MyRegistration,
   updatePlayer,
 } from '../lib/data';
+import { MyTeamSetup } from './MyTeamSetup';
 import './RepPortal.css';
 
 /**
@@ -16,7 +20,7 @@ import './RepPortal.css';
  * Vidi i uređuje SAMO sastav svoje ekipe — RLS na bazi to i tehnički jamči
  * (player_rep_write / is_rep_of_team). Naziv, grupu i logo mijenja organizator.
  */
-export function RepPortal() {
+function ApprovedTeamPortal() {
   const { t } = useT();
   const { teamId, signOut } = useAuth();
   const [team, setTeam] = useState<Team | null>(null);
@@ -200,4 +204,144 @@ export function RepPortal() {
       </Card>
     </div>
   );
+}
+
+/**
+ * Nacrt sastava dok prijava čeka odobrenje. Igrači se drže u
+ * `registration.players` i pri odobrenju se prepišu u prave igrače, pa
+ * predstavnik ne mora čekati organizatora da bi popunio ekipu.
+ */
+function PendingRoster({ reg, onReload }: { reg: MyRegistration; onReload: () => void }) {
+  const { t } = useT();
+  const { signOut } = useAuth();
+  const [rows, setRows] = useState<RegistrationPlayer[]>(reg.players ?? []);
+  const [busy, setBusy] = useState(false);
+  const [flash, setFlash] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const filled = rows.filter((r) => r.name.trim()).length;
+
+  async function save(next: RegistrationPlayer[]) {
+    setRows(next);
+    setBusy(true);
+    setErr(null);
+    try {
+      await saveMyRegistrationPlayers(next.filter((r) => r.name.trim()));
+      setFlash(t('rep.saved'));
+      setTimeout(() => setFlash(null), 1500);
+    } catch {
+      setErr(t('rep.saveError'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="rep">
+      <div className="rep__head">
+        <div style={{ flex: 1 }}>
+          <div className="rep__role">{t('rep.subtitle')}</div>
+          <h1 className="rep__team">{reg.team_name}</h1>
+        </div>
+        <button className="btn-link" onClick={() => void signOut()}>
+          {t('nav.logout')}
+        </button>
+      </div>
+
+      <div className="banner" style={{ marginBottom: 'var(--sp-md)' }}>
+        {t('pending.waiting')}
+      </div>
+
+      <Card>
+        <h2 className="section-label" style={{ marginBottom: 'var(--sp-xs)' }}>
+          {t('rep.rosterTitle')}
+        </h2>
+        <p className="rep__hint" style={{ marginTop: 0 }}>
+          {t('pending.rosterHint', { n: filled })}
+        </p>
+
+        {err && <div className="banner banner--error" style={{ marginBottom: 'var(--sp-md)' }}>{err}</div>}
+        {flash && <div className="banner banner--ok" style={{ marginBottom: 'var(--sp-md)' }}>{flash}</div>}
+
+        {rows.map((row, i) => (
+          <div key={i} className="rep__row">
+            <input
+              className="input"
+              inputMode="numeric"
+              value={row.number ?? ''}
+              placeholder={t('rep.playerNumber')}
+              onChange={(e) => {
+                const v = e.target.value.trim();
+                const next = [...rows];
+                next[i] = { ...row, number: v ? Number(v) : null };
+                setRows(next);
+              }}
+              onBlur={() => void save(rows)}
+            />
+            <input
+              className="input"
+              value={row.name}
+              placeholder={t('rep.playerName')}
+              onChange={(e) => {
+                const next = [...rows];
+                next[i] = { ...row, name: e.target.value };
+                setRows(next);
+              }}
+              onBlur={() => void save(rows)}
+            />
+            <span />
+            <button
+              className="btn-link"
+              onClick={() => void save(rows.filter((_, n) => n !== i))}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+
+        <Button
+          disabled={busy}
+          style={{ marginTop: 'var(--sp-md)' }}
+          onClick={() => setRows([...rows, { name: '', number: null }])}
+        >
+          {t('rep.addPlayer')}
+        </Button>
+
+        <p className="rep__hint">{t('pending.afterApproval')}</p>
+        <button className="btn-link" onClick={onReload}>
+          {t('pending.refresh')}
+        </button>
+      </Card>
+    </div>
+  );
+}
+
+/**
+ * Ulaz za predstavnika — bira ekran prema stanju računa:
+ *   nema prijave  → prijavi ekipu
+ *   čeka odobrenje → nacrt sastava
+ *   odobrena ekipa → uređivanje pravih igrača
+ */
+export function RepPortal() {
+  const { t } = useT();
+  const { teamId } = useAuth();
+  const [reg, setReg] = useState<MyRegistration | null | undefined>(undefined);
+
+  const loadReg = useCallback(async () => {
+    setReg(undefined);
+    try {
+      setReg(await fetchMyRegistration());
+    } catch {
+      setReg(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!teamId) void loadReg();
+  }, [teamId, loadReg]);
+
+  if (teamId) return <ApprovedTeamPortal />;
+  if (reg === undefined) return <div className="rep"><Card>{t('common.loading')}</Card></div>;
+  if (reg === null) return <MyTeamSetup onDone={() => void loadReg()} />;
+  return <PendingRoster reg={reg} onReload={() => void loadReg()} />;
 }

@@ -4,6 +4,7 @@ import { I18nProvider, useT } from './i18n/I18nProvider';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { PublicRegistration } from './pages/PublicRegistration';
+import { Signup } from './pages/Signup';
 import { RepPortal } from './pages/RepPortal';
 import { Dashboard } from './pages/Dashboard';
 import { Tournament } from './pages/Tournament';
@@ -52,6 +53,8 @@ function AppRoutes() {
     return (
       <Routes>
         <Route path="/login" element={<Login />} />
+        {/* Predstavnik kluba sam otvara racun */}
+        <Route path="/registracija" element={<Signup />} />
         {/* Javna prijava ekipe — dostupna bez prijave */}
         <Route path="/prijava" element={<PublicRegistration />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
