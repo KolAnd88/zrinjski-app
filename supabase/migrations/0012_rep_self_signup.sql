@@ -19,27 +19,32 @@ create index if not exists idx_registration_created_by
   on public.registration (created_by)
   where created_by is not null;
 
--- ── Novi Auth korisnik → profil s ulogom 'rep' ─────────────────────────────
--- Registracija je otvorena, ali uloga je uvijek 'rep'. Admina i delegata i
--- dalje radi isključivo admin kroz ekran Korisnici.
-create or replace function public.handle_new_auth_user()
-returns trigger
+-- ── Profil za novi račun ───────────────────────────────────────────────────
+-- NAMJERNO bez okidača na auth.users: tu tablicu u Supabaseu posjeduje
+-- supabase_auth_admin, pa SQL Editor nema pravo postaviti okidač na nju
+-- ("must be owner of relation users") i migracija bi stala na tom mjestu.
+--
+-- Umjesto toga profil stvara sama aplikacija, prvim pozivom nakon prijave.
+-- Funkcija je idempotentna pa je svejedno koliko se puta pozove. Uloga je
+-- uvijek 'rep' — admina i delegata i dalje radi isključivo admin.
+create or replace function public.ensure_my_profile()
+returns void
 language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  v_uid   uuid := auth.uid();
+  v_email text := coalesce(auth.jwt() ->> 'email', '');
 begin
+  if v_uid is null then
+    return;
+  end if;
   insert into public.app_user (id, email, role, team_id)
-  values (new.id, new.email, 'rep', null)
+  values (v_uid, v_email, 'rep', null)
   on conflict (id) do nothing;
-  return new;
 end;
 $$;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_auth_user();
 
 -- ── Predstavnik prijavljuje svoju ekipu ────────────────────────────────────
 create or replace function public.submit_my_registration(
@@ -83,7 +88,8 @@ begin
     return v_id;
   end if;
 
-  select email into v_email from auth.users where id = v_uid;
+  -- E-mail uzimamo iz tokena, ne iz auth.users — ta tablica nije naša.
+  v_email := coalesce(auth.jwt() ->> 'email', '');
 
   insert into public.registration (
     tournament_id, team_name, gender, rep_name, rep_email, created_by, players
@@ -136,6 +142,9 @@ create policy registration_own_read
   using (created_by = auth.uid());
 
 -- ── Dozvole ────────────────────────────────────────────────────────────────
+revoke all on function public.ensure_my_profile() from public;
+grant execute on function public.ensure_my_profile() to authenticated;
+
 revoke all on function public.submit_my_registration(text, gender, text) from public;
 grant execute on function public.submit_my_registration(text, gender, text) to authenticated;
 

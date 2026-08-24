@@ -65,17 +65,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     let active = true;
     setProfileLoading(true);
-    void supabase
-      .from('app_user')
-      .select('role, team_id')
-      .eq('id', uid)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!active) return;
-        setRole((data?.role as UserRole) ?? null);
-        setTeamId(data?.team_id ?? null);
-        setProfileLoading(false);
-      });
+
+    void (async () => {
+      const sb = supabase!;
+      const read = () => sb.from('app_user').select('role, team_id').eq('id', uid).maybeSingle();
+
+      let { data } = await read();
+
+      // Račun otvoren samostalnom registracijom još nema profil. Stvaramo ga
+      // ovdje jer okidač na auth.users nije moguć (vidi migraciju 0012).
+      if (!data) {
+        await sb.rpc('ensure_my_profile');
+        ({ data } = await read());
+      }
+
+      if (!active) return;
+      setRole((data?.role as UserRole) ?? null);
+      setTeamId(data?.team_id ?? null);
+      setProfileLoading(false);
+    })();
+
     return () => {
       active = false;
     };

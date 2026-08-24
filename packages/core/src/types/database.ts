@@ -460,6 +460,7 @@ export type Database = {
         Args: { p_registration_id: string; p_short_code?: string | null };
         Returns: string;
       };
+      ensure_my_profile: { Args: Record<string, never>; Returns: undefined };
       submit_my_registration: {
         Args: { p_team_name: string; p_gender: Gender; p_rep_name: string };
         Returns: string;
