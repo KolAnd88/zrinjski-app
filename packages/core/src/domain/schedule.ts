@@ -104,3 +104,26 @@ export function dayDurationMinutes(day: DayInput, params: ScheduleParams): numbe
 }
 
 export { timeToMinutes };
+
+/**
+ * Koji dan turnira prikazati pri otvaranju Rasporeda.
+ *  • traje turnir → današnji dan
+ *  • prije turnira → prvi dan
+ *  • poslije      → zadnji dan (rezultati zadnjeg dana)
+ *
+ * `todayIso` se predaje izvana ("YYYY-MM-DD", lokalni datum uređaja) — tako
+ * funkcija nema skriveno stanje i može se testirati.
+ */
+export function pickCurrentDayId(
+  days: { id: string; date: string }[],
+  todayIso: string
+): string | null {
+  if (days.length === 0) return null;
+  const sorted = [...days].sort((a, b) => a.date.localeCompare(b.date));
+
+  const today = sorted.find((d) => d.date === todayIso);
+  if (today) return today.id;
+
+  const upcoming = sorted.find((d) => d.date > todayIso);
+  return (upcoming ?? sorted[sorted.length - 1]!).id;
+}

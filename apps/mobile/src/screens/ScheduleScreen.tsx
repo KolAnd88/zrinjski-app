@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { crestPair } from '@zrinjski/ui-tokens';
+import { pickCurrentDayId } from '@zrinjski/core';
 import type { Match, ProgramItem } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import { useData } from '../lib/useData';
@@ -27,9 +28,15 @@ export function ScheduleScreen() {
   const [dayId, setDayId] = useState('');
   const refreshControl = useRefreshControl();
 
-  // Dani stižu asinkrono; postavi prvi čim su tu, ali ne gazi korisnikov odabir.
+  // Dani stižu asinkrono; otvori TEKUĆI dan čim su tu, ali ne gazi korisnikov
+  // odabir. Dok turnir traje gledatelj želi današnji raspored, ne prvi dan.
   useEffect(() => {
-    if (!dayId && d.days.length > 0) setDayId(d.days[0]!.id);
+    if (dayId || d.days.length === 0) return;
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const todayIso = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    const id = pickCurrentDayId(d.days, todayIso);
+    if (id) setDayId(id);
   }, [d.days, dayId]);
 
   const rows: Row[] = [
