@@ -10,6 +10,7 @@ import { crestGradientFor, crestPair } from '@zrinjski/ui-tokens';
 import { useT } from '../i18n/I18nProvider';
 import type { StringKey } from '../i18n/strings';
 import { useData } from '../lib/useData';
+import { useAuth } from '../lib/useAuth';
 import { C, F, R, SP } from '../theme';
 import { Crest, Txt } from '../components/base';
 import type { RootStackParamList } from '../navigation/types';
@@ -31,6 +32,7 @@ export function AdminLiveScreen() {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { params } = useRoute<RouteProp<RootStackParamList, 'AdminLive'>>();
   const d = useData();
+  const { isAdmin } = useAuth();
   const { width } = useWindowDimensions();
   const m = d.matchById(params.matchId);
 
@@ -70,9 +72,10 @@ export function AdminLiveScreen() {
   const away = d.teamById(m.away_team_id);
   const crests = crestPair(home?.sort_order ?? 0, away?.sort_order ?? 1);
   const isLive = m.status === 'live';
-  // Unos (rezultat i dogadaji) moguc je tek kad utakmica krene. Zavrsena
-  // ostaje otvorena za ispravak jer je pogreska vidljiva tek na kraju.
-  const canEnter = m.status !== 'scheduled';
+  // Unos je moguc dok utakmica traje. Prije pocetka ne moze nitko; nakon
+  // zavrsetka samo admin, da se rezultat moze ispraviti ali ne i mijenjati
+  // usput od strane delegata.
+  const canEnter = isLive || (m.status === 'finished' && isAdmin);
   const matchEvents = d.eventsOf(m.id);
 
   // Tijek: najnovije na vrhu, s tekućim rezultatom uz golove.
@@ -102,12 +105,12 @@ export function AdminLiveScreen() {
       <View style={[styles.controls, wide && { flex: 1 }]}>
         {ACTIONS.map((act) =>
           act.primary ? (
-            <Pressable key={act.type} onPress={() => setPicker({ team, type: act.type })} disabled={!isLive}>
+            <Pressable key={act.type} onPress={() => setPicker({ team, type: act.type })} disabled={!canEnter}>
               <LinearGradient
                 colors={[g[0], g[1]]}
                 start={{ x: 0.15, y: 0 }}
                 end={{ x: 0.85, y: 1 }}
-                style={[styles.actBtn, styles.actPrimary, !isLive && styles.actOff]}
+                style={[styles.actBtn, styles.actPrimary, !canEnter && styles.actOff]}
               >
                 <View style={styles.actIcon}>
                   <Ionicons name={act.icon} size={20} color="#fff" />
@@ -119,9 +122,9 @@ export function AdminLiveScreen() {
           ) : (
             <Pressable
               key={act.type}
-              disabled={!isLive}
+              disabled={!canEnter}
               onPress={() => setPicker({ team, type: act.type })}
-              style={[styles.actBtn, styles.actSecondary, !isLive && styles.actOff]}
+              style={[styles.actBtn, styles.actSecondary, !canEnter && styles.actOff]}
             >
               <View style={styles.actIconDim}>
                 <Ionicons name={act.icon} size={20} color={C.txt} />
@@ -205,7 +208,9 @@ export function AdminLiveScreen() {
       </View>
 
       {!canEnter && (
-        <Txt style={styles.lockNote}>{t('admin.notStarted')}</Txt>
+        <Txt style={styles.lockNote}>
+          {m.status === 'finished' ? t('admin.finishedLocked') : t('admin.notStarted')}
+        </Txt>
       )}
 
       {/* Kontrole + tijek */}

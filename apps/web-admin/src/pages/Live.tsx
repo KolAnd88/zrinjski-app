@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { EventType, Match, Player } from '@zrinjski/core';
 import { crestColorFor } from '@zrinjski/ui-tokens';
 import { useT } from '../i18n/I18nProvider';
+import { useAuth } from '../auth/AuthProvider';
 import type { StringKey } from '../i18n/strings';
 import { Button, Card, Crest } from '../components/ui';
 import { useTournamentData } from '../features/tournament/useTournamentData';
@@ -172,9 +173,11 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
   }
 
   const m = live.match;
+  const { role } = useAuth();
   const isLive = m.status === 'live';
-  // Unos je moguc tek kad utakmica krene; zavrsena ostaje otvorena za ispravak.
-  const canEnter = m.status !== 'scheduled';
+  // Unos traje dok i utakmica. Prije pocetka ne moze nitko; nakon zavrsetka
+  // samo admin, da se rezultat moze ispraviti.
+  const canEnter = isLive || (m.status === 'finished' && role === 'admin');
   const clash = crestClash(live.home?.sort_order, live.away?.sort_order);
   const recentFeed = [...live.feed].reverse().slice(0, 5);
   const nextMatches = enterable.matches.filter((x) => x.id !== matchId).slice(0, 3);
@@ -301,7 +304,7 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
 
       {!canEnter && (
         <div className="banner" style={{ marginBottom: 'var(--sp-md)' }}>
-          {t('live.notStarted')}
+          {m.status === 'finished' ? t('live.finishedLocked') : t('live.notStarted')}
         </div>
       )}
 

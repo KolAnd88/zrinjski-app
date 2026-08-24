@@ -11,6 +11,7 @@ import {
 } from '@expo-google-fonts/inter';
 import { I18nProvider } from './src/i18n/I18nProvider';
 import { DataProvider } from './src/lib/useData';
+import { AuthProvider } from './src/lib/useAuth';
 import { FollowProvider } from './src/lib/useFollow';
 import { GenderProvider } from './src/lib/useGender';
 import { RootNavigator } from './src/navigation/RootNavigator';
@@ -34,6 +35,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <I18nProvider>
+        <AuthProvider>
         <DataProvider>
           <FollowProvider>
             <GenderProvider>
@@ -42,6 +44,7 @@ export default function App() {
             </GenderProvider>
           </FollowProvider>
         </DataProvider>
+        </AuthProvider>
       </I18nProvider>
     </SafeAreaProvider>
   );
