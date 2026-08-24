@@ -147,6 +147,16 @@ export function InfoScreen() {
         {/* Organizator */}
         <Txt style={styles.org}>{t('info.organizer')}</Txt>
 
+        {/* Predstavnik kluba — prijava ekipe i sastav */}
+        <Pressable onPress={() => nav.navigate('AdminLogin')} style={styles.repRow}>
+          <Ionicons name="people-circle-outline" size={19} color={C.redLt} />
+          <View style={{ flex: 1 }}>
+            <Txt style={styles.repTitle}>{t('info.repEntry')}</Txt>
+            <Txt style={styles.detailLabelPlain}>{t('info.repEntrySub')}</Txt>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={C.mut} />
+        </Pressable>
+
         {/* Skriveni ulaz za organizatore */}
         <Pressable onPress={() => nav.navigate('AdminLogin')} style={styles.adminLink}>
           <Txt style={styles.adminTxt}>{t('admin.organizer')} →</Txt>
@@ -225,6 +235,19 @@ const styles = StyleSheet.create({
     color: C.mut,
     marginTop: SP.section,
   },
+  repRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SP.divider,
+    backgroundColor: C.card,
+    borderWidth: 1,
+    borderColor: C.line,
+    borderRadius: R.card,
+    paddingVertical: SP.cardGap,
+    paddingHorizontal: 16,
+    marginTop: SP.section,
+  },
+  repTitle: { fontFamily: F.bodySemi, fontSize: 14, color: C.txt },
   adminLink: { alignItems: 'center', paddingVertical: SP.screenX },
   adminTxt: { fontFamily: F.body, fontSize: 12, color: C.mut },
 });

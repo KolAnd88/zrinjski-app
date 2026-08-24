@@ -8,6 +8,9 @@ export type RootStackParamList = {
   NotifSettings: undefined;
   // Mobilni admin (skriveni ulaz)
   AdminLogin: undefined;
+  Signup: undefined;
+  // Portal predstavnika ekipe
+  MyTeam: undefined;
   AdminHome: undefined;
   AdminLive: { matchId: string };
   AdminTv: { matchId: string };

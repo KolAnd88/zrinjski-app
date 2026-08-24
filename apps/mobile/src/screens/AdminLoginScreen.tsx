@@ -46,6 +46,11 @@ export function AdminLoginScreen() {
         .select('role')
         .eq('id', data.user.id)
         .maybeSingle();
+      // Predstavnik ide u svoj portal, organizacija u zapisnik.
+      if (me?.role === 'rep') {
+        nav.replace('MyTeam');
+        return;
+      }
       if (!me || !['admin', 'delegate'].includes(me.role)) {
         await supabase.auth.signOut();
         setError(t('admin.errNoRole'));
