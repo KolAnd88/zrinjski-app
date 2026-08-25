@@ -13,6 +13,18 @@
   command = "npm run build -w @zrinjski/web-admin"
   publish = "apps/web-admin/dist"
 
+  # Ne objavljuj kad se web admin nije promijenio.
+  #
+  # Netlify naplaćuje 15 kredita po PRODUKCIJSKOJ OBJAVI, a monorepo znači da
+  # i commit koji dira samo apps/mobile inače pokrene objavu web admina — koja
+  # ne mijenja baš ništa. Od zadnjih 12 commitova 4 su bila takva.
+  #
+  # Izlazni kod 0 = preskoči objavu. `git diff --quiet` vraća 0 kad razlike
+  # NEMA, što je točno željeno ponašanje. Uspoređuje se zadnji objavljeni
+  # commit s trenutnim, pa ispravno radi i kad se pushne više commitova odjednom.
+  # Kod prve objave $CACHED_COMMIT_REF je prazan → naredba padne → build ide.
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- apps/web-admin packages package.json package-lock.json netlify.toml"
+
 [build.environment]
   NODE_VERSION = "20"
   # Mobilna app (Expo/React Native) nije potrebna za web build, ali je u istom
