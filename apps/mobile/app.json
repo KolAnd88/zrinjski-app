@@ -15,7 +15,7 @@
     "android": {
       "package": "ba.vhmrkzrinjski.app",
       "adaptiveIcon": {
-        "backgroundColor": "#0B0B0E",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -32,7 +32,8 @@
       [
         "expo-notifications",
         {
-          "color": "#E11D2A"
+          "color": "#E11D2A",
+          "icon": "./assets/android-icon-monochrome.png"
         }
       ]
     ],
