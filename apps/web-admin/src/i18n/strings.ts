@@ -75,6 +75,16 @@ export const strings = {
     'awards.unitSaves': 'obrana',
     'awards.unitGoals': 'golova',
     'awards.empty': 'Još nema podataka.',
+    'awards.manualPick': 'Ručni odabir',
+    'mvpp.titleM': 'Najbolji igrač turnira — ručni odabir',
+    'mvpp.titleZ': 'Najbolja igračica turnira — ručni odabir',
+    'mvpp.hint': 'Popis svih prijavljenih u ovoj konkurenciji. Tvoj odabir ima prednost pred glasanjem predstavnika — glasovi ostaju zabilježeni, ali se prikazuje ovo.',
+    'mvpp.search': 'Traži po imenu ili ekipi…',
+    'mvpp.count': '{n} prijavljenih',
+    'mvpp.chosen': 'Odabran',
+    'mvpp.clear': 'Poništi odabir',
+    'mvpp.noPlayers': 'U ovoj konkurenciji još nema prijavljenih igrača.',
+    'mvpp.noMatch': 'Nema rezultata za tu pretragu.',
     'awards.tie': 'Neodlučeno — {n} igrača dijeli prvo mjesto.',
 
     // Glasanje u portalu predstavnika
@@ -142,7 +152,7 @@ export const strings = {
     'dash.qa.teams': 'Ekipe i igrači',
     'dash.todo': 'Za odraditi',
     'dash.todo.approve': 'Odobri nove prijave',
-    'dash.todo.bestPlayer': 'Postavi najboljeg igrača',
+    'dash.todo.bestPlayer': 'Odaberi najboljeg igrača turnira',
     'dash.todo.allDone': 'Sve je odrađeno.',
 
     // Kalendar
@@ -579,6 +589,16 @@ export const strings = {
     'awards.unitSaves': 'saves',
     'awards.unitGoals': 'goals',
     'awards.empty': 'No data yet.',
+    'awards.manualPick': 'Manual pick',
+    'mvpp.titleM': 'Player of the tournament — manual pick',
+    'mvpp.titleZ': 'Female player of the tournament — manual pick',
+    'mvpp.hint': 'All registered players in this competition. Your pick takes precedence over the representatives vote — the votes stay recorded, but this is what is shown.',
+    'mvpp.search': 'Search by name or team…',
+    'mvpp.count': '{n} registered',
+    'mvpp.chosen': 'Selected',
+    'mvpp.clear': 'Clear selection',
+    'mvpp.noPlayers': 'No registered players in this competition yet.',
+    'mvpp.noMatch': 'No results for that search.',
     'awards.tie': 'Tied — {n} players share first place.',
 
     'mvp.title': 'Player of the tournament',
@@ -645,7 +665,7 @@ export const strings = {
     'dash.qa.teams': 'Teams & players',
     'dash.todo': 'To do',
     'dash.todo.approve': 'Approve new registrations',
-    'dash.todo.bestPlayer': 'Set best player',
+    'dash.todo.bestPlayer': 'Pick the player of the tournament',
     'dash.todo.allDone': 'All done.',
 
     'cal.title': 'Choose a date',

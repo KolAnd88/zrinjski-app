@@ -119,7 +119,7 @@ export function Dashboard() {
         <section>
           <h2 className="section-label section__title">{t('dash.todo')}</h2>
           <div className="todo">
-            {todo.pendingRegistrations === 0 && todo.finishedNoBestPlayer === 0 && (
+            {todo.pendingRegistrations === 0 && todo.missingMvp === 0 && (
               <div className="todo__item">
                 <span className="todo__check todo__check--done">✓</span>
                 <span>{t('dash.todo.allDone')}</span>
@@ -132,11 +132,11 @@ export function Dashboard() {
                 <span className="todo__count">{todo.pendingRegistrations}</span>
               </button>
             )}
-            {todo.finishedNoBestPlayer > 0 && (
-              <button className="todo__item" onClick={() => navigate('/live')}>
+            {todo.missingMvp > 0 && (
+              <button className="todo__item" onClick={() => navigate('/awards')}>
                 <span className="todo__check" />
                 <span>{t('dash.todo.bestPlayer')}</span>
-                <span className="todo__count">{todo.finishedNoBestPlayer}</span>
+                <span className="todo__count">{todo.missingMvp}</span>
               </button>
             )}
           </div>

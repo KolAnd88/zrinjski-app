@@ -13,6 +13,7 @@ import {
   updateTournament,
   type MvpResult,
 } from '../lib/data';
+import { MvpPicker } from '../features/awards/MvpPicker';
 import './Awards.css';
 
 type Loaded = {
@@ -91,6 +92,13 @@ export function Awards() {
     }
   }
 
+  const manualId = gender === 'm' ? tournament.mvp_m_player_id : tournament.mvp_z_player_id;
+
+  async function pickMvp(playerId: string | null) {
+    await updateTournament(tournament.id, gender === 'm' ? { mvp_m_player_id: playerId } : { mvp_z_player_id: playerId });
+    await load();
+  }
+
   const totalVotes = results.filter((r) => r.gender === gender).reduce((n, r) => n + r.votes, 0);
   const voterCount = teams.filter((x) => x.gender === gender).length;
 
@@ -135,6 +143,7 @@ export function Awards() {
           unit={t('awards.unitVotes')}
           rows={voteRows}
           info={info}
+          manualWinnerId={manualId}
           gold
         />
         <AwardCard
@@ -152,6 +161,15 @@ export function Awards() {
           info={info}
         />
       </div>
+
+      {/* Ručni odabir — organizator ima zadnju riječ nad glasanjem. */}
+      <MvpPicker
+        gender={gender}
+        teams={teams}
+        players={players}
+        selected={manualId}
+        onSelect={pickMvp}
+      />
     </div>
   );
 }
@@ -162,6 +180,7 @@ function AwardCard({
   unit,
   rows,
   info,
+  manualWinnerId,
   gold,
 }: {
   title: string;
@@ -169,10 +188,13 @@ function AwardCard({
   unit: string;
   rows: StatRow[];
   info: (id: string) => { name: string; number: number | null; team?: Team };
+  /** Ručni izbor organizatora — kad postoji, on je pobjednik, a glasovi ostaju ispod kao podatak. */
+  manualWinnerId?: string | null;
   gold?: boolean;
 }) {
   const { t } = useT();
-  const winner = winnerOf(rows);
+  const voted = winnerOf(rows);
+  const winner = manualWinnerId ? { playerId: manualWinnerId, count: 0, tied: [manualWinnerId] } : voted;
 
   return (
     <Card>
@@ -196,17 +218,21 @@ function AwardCard({
               <div className="awards__winnername">{info(winner.playerId).name}</div>
               <div className="awards__winnerteam">{info(winner.playerId).team?.name}</div>
             </div>
-            <div className="awards__winnerval">
-              {winner.count}
-              <span>{unit}</span>
-            </div>
+            {manualWinnerId ? (
+              <span className="awards__manual">{t('awards.manualPick')}</span>
+            ) : (
+              <div className="awards__winnerval">
+                {winner.count}
+                <span>{unit}</span>
+              </div>
+            )}
           </div>
-          {winner.tied.length > 1 && (
+          {!manualWinnerId && winner.tied.length > 1 && (
             <p className="awards__tie">{t('awards.tie', { n: winner.tied.length })}</p>
           )}
 
           <div className="awards__rest">
-            {rows.slice(1, 6).map((r) => (
+            {rows.slice(manualWinnerId ? 0 : 1, 6).map((r) => (
               <div key={r.playerId} className="awards__row">
                 <span className="awards__rank">{r.rank}</span>
                 <span className="awards__name">{info(r.playerId).name}</span>

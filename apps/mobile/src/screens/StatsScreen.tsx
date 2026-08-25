@@ -45,20 +45,37 @@ export function StatsScreen() {
     .sort((a, b) => b.count - a.count || a.playerId.localeCompare(b.playerId))
     .map((r, i) => ({ ...r, rank: i + 1 }));
 
-  const awards = mvpRows.length
+  // Ručni izbor organizatora ima prednost pred glasanjem: glasovi su savjet,
+  // odluka je njegova. Zato blok nagrada ima smisla i kad nitko nije glasao.
+  const manualMvp =
+    (gender === 'm' ? d.tournament?.mvp_m_player_id : d.tournament?.mvp_z_player_id) ?? null;
+  const mvpWinner = manualMvp
+    ? { playerId: manualMvp, count: 0, tied: [manualMvp] }
+    : winnerOf(mvpRows);
+
+  const awards = mvpWinner
     ? [
-        { key: 'awards.mvp' as StringKey, unit: 'awards.unitVotes' as StringKey, w: winnerOf(mvpRows), gold: true },
+        {
+          key: 'awards.mvp' as StringKey,
+          unit: 'awards.unitVotes' as StringKey,
+          w: mvpWinner,
+          gold: true,
+          // Kod ručnog izbora broj glasova ništa ne znači, pa ga ne pišemo.
+          hideValue: !!manualMvp,
+        },
         {
           key: 'awards.keeper' as StringKey,
           unit: 'stats.unit.saves' as StringKey,
           w: winnerOf(rankByEvent(events, 'goalkeepers')),
           gold: false,
+          hideValue: false,
         },
         {
           key: 'awards.scorer' as StringKey,
           unit: 'stats.unit.goals' as StringKey,
           w: winnerOf(rankByEvent(events, 'scorers')),
           gold: false,
+          hideValue: false,
         },
       ].filter((a) => a.w)
     : [];
@@ -119,7 +136,8 @@ export function StatsScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={refreshControl}
       >
-        {/* Nagrade turnira — pojave se tek kad je glasanje zatvoreno. */}
+        {/* Nagrade turnira — pojave se kad organizator odabere najboljeg igrača
+            ili kad zatvori glasanje predstavnika. */}
         {awards.length > 0 && (
           <View style={styles.awards}>
             <Txt style={styles.awardsTitle}>{t('awards.title').toUpperCase()}</Txt>
@@ -139,9 +157,11 @@ export function StatsScreen() {
                       {info.team ? ` · ${info.team.name}` : ''}
                     </Txt>
                   </View>
-                  <Txt style={styles.awardVal}>
-                    {a.w!.count} {t(a.unit)}
-                  </Txt>
+                  {!a.hideValue && (
+                    <Txt style={styles.awardVal}>
+                      {a.w!.count} {t(a.unit)}
+                    </Txt>
+                  )}
                 </View>
               );
             })}

@@ -1,0 +1,156 @@
+/* MvpPicker.css — ručni odabir najboljeg igrača / igračice turnira. */
+
+.mvpp__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-md);
+}
+
+.mvpp__hint {
+  margin: var(--sp-xs) 0 0;
+  color: var(--sub);
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 52ch;
+}
+
+/* ── Trenutni izbor ────────────────────────────────────────────────────── */
+.mvpp__chosen {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  margin-top: var(--sp-md);
+  padding: var(--sp-md);
+  border: 1px solid rgba(217, 178, 74, 0.45);
+  border-radius: 12px;
+  background: rgba(217, 178, 74, 0.08);
+}
+
+.mvpp__chosenmain {
+  flex: 1;
+  min-width: 0;
+}
+
+.mvpp__chosenname {
+  font-family: var(--font-head);
+  font-size: 16px;
+  color: var(--txt);
+}
+
+.mvpp__chosenteam {
+  margin-top: 2px;
+  color: var(--sub);
+  font-size: 12px;
+}
+
+.mvpp__badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(217, 178, 74, 0.45);
+  color: var(--gold);
+  font-size: 10px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ── Popis ─────────────────────────────────────────────────────────────── */
+.mvpp__search {
+  margin-top: var(--sp-md);
+}
+
+.mvpp__count {
+  margin-top: var(--sp-sm);
+  color: var(--mut);
+  font-size: 12px;
+}
+
+.mvpp__empty {
+  margin: var(--sp-md) 0 0;
+  color: var(--mut);
+  font-size: 13px;
+}
+
+/* Popis može biti dugačak (28 ekipa) — vlastito pomicanje da stranica
+   ne postane beskonačna. */
+.mvpp__list {
+  margin-top: var(--sp-sm);
+  max-height: 380px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.mvpp__team {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  position: sticky;
+  top: 0;
+  padding: 7px 12px;
+  background: var(--card2);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-head);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: var(--sub);
+}
+
+.mvpp__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--line-row, var(--line));
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mvpp__row:hover:not(:disabled) {
+  background: var(--card2);
+}
+
+.mvpp__row.is-on {
+  background: rgba(217, 178, 74, 0.12);
+}
+
+.mvpp__row:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.mvpp__num {
+  width: 24px;
+  text-align: center;
+  color: var(--mut);
+  font-family: var(--font-head);
+  font-size: 12px;
+}
+
+.mvpp__name {
+  flex: 1;
+  min-width: 0;
+  color: var(--txt);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mvpp__name em {
+  color: var(--sub);
+  font-style: normal;
+  font-size: 11px;
+}
+
+.mvpp__tick {
+  color: var(--gold);
+  font-size: 15px;
+}

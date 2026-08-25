@@ -67,6 +67,8 @@ export type Database = {
           registration_open: boolean;
           registration_deadline: string | null;
           mvp_voting_open: boolean;
+          mvp_m_player_id: string | null;
+          mvp_z_player_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -84,6 +86,8 @@ export type Database = {
           registration_open?: boolean;
           registration_deadline?: string | null;
           mvp_voting_open?: boolean;
+          mvp_m_player_id?: string | null;
+          mvp_z_player_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };

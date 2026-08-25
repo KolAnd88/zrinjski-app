@@ -35,7 +35,7 @@ export type DashboardData = {
   error: boolean;
   live: LiveMatch | null;
   counts: { teams: number; teamsM: number; teamsZ: number; played: number; total: number; sponsors: number };
-  todo: { pendingRegistrations: number; finishedNoBestPlayer: number };
+  todo: { pendingRegistrations: number; missingMvp: number };
   /** Sljedeće najavljene utakmice — 'Sljedeće u dvorani' na nadzornoj ploči. */
   queue: { id: string; time: string; label: string; stage: Stage }[];
 };
@@ -43,7 +43,7 @@ export type DashboardData = {
 const EMPTY: Omit<DashboardData, 'loading' | 'configured' | 'error'> = {
   live: null,
   counts: { teams: 0, teamsM: 0, teamsZ: 0, played: 0, total: 0, sponsors: 0 },
-  todo: { pendingRegistrations: 0, finishedNoBestPlayer: 0 },
+  todo: { pendingRegistrations: 0, missingMvp: 0 },
   queue: [],
 };
 
@@ -74,7 +74,11 @@ export function useDashboard(): DashboardData {
         ]);
 
         const played = matches.filter((m) => m.status === 'finished').length;
-        const finishedNoBestPlayer = matches.filter((m) => m.status === 'finished' && !m.best_player_id).length;
+        // Koliko konkurencija još nema najboljeg igrača. Broje se samo one
+        // koje uopće postoje — turnir bez ženskih ekipa nema što tamo birati.
+        const missingMvp =
+          (teams.some((x) => x.gender === 'm') && !t.mvp_m_player_id ? 1 : 0) +
+          (teams.some((x) => x.gender === 'z') && !t.mvp_z_player_id ? 1 : 0);
 
         // Ekipa je poznata za grupne utakmice; u završnici stoji placeholder
         // ("Pobjednik PF1") dok se ne odigra polufinale.
@@ -131,7 +135,7 @@ export function useDashboard(): DashboardData {
           },
           todo: {
             pendingRegistrations: regs.filter((r) => r.status === 'pending').length,
-            finishedNoBestPlayer,
+            missingMvp,
           },
           queue,
         });

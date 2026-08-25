@@ -29,6 +29,8 @@ export const demoTournament: Tournament = {
   registration_open: true,
   registration_deadline: null,
   mvp_voting_open: false,
+  mvp_m_player_id: null,
+  mvp_z_player_id: null,
   created_at: '2026-01-01T00:00:00+01:00',
   updated_at: '2026-01-01T00:00:00+01:00',
 };
