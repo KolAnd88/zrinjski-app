@@ -117,6 +117,50 @@ function fitted(img, box, size, inset) {
   return { img: resample(img, box, w, h), x: Math.round((size - w) / 2), y: Math.round((size - h) / 2) };
 }
 
+/**
+ * Ukloni bijelu pozadinu OKO grba, ali ne i bijelo unutar njega.
+ *
+ * Zato poplavno bojenje s rubova platna umjesto "izbaci sve bijelo": lovorove
+ * grančice i natpis u grbu su bijeli i moraju ostati. Uklanja se samo bijelo
+ * koje je povezano s vanjskim rubom.
+ */
+function cutout(img, tolerance = 26) {
+  const n = img.width * img.height;
+  const bg = new Uint8Array(n);
+  const isWhite = (i) => {
+    const d = i * 4;
+    return (
+      img.data[d + 3] === 0 ||
+      (255 - img.data[d] < tolerance && 255 - img.data[d + 1] < tolerance && 255 - img.data[d + 2] < tolerance)
+    );
+  };
+
+  const queue = [];
+  for (let x = 0; x < img.width; x++) {
+    queue.push(x, (img.height - 1) * img.width + x);
+  }
+  for (let y = 0; y < img.height; y++) {
+    queue.push(y * img.width, y * img.width + img.width - 1);
+  }
+
+  while (queue.length) {
+    const i = queue.pop();
+    if (bg[i] || !isWhite(i)) continue;
+    bg[i] = 1;
+    const x = i % img.width;
+    const y = (i - x) / img.width;
+    if (x > 0) queue.push(i - 1);
+    if (x < img.width - 1) queue.push(i + 1);
+    if (y > 0) queue.push(i - img.width);
+    if (y < img.height - 1) queue.push(i + img.width);
+  }
+
+  const out = new PNG({ width: img.width, height: img.height });
+  img.data.copy(out.data);
+  for (let i = 0; i < n; i++) if (bg[i]) out.data[i * 4 + 3] = 0;
+  return out;
+}
+
 /** Bijela silueta na prozirnom — Android 13+ "temirane" ikone. */
 function monochrome(layer) {
   const out = new PNG({ width: layer.width, height: layer.height });
@@ -167,8 +211,9 @@ const favFit = fitted(src, box, 48, 0.04);
 draw(fav, favFit.img, favFit.x, favFit.y);
 write('favicon.png', fav);
 
-// Ekran učitavanja: prozirna podloga, boju daje app.json.
+// Ekran učitavanja stoji na tamnoj boji aplikacije, pa grb mora biti izrezan
+// iz bijele pozadine — inače se vidi bijeli pravokutnik oko štita.
 const splash = canvas(1024, CLEAR);
 const splashFit = fitted(src, box, 1024, 0.22);
-draw(splash, splashFit.img, splashFit.x, splashFit.y);
+draw(splash, cutout(splashFit.img), splashFit.x, splashFit.y);
 write('splash-icon.png', splash);
