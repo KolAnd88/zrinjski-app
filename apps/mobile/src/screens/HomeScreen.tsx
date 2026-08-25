@@ -61,6 +61,28 @@ export function HomeScreen() {
 
   const teamOf = (id: string | null | undefined) => d.teamById(id);
 
+  // Zadnji odigrani rezultati — dok raspored još nije popunjen ovo je jedino
+  // što ekran ima za pokazati, a pred kraj turnira je i najzanimljivije.
+  const recent = d.matches
+    .filter((m) => m.status === 'finished')
+    .sort((a, b) => (b.scheduled_time ?? '').localeCompare(a.scheduled_time ?? ''))
+    .slice(0, 3);
+
+  // Turnir u brojkama. Uvijek ima vrijednost, pa ekran nikad nije prazan.
+  const stats = [
+    { value: d.teams.length, label: t('home.statTeams') },
+    { value: d.matches.length, label: t('home.statMatches') },
+    { value: d.events.filter((e) => e.type === 'goal').length, label: t('home.statGoals') },
+    { value: d.days.length, label: t('home.statDays') },
+  ];
+
+  const shortcuts = [
+    { icon: 'calendar-outline', label: t('nav.schedule'), screen: 'Schedule' },
+    { icon: 'trophy-outline', label: t('nav.standings'), screen: 'Standings' },
+    { icon: 'stats-chart-outline', label: t('nav.stats'), screen: 'Stats' },
+    { icon: 'images-outline', label: t('nav.gallery'), screen: 'Gallery' },
+  ] as const;
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <BrandStripe />
@@ -110,6 +132,73 @@ export function HomeScreen() {
           </Card>
         )}
 
+        {/* ── GLAVNI POKROVITELJ ───────────────────────────────────────── */}
+        {/* Zlatni sponzor plaća najviše i zato dobiva mjesto odmah ispod
+            rezultata — vlastitu sekciju, punu širinu i zlatni okvir. Zlatna
+            se u cijeloj app koristi samo ovdje i za finale. */}
+        {gold && (
+          <>
+            <SectionLabel>{t('home.mainPartner')}</SectionLabel>
+            <LinearGradient
+              colors={['rgba(217,178,74,.16)', 'rgba(217,178,74,.05)', 'rgba(217,178,74,.02)']}
+              locations={[0, 0.55, 1]}
+              start={{ x: 0.1, y: 0 }}
+              end={{ x: 0.9, y: 1 }}
+              style={styles.goldCard}
+            >
+              <View style={styles.goldTopLine} />
+
+              <View style={styles.goldPlaque}>
+                {gold.logo_url ? (
+                  // contain na bijeloj podlozi — cijeli logo, bez obrezivanja
+                  <Image source={{ uri: gold.logo_url }} style={styles.goldLogoImg} resizeMode="contain" />
+                ) : (
+                  <Txt style={styles.goldLogoTxt} numberOfLines={2}>
+                    {(gold.name || '').toUpperCase()}
+                  </Txt>
+                )}
+              </View>
+
+              <Txt style={styles.goldName} numberOfLines={2}>
+                {gold.name}
+              </Txt>
+              <View style={styles.goldBadge}>
+                <Ionicons name="star" size={11} color={C.gold} />
+                <Txt style={styles.goldBadgeTxt}>
+                  {t('home.goldSponsor').toUpperCase()} · {d.tournament?.season_year ?? ''}
+                </Txt>
+              </View>
+            </LinearGradient>
+          </>
+        )}
+
+        {/* ── TURNIR U BROJKAMA ────────────────────────────────────────── */}
+        <SectionLabel>{t('home.inNumbers')}</SectionLabel>
+        <View style={styles.statRow}>
+          {stats.map((s) => (
+            <View key={s.label} style={styles.statTile}>
+              <Txt style={styles.statVal}>{s.value}</Txt>
+              <Txt style={styles.statLabel}>{s.label}</Txt>
+            </View>
+          ))}
+        </View>
+
+        {/* ── PREČACI ──────────────────────────────────────────────────── */}
+        <View style={styles.shortRow}>
+          {shortcuts.map((s) => (
+            <Pressable
+              key={s.screen}
+              style={styles.shortTile}
+              onPress={() => nav.navigate('Tabs', { screen: s.screen } as never)}
+            >
+              <Ionicons name={s.icon} size={19} color={C.redLt} />
+              <Txt style={styles.shortLabel} numberOfLines={1}>
+                {s.label}
+              </Txt>
+            </Pressable>
+          ))}
+        </View>
+
         {/* ── PRATIŠ ───────────────────────────────────────────────────── */}
         <SectionLabel>{t('home.following')}</SectionLabel>
         <Pressable
@@ -144,32 +233,47 @@ export function HomeScreen() {
           )}
         </Pressable>
 
-        {/* ── ZLATNI SPONZOR ───────────────────────────────────────────── */}
-        {gold && (
-          <LinearGradient
-            colors={['rgba(217,178,74,.12)', 'rgba(217,178,74,.02)', 'transparent']}
-            locations={[0, 0.6, 1]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0.4 }}
-            style={styles.goldCard}
-          >
-            <View style={styles.goldLogo}>
-              {gold.logo_url ? (
-                // contain na bijeloj podlozi — cijeli logo, bez obrezivanja
-                <Image source={{ uri: gold.logo_url }} style={styles.goldLogoImg} resizeMode="contain" />
-              ) : (
-                <Txt style={styles.goldLogoTxt} numberOfLines={1}>
-                  {(gold.name || '').slice(0, 8).toUpperCase()}
-                </Txt>
-              )}
+        {/* ── ZADNJI REZULTATI ─────────────────────────────────────────── */}
+        {recent.length > 0 && (
+          <>
+            <SectionLabel
+              right={
+                <Pressable onPress={() => nav.navigate('Tabs', { screen: 'Schedule' } as never)}>
+                  <LinkTxt size={11}>{t('home.fullSchedule')}</LinkTxt>
+                </Pressable>
+              }
+            >
+              {t('home.lastResults')}
+            </SectionLabel>
+            <View style={styles.listCard}>
+              {recent.map((m, i) => {
+                const home = teamOf(m.home_team_id);
+                const away = teamOf(m.away_team_id);
+                const crests = crestPair(home?.sort_order ?? 0, away?.sort_order ?? 0);
+                const homeWon = m.home_score > m.away_score;
+                const awayWon = m.away_score > m.home_score;
+                return (
+                  <Pressable
+                    key={m.id}
+                    onPress={() => nav.navigate('Live', { matchId: m.id })}
+                    style={[styles.resRow, i > 0 && styles.upRowBorder]}
+                  >
+                    <Crest code={home?.short_code} index={crests[0]} logoUrl={home?.logo_url} size={28} />
+                    <Txt style={[styles.resName, homeWon && styles.resWin]} numberOfLines={1}>
+                      {home?.name}
+                    </Txt>
+                    <Txt style={styles.resScore}>
+                      {m.home_score}:{m.away_score}
+                    </Txt>
+                    <Txt style={[styles.resName, { textAlign: 'right' }, awayWon && styles.resWin]} numberOfLines={1}>
+                      {away?.name}
+                    </Txt>
+                    <Crest code={away?.short_code} index={crests[1]} logoUrl={away?.logo_url} size={28} />
+                  </Pressable>
+                );
+              })}
             </View>
-            <View style={{ flex: 1 }}>
-              <Txt style={styles.goldName}>{gold.name}</Txt>
-              <Txt style={styles.goldSub}>
-                {t('home.goldSponsor')} · {d.tournament?.season_year ?? ''}
-              </Txt>
-            </View>
-          </LinearGradient>
+          </>
         )}
 
         {/* ── SPONZORI ─────────────────────────────────────────────────── */}
@@ -499,30 +603,114 @@ const styles = StyleSheet.create({
   followMeta: { fontFamily: F.body, fontSize: 12, color: C.sub, marginTop: 1 },
 
   // Zlatni sponzor
+  // ── Glavni pokrovitelj ──────────────────────────────────────────────────
   goldCard: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: SP.cardGap,
     borderWidth: 1,
-    borderColor: 'rgba(217,178,74,.45)',
+    borderColor: 'rgba(217,178,74,.5)',
     borderRadius: R.card,
-    paddingVertical: SP.divider,
-    paddingHorizontal: 15,
-    marginTop: 12,
+    paddingTop: 20,
+    paddingBottom: 16,
+    paddingHorizontal: SP.screenX,
     overflow: 'hidden',
+    shadowColor: C.gold,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 4,
   },
-  goldLogo: {
-    width: 64,
-    height: 44,
+  /** Zlatna nit na vrhu — tanka, ali odmah odvaja pokrovitelja od ostatka. */
+  goldTopLine: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 3,
+    backgroundColor: C.gold,
+  },
+  /** Bijela ploča: logotipi su rađeni za svijetlu podlogu. */
+  goldPlaque: {
+    width: '100%',
+    height: 92,
     backgroundColor: '#fff',
-    borderRadius: R.crestSm,
+    borderRadius: R.chip,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
-  goldLogoTxt: { fontFamily: F.head, fontSize: 11, color: C.redDk },
+  goldLogoTxt: { fontFamily: F.head, fontSize: 20, letterSpacing: 0.5, color: C.redDk, textAlign: 'center' },
   goldLogoImg: { width: '100%', height: '100%' },
-  goldName: { fontFamily: F.head, fontSize: 16, letterSpacing: 0.3, color: C.txt },
-  goldSub: { fontFamily: F.body, fontSize: 12, color: C.goldTxt, marginTop: 2 },
+  goldName: {
+    fontFamily: F.head,
+    fontSize: 21,
+    letterSpacing: 0.4,
+    color: C.txt,
+    textAlign: 'center',
+    marginTop: SP.divider,
+  },
+  goldBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: SP.gap,
+    paddingHorizontal: 11,
+    paddingVertical: 5,
+    borderRadius: R.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(217,178,74,.4)',
+    backgroundColor: 'rgba(217,178,74,.1)',
+  },
+  goldBadgeTxt: { fontFamily: F.headSemi, fontSize: 10, letterSpacing: 1.1, color: C.goldTxt },
+
+  // ── Turnir u brojkama ───────────────────────────────────────────────────
+  statRow: { flexDirection: 'row', gap: SP.gap },
+  statTile: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: SP.divider,
+    backgroundColor: C.card,
+    borderWidth: 1,
+    borderColor: C.line,
+    borderRadius: R.chip,
+  },
+  statVal: { fontFamily: F.head, fontSize: 22, color: C.txt, lineHeight: 26 },
+  statLabel: {
+    fontFamily: F.body,
+    fontSize: 10,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: C.sub,
+    marginTop: 2,
+  },
+
+  // ── Prečaci ─────────────────────────────────────────────────────────────
+  shortRow: { flexDirection: 'row', gap: SP.gap, marginTop: SP.gap },
+  shortTile: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 5,
+    minHeight: 62,
+    justifyContent: 'center',
+    backgroundColor: C.card2,
+    borderWidth: 1,
+    borderColor: C.line,
+    borderRadius: R.chip,
+  },
+  shortLabel: { fontFamily: F.bodySemi, fontSize: 11, color: C.sub },
+
+  // ── Zadnji rezultati ────────────────────────────────────────────────────
+  resRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SP.gap,
+    paddingVertical: SP.rowY,
+    paddingHorizontal: 14,
+  },
+  resName: { flex: 1, fontFamily: F.body, fontSize: 13, color: C.sub },
+  /** Pobjednik podebljano — rezultat se čita brže nego brojke. */
+  resWin: { fontFamily: F.bodySemi, color: C.txt },
+  resScore: { fontFamily: F.head, fontSize: 16, color: C.txt, minWidth: 46, textAlign: 'center' },
 
   // Liste (sljedeće + program)
   listCard: {
