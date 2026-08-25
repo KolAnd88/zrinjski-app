@@ -160,6 +160,17 @@
   margin-top: 14px;
 }
 
+.report__best {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #bbb;
+  font-size: 13px;
+}
+
+.report__bestlabel {
+  color: #555;
+}
+
 /* ── Potpisi ───────────────────────────────────────────────────────────── */
 .report__sigs {
   display: grid;

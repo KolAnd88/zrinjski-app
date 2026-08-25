@@ -42,6 +42,8 @@ export type LiveMatchState = {
   addEvent: (teamId: string, playerId: string | null, type: EventType, minute: number) => Promise<void>;
   undoLast: () => Promise<void>;
   persistMinute: (minute: number) => Promise<void>;
+  /** Postavi ili ukloni najboljeg igrača utakmice. */
+  setBestPlayer: (playerId: string | null) => Promise<void>;
 };
 
 async function loadTeam(id: string | null, players: Player[]): Promise<LiveTeam | null> {
@@ -220,6 +222,16 @@ export function useLiveMatch(matchId: string | null): LiveMatchState {
 
   const feed = buildFeed(events, match?.home_team_id ?? null, match?.away_team_id ?? null);
 
+  /** Najbolji igrač utakmice — bira se tek kad je utakmica gotova. */
+  const setBestPlayer = useCallback(
+    async (playerId: string | null) => {
+      if (!match) return;
+      await updateMatch(match.id, { best_player_id: playerId });
+      setMatch((m) => (m ? { ...m, best_player_id: playerId } : m));
+    },
+    [match]
+  );
+
   return {
     loading,
     configured: HAS_DATA,
@@ -235,5 +247,6 @@ export function useLiveMatch(matchId: string | null): LiveMatchState {
     addEvent,
     undoLast,
     persistMinute,
+    setBestPlayer,
   };
 }

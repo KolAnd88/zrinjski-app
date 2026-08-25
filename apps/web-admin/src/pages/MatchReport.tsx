@@ -223,6 +223,14 @@ export function MatchReport() {
           )}
         </section>
 
+        {/* Najbolji igrač — samo ako je odabran */}
+        {match.best_player_id && (
+          <div className="report__best">
+            <span className="report__bestlabel">Najbolji igrač utakmice:</span>{' '}
+            <b>{playerName(match.best_player_id)}</b>
+          </div>
+        )}
+
         {/* Potpisi — prazne crte, popunjavaju se rukom */}
         <section className="report__sigs">
           {[t('report.sigDelegate'), t('report.sigHome'), t('report.sigAway')].map((label) => (

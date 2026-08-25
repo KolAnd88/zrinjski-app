@@ -162,6 +162,17 @@ export function LiveScreen() {
           ))}
         </View>
 
+        {/* Najbolji igrač — postavlja ga organizator nakon utakmice */}
+        {m.best_player_id && (
+          <View style={styles.bestRow}>
+            <Ionicons name="star" size={15} color={C.gold} />
+            <Txt style={styles.bestLabel}>{t('live.bestPlayer')}</Txt>
+            <Txt style={styles.bestName} numberOfLines={1}>
+              {d.players.find((p) => p.id === m.best_player_id)?.name ?? '—'}
+            </Txt>
+          </View>
+        )}
+
         {/* Tijek utakmice — cik-cak: domaći lijevo, gosti desno */}
         <SectionLabel>{t('live.flowTitle')}</SectionLabel>
         <View style={styles.flowCard}>
@@ -331,6 +342,20 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
+  bestRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SP.gap,
+    marginTop: SP.cardGap,
+    paddingVertical: SP.rowY,
+    paddingHorizontal: SP.divider,
+    borderRadius: R.chip,
+    borderWidth: 1,
+    borderColor: 'rgba(217,178,74,.4)',
+    backgroundColor: 'rgba(217,178,74,.08)',
+  },
+  bestLabel: { fontFamily: F.headSemi, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: C.goldTxt },
+  bestName: { flex: 1, textAlign: 'right', fontFamily: F.bodySemi, fontSize: 14, color: C.txt },
   flowCard: {
     backgroundColor: C.card,
     borderWidth: 1,

@@ -235,6 +235,36 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
           </div>
         </Card>
 
+        {/* Najbolji igrač — ima smisla tek kad je utakmica odigrana. */}
+        {m.status === 'finished' && (
+          <Card>
+            <h3 className="section-label" style={{ marginBottom: 'var(--sp-sm)' }}>
+              {t('live.bestPlayer')}
+            </h3>
+            <select
+              className="input"
+              value={m.best_player_id ?? ''}
+              onChange={(e) => void live.setBestPlayer(e.target.value || null)}
+            >
+              <option value="">{t('live.bestPlayerNone')}</option>
+              {[live.home, live.away].map(
+                (tm) =>
+                  tm && (
+                    <optgroup key={tm.id} label={tm.name}>
+                      {tm.players.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.number != null ? p.number + '. ' : ''}
+                          {p.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )
+              )}
+            </select>
+            <p className="live__hint">{t('live.bestPlayerHint')}</p>
+          </Card>
+        )}
+
         <Card>
           <div className="live__tvline">
             <span>{t('live.tvMode')}</span>
