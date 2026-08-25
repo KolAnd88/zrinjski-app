@@ -4,6 +4,7 @@ import { useT } from '../../i18n/I18nProvider';
 import type { StringKey } from '../../i18n/strings';
 import { Button } from '../../components/ui';
 import { SponsorLogoError, validateSponsorLogo } from '../../lib/data';
+import { ImageEditor } from '../../components/ImageEditor';
 import type { SponsorInput } from './useSponsors';
 import './SponsorModal.css';
 
@@ -33,6 +34,7 @@ export function SponsorModal({
   const [preview, setPreview] = useState<string | null>(sponsor?.logo_url ?? null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [editing, setEditing] = useState<File | null>(null);
 
   // Provjera ide odmah pri odabiru, ne tek na Spremi — organizator vidi
   // problem prije nego ispuni ostatak obrasca.
@@ -44,8 +46,13 @@ export function SponsorModal({
     }
     try {
       await validateSponsorLogo(f);
-      setFile(f);
-      setPreview(URL.createObjectURL(f));
+      // SVG se ne dira; rastersku sliku pokaži u uređivaču da dobije rub.
+      if (f.type === 'image/svg+xml') {
+        setFile(f);
+        setPreview(URL.createObjectURL(f));
+      } else {
+        setEditing(f);
+      }
     } catch (e) {
       setFile(null);
       if (e instanceof SponsorLogoError) {
@@ -110,6 +117,20 @@ export function SponsorModal({
           </label>
         </div>
         <p className="smodal__hint">{t('sponsors.logoHint')}</p>
+
+        {editing && (
+          <ImageEditor
+            file={editing}
+            mode="fit"
+            size={800}
+            onCancel={() => setEditing(null)}
+            onDone={(out) => {
+              setEditing(null);
+              setFile(out);
+              setPreview(URL.createObjectURL(out));
+            }}
+          />
+        )}
 
         <div style={{ marginTop: 'var(--sp-md)' }}>
           <label className="field-label">{t('sponsors.name')}</label>

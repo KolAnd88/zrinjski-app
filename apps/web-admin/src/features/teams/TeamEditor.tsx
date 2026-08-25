@@ -3,6 +3,7 @@ import type { Grp, Player, Team, TablesUpdate } from '@zrinjski/core';
 import { useT } from '../../i18n/I18nProvider';
 import { Crest } from '../../components/ui';
 import { deleteTeamLogo, LogoValidationError, uploadTeamLogo } from '../../lib/data';
+import { ImageEditor } from '../../components/ImageEditor';
 import type { TeamsData } from './useTeamsData';
 
 function PlayerRow({
@@ -103,9 +104,21 @@ function LogoField({ team, onChanged }: { team: Team; onChanged: () => void }) {
   const { t } = useT();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // Odabrana datoteka ide prvo u uređivač; upload tek nakon kadriranja.
+  const [editing, setEditing] = useState<File | null>(null);
 
-  async function pick(file: File | null) {
+  function pick(file: File | null) {
     if (!file) return;
+    setErr(null);
+    // SVG je vektor — nema što kadrirati, ide izravno.
+    if (file.type === 'image/svg+xml') {
+      void upload(file);
+      return;
+    }
+    setEditing(file);
+  }
+
+  async function upload(file: File) {
     setErr(null);
     setBusy(true);
     try {
@@ -155,15 +168,27 @@ function LogoField({ team, onChanged }: { team: Team; onChanged: () => void }) {
             {busy ? t('teams.logoUploading') : team.logo_url ? t('teams.logoChange') : t('teams.logoUpload')}
             <input
               type="file"
-              accept="image/png,image/svg+xml"
+              accept="image/png,image/jpeg,image/svg+xml"
               hidden
               disabled={busy}
               onChange={(e) => {
-                void pick(e.target.files?.[0] ?? null);
+                pick(e.target.files?.[0] ?? null);
                 e.target.value = ''; // dopušta ponovni odabir iste datoteke
               }}
             />
           </label>
+          {editing && (
+            <ImageEditor
+              file={editing}
+              mode="crop"
+              size={512}
+              onCancel={() => setEditing(null)}
+              onDone={(out) => {
+                setEditing(null);
+                void upload(out);
+              }}
+            />
+          )}
           {team.logo_url && (
             <button className="btn-link logo-field__remove" disabled={busy} onClick={() => void remove()}>
               {t('teams.logoRemove')}

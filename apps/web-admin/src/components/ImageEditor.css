@@ -1,0 +1,104 @@
+/* ImageEditor.css — izrezivanje grba i uklapanje sponzorskog logotipa. */
+
+.imged {
+  width: min(92vw, 380px);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: var(--sp-lg);
+  box-shadow: 0 30px 70px -25px rgba(0, 0, 0, 0.9);
+}
+
+.imged__hint {
+  color: var(--sub);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0 0 var(--sp-md);
+}
+
+/* ── Izrezivanje ───────────────────────────────────────────────────────── */
+.imged__view {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: var(--r-card);
+  background: var(--card2);
+  cursor: grab;
+  touch-action: none; /* prst pomiče sliku, ne stranicu */
+  user-select: none;
+}
+
+.imged__view:active {
+  cursor: grabbing;
+}
+
+.imged__img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  max-width: none;
+  pointer-events: none;
+}
+
+/* Zaobljeni kvadrat u kojem će logo stvarno stajati — vodilica pri kadriranju. */
+.imged__mask {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: var(--r-card);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+
+.imged__mask::after {
+  content: '';
+  position: absolute;
+  inset: 12%;
+  border: 1px dashed rgba(255, 255, 255, 0.45);
+  border-radius: 17px;
+}
+
+/* ── Uklapanje (sponzori) ──────────────────────────────────────────────── */
+.imged__fit {
+  display: grid;
+  place-items: center;
+  width: 300px;
+  height: 150px;
+  margin: 0 auto;
+  padding: 12px;
+  background: #fff;
+  border-radius: var(--r-chip);
+}
+
+.imged__fit img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* ── Zum ───────────────────────────────────────────────────────────────── */
+.imged__zoom {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  margin-top: var(--sp-md);
+  color: var(--sub);
+  font-size: 13px;
+}
+
+.imged__zoom input {
+  flex: 1;
+  accent-color: var(--red);
+}
+
+.imged__actions {
+  display: flex;
+  gap: var(--sp-md);
+  margin-top: var(--sp-lg);
+}
+
+.imged__actions > * {
+  flex: 1;
+}

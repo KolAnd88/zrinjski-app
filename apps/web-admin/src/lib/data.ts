@@ -370,6 +370,41 @@ export function readImageSize(file: File): Promise<{ w: number; h: number } | nu
   });
 }
 
+/**
+ * Smanji sliku ako prelazi zadanu stranicu. Vraca original kad je vec u redu,
+ * ili kad se dimenzije ne mogu utvrditi (SVG). Bolje smanjiti nego odbiti.
+ */
+export async function downscaleImage(file: File, maxPx: number): Promise<File> {
+  const dim = await readImageSize(file);
+  if (!dim) return file;
+  const longest = Math.max(dim.w, dim.h);
+  if (longest <= maxPx) return file;
+
+  const k = maxPx / longest;
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(dim.w * k);
+  canvas.height = Math.round(dim.h * k);
+
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = url;
+    });
+    canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const type = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+    const blob: Blob | null = await new Promise((res) => canvas.toBlob(res, type, 0.9));
+    if (!blob) return file;
+    return new File([blob], file.name, { type });
+  } catch {
+    return file; // ne uspije li smanjivanje, pusti original u provjeru
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 // ── Logotip sponzora ──────────────────────────────────────────────────────
 /**
  * Sponzorski logo se u mobilnoj app crta `contain` unutar pločice 110×50 —
@@ -775,6 +810,11 @@ export async function addGalleryPhoto(
   file: File
 ): Promise<GalleryPhoto> {
   if (!PHOTO_TYPES.includes(file.type)) throw new PhotoValidationError('type');
+
+  // Prevelike fotografije smanjujemo umjesto da ih odbijemo — s telefona
+  // redovito dolaze slike od 4000+ px i nema razloga tjerati korisnika da ih
+  // sam priprema.
+  file = await downscaleImage(file, PHOTO_MAX_PX);
   if (file.size > PHOTO_MAX_BYTES) throw new PhotoValidationError('size');
 
   const dim = await readImageSize(file);
