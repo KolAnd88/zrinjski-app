@@ -7,11 +7,13 @@ import type {
   GalleryPhoto,
   Gender,
   Grp,
+  LocationRow,
   Match,
   MatchEvent,
   MvpResult,
   NotificationLog,
   Player,
+  ProgramItem,
   Registration,
   RegistrationPlayer,
   RegistrationStatus,
@@ -1277,4 +1279,89 @@ export async function fetchMvpResults(): Promise<MvpResult[]> {
   const { data, error } = await client().rpc('mvp_results');
   if (error) throw error;
   return (data ?? []) as MvpResult[];
+}
+
+// ── Lokacije i program dana ────────────────────────────────────────────────
+// Oboje postoji u bazi od prve migracije i mobilna app oboje prikazuje, ali
+// admin dosad nije imao gdje to unijeti — jedini put bio je ručni SQL.
+
+export async function fetchLocations(tournamentId: string): Promise<LocationRow[]> {
+  if (DEMO) return db.locations.filter((l) => l.tournament_id === tournamentId);
+  const { data, error } = await client()
+    .from('location')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function createLocation(row: TablesInsert<'location'>): Promise<LocationRow> {
+  if (DEMO) {
+    const l = { ...row, id: genId('l'), sort_order: row.sort_order ?? 0 } as LocationRow;
+    db.locations.push(l);
+    return l;
+  }
+  const { data, error } = await client().from('location').insert(row).select('*').single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateLocation(id: string, p: TablesUpdate<'location'>): Promise<void> {
+  if (DEMO) {
+    patch(db.locations, id, p as Partial<LocationRow>);
+    return;
+  }
+  const { error } = await client().from('location').update(p).eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteLocation(id: string): Promise<void> {
+  if (DEMO) {
+    db.locations = db.locations.filter((l) => l.id !== id);
+    return;
+  }
+  const { error } = await client().from('location').delete().eq('id', id);
+  if (error) throw error;
+}
+
+export async function fetchProgram(tournamentId: string): Promise<ProgramItem[]> {
+  if (DEMO) return db.program.filter((p) => p.tournament_id === tournamentId);
+  const { data, error } = await client()
+    .from('program_item')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .order('sort_order', { ascending: true })
+    .order('time', { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function createProgramItem(row: TablesInsert<'program_item'>): Promise<ProgramItem> {
+  if (DEMO) {
+    const p = { ...row, id: genId('pr'), sort_order: row.sort_order ?? 0 } as ProgramItem;
+    db.program.push(p);
+    return p;
+  }
+  const { data, error } = await client().from('program_item').insert(row).select('*').single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateProgramItem(id: string, p: TablesUpdate<'program_item'>): Promise<void> {
+  if (DEMO) {
+    patch(db.program, id, p as Partial<ProgramItem>);
+    return;
+  }
+  const { error } = await client().from('program_item').update(p).eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteProgramItem(id: string): Promise<void> {
+  if (DEMO) {
+    db.program = db.program.filter((p) => p.id !== id);
+    return;
+  }
+  const { error } = await client().from('program_item').delete().eq('id', id);
+  if (error) throw error;
 }

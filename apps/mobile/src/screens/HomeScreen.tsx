@@ -6,10 +6,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { Match } from '@zrinjski/core';
 import { crestPair } from '@zrinjski/ui-tokens';
+import { pickCurrentDayId } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import { useData } from '../lib/useData';
 import { useFollow } from '../lib/useFollow';
-import { isoToHHMM } from '../lib/dates';
+import { isoToHHMM, shortDayLabel, timeToHHMM } from '../lib/dates';
+import { openMaps } from '../lib/maps';
 import { C, F, R, S, SP } from '../theme';
 import {
   Card,
@@ -33,7 +35,7 @@ const STAGE: Record<string, string> = {
 };
 
 export function HomeScreen() {
-  const { t } = useT();
+  const { t, locale } = useT();
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const d = useData();
   const { followed } = useFollow();
@@ -64,8 +66,16 @@ export function HomeScreen() {
   const partners = byTier('partner');
   const hasSponsors = silver.length + bronze.length + partners.length > 0;
 
-  const programDayId = live?.day_id ?? d.days[0]?.id;
-  const todayProgram = d.program.filter((p) => p.day_id === programDayId);
+  // Program dana. Dok utakmica traje gleda se njezin dan, inače današnji
+  // (ili prvi sljedeći) — `d.days[0]` bi cijeli turnir pokazivao prvi dan.
+  const now = new Date();
+  const pad2 = (n: number) => String(n).padStart(2, '0');
+  const todayIso = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+  const programDayId = live?.day_id ?? pickCurrentDayId(d.days, todayIso);
+  const programDay = d.days.find((x) => x.id === programDayId);
+  const todayProgram = d.program
+    .filter((p) => p.day_id === programDayId)
+    .sort((a, b) => a.sort_order - b.sort_order || (a.time ?? '').localeCompare(b.time ?? ''));
 
   const teamOf = (id: string | null | undefined) => d.teamById(id);
 
@@ -383,17 +393,54 @@ export function HomeScreen() {
           </>
         )}
 
-        {/* ── VEČERNJI PROGRAM ─────────────────────────────────────────── */}
+        {/* ── PROGRAM DANA ─────────────────────────────────────────────── */}
+        {/* Svaka stavka mora reći KADA i GDJE — bez toga je popis naslova.
+            Vrijeme je Postgres `time` ("18:00:00"), ne timestamp: isoToHHMM
+            ga je vraćao prazno, pa se satnica nikad nije ni vidjela. */}
         {todayProgram.length > 0 && (
           <>
-            <SectionLabel>{t('home.eveningProgram')}</SectionLabel>
+            <SectionLabel
+              right={
+                programDay ? (
+                  <Txt style={styles.progDay}>{shortDayLabel(programDay.date, locale)}</Txt>
+                ) : undefined
+              }
+            >
+              {t('home.programTitle')}
+            </SectionLabel>
             <View style={styles.listCard}>
-              {todayProgram.map((p, i) => (
-                <View key={p.id} style={[styles.progRow, i > 0 && styles.progRowBorder]}>
-                  <Txt style={styles.progTime}>{isoToHHMM(p.time)}</Txt>
-                  <Txt style={styles.progTitle}>{p.title}</Txt>
-                </View>
-              ))}
+              {todayProgram.map((p, i) => {
+                const loc = d.locations.find((l) => l.id === p.location_id);
+                const canNavigate = !!loc && loc.lat != null && loc.lng != null;
+                const Row = canNavigate ? Pressable : View;
+                return (
+                  <Row
+                    key={p.id}
+                    style={[styles.progRow, i > 0 && styles.progRowBorder]}
+                    {...(canNavigate
+                      ? { onPress: () => openMaps(loc!.lat!, loc!.lng!, loc!.name) }
+                      : {})}
+                  >
+                    <View style={styles.progTimeBox}>
+                      <Txt style={styles.progTime}>{timeToHHMM(p.time) || '—'}</Txt>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Txt style={styles.progTitle}>{p.title}</Txt>
+                      {loc ? (
+                        <View style={styles.progLocRow}>
+                          <Ionicons name="location-outline" size={12} color={C.sub} />
+                          <Txt style={styles.progLoc} numberOfLines={1}>
+                            {loc.name}
+                          </Txt>
+                        </View>
+                      ) : (
+                        <Txt style={styles.progNoLoc}>{t('home.noVenue')}</Txt>
+                      )}
+                    </View>
+                    {canNavigate && <Ionicons name="navigate-outline" size={16} color={C.blue} />}
+                  </Row>
+                );
+              })}
             </View>
           </>
         )}
@@ -785,8 +832,30 @@ const styles = StyleSheet.create({
   upCountLabel: { fontFamily: F.body, fontSize: 12, color: C.sub },
   upCountVal: { fontFamily: F.head, fontSize: 13, letterSpacing: 0.5, color: C.redLt },
 
-  progRow: { flexDirection: 'row', alignItems: 'center', gap: SP.cardGap, paddingVertical: 12, paddingHorizontal: 15 },
+  progDay: { fontFamily: F.headSemi, fontSize: 11, letterSpacing: 0.6, color: C.sub },
+  progRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SP.cardGap,
+    minHeight: 56,
+    paddingVertical: 11,
+    paddingHorizontal: 15,
+  },
   progRowBorder: { borderTopWidth: 1, borderTopColor: C.line },
-  progTime: { fontFamily: F.head, fontSize: 14, color: C.red, width: 46 },
-  progTitle: { flex: 1, fontFamily: F.body, fontSize: 14, color: C.txt },
+  /** Vrijeme u vlastitoj kutiji — satnica se tako čita okomito, kao raspored. */
+  progTimeBox: {
+    minWidth: 52,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    borderRadius: R.chip,
+    backgroundColor: 'rgba(225,29,42,.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(225,29,42,.28)',
+    alignItems: 'center',
+  },
+  progTime: { fontFamily: F.head, fontSize: 14, color: C.redLt },
+  progTitle: { fontFamily: F.bodySemi, fontSize: 14, color: C.txt },
+  progLocRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
+  progLoc: { flex: 1, fontFamily: F.body, fontSize: 12, color: C.sub },
+  progNoLoc: { fontFamily: F.body, fontSize: 12, color: C.mut, marginTop: 3 },
 });

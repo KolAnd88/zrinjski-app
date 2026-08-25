@@ -4,6 +4,7 @@ import { useT } from '../i18n/I18nProvider';
 import { Card } from '../components/ui';
 import { useTournamentData } from '../features/tournament/useTournamentData';
 import { DaysEditor } from '../features/tournament/DaysEditor';
+import { ProgramEditor } from '../features/tournament/ProgramEditor';
 import './Tournament.css';
 
 type NumKey =
@@ -125,6 +126,10 @@ export function Tournament() {
 
       <Card>
         <DaysEditor days={data.days} onAdd={data.addDay} onEdit={data.editDay} onRemove={data.removeDay} />
+      </Card>
+
+      <Card>
+        <ProgramEditor tournamentId={tr.id} days={data.days} />
       </Card>
     </div>
   );

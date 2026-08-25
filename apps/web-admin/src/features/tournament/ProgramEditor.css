@@ -1,0 +1,94 @@
+/* ProgramEditor.css — lokacije i program po danima. */
+
+.prog__hint {
+  margin: var(--sp-xs) 0 var(--sp-md);
+  color: var(--sub);
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 70ch;
+}
+
+.prog__empty {
+  margin: var(--sp-sm) 0;
+  color: var(--mut);
+  font-size: 13px;
+}
+
+/* ── Lokacije ──────────────────────────────────────────────────────────── */
+.prog__locs {
+  margin-bottom: var(--sp-sm);
+}
+
+.prog__loc {
+  display: grid;
+  grid-template-columns: 1fr 140px 170px 32px;
+  gap: var(--sp-sm);
+  align-items: center;
+  margin-bottom: var(--sp-sm);
+}
+
+.prog__loc--add {
+  grid-template-columns: 1fr 140px 170px auto;
+  padding-top: var(--sp-sm);
+  border-top: 1px solid var(--line);
+}
+
+/* ── Program ───────────────────────────────────────────────────────────── */
+.prog__day {
+  margin-top: var(--sp-md);
+  padding: var(--sp-md);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card2);
+}
+
+.prog__dayhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-md);
+  margin-bottom: var(--sp-sm);
+}
+
+.prog__daytitle {
+  font-family: var(--font-head);
+  font-size: 14px;
+  color: var(--txt);
+}
+
+.prog__item {
+  display: grid;
+  grid-template-columns: 110px 1fr 180px 32px;
+  gap: var(--sp-sm);
+  align-items: center;
+  margin-bottom: var(--sp-sm);
+}
+
+.prog__time {
+  text-align: center;
+}
+
+.prog__del {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sub);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.prog__del:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+@media (max-width: 720px) {
+  .prog__loc,
+  .prog__loc--add,
+  .prog__item {
+    grid-template-columns: 1fr 32px;
+  }
+}
