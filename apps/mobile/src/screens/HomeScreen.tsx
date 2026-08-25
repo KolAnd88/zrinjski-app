@@ -22,7 +22,7 @@ import {
   useRefreshControl,
 } from '../components/base';
 import { PrimaryButton } from '../components/buttons';
-import { BrandStripe, SponsorMarquee, useCountdown } from '../components/home';
+import { BrandStripe, SponsorGrid, SponsorMarquee, useCountdown } from '../components/home';
 import type { RootStackParamList } from '../navigation/types';
 
 const STAGE: Record<string, string> = {
@@ -52,9 +52,17 @@ export function HomeScreen() {
   const countdown = useCountdown(nextMatch?.scheduled_time);
 
   const gold = d.sponsors.find((s) => s.tier === 'gold' && s.is_active) ?? null;
-  const otherSponsors = d.sponsors
-    .filter((s) => s.tier !== 'gold' && s.is_active)
-    .map((s) => ({ name: s.name, logo_url: s.logo_url }));
+
+  // Sponzori po razredu. Razred se mora vidjeti — klub ga naplaćuje.
+  const byTier = (tier: 'silver' | 'bronze' | 'partner') =>
+    d.sponsors
+      .filter((s) => s.tier === tier && s.is_active)
+      .map((s) => ({ name: s.name, logo_url: s.logo_url }));
+
+  const silver = byTier('silver');
+  const bronze = byTier('bronze');
+  const partners = byTier('partner');
+  const hasSponsors = silver.length + bronze.length + partners.length > 0;
 
   const programDayId = live?.day_id ?? d.days[0]?.id;
   const todayProgram = d.program.filter((p) => p.day_id === programDayId);
@@ -276,11 +284,40 @@ export function HomeScreen() {
           </>
         )}
 
-        {/* ── SPONZORI ─────────────────────────────────────────────────── */}
-        {otherSponsors.length > 0 && (
+        {/* ── SPONZORI PO RAZREDU ──────────────────────────────────────── */}
+        {/* Srebrni su veći i dvoje u redu, brončani manji i troje, partneri
+            u traci koja klizi. Razlika je namjerno u veličini, a ne samo u
+            boji — vidi se i na crno-bijelom snimku zaslona. */}
+        {hasSponsors && (
           <>
             <SectionLabel>{t('home.sponsors')}</SectionLabel>
-            <SponsorMarquee sponsors={otherSponsors} />
+
+            {silver.length > 0 && (
+              <>
+                <Txt style={[styles.tierLabel, { color: C.silverTxt }]}>
+                  {t('home.tierSilver').toUpperCase()}
+                </Txt>
+                <SponsorGrid sponsors={silver} tier="silver" />
+              </>
+            )}
+
+            {bronze.length > 0 && (
+              <>
+                <Txt style={[styles.tierLabel, { color: C.bronzeTxt }]}>
+                  {t('home.tierBronze').toUpperCase()}
+                </Txt>
+                <SponsorGrid sponsors={bronze} tier="bronze" />
+              </>
+            )}
+
+            {partners.length > 0 && (
+              <>
+                <Txt style={[styles.tierLabel, { color: C.sub }]}>
+                  {t('home.tierPartner').toUpperCase()}
+                </Txt>
+                <SponsorMarquee sponsors={partners} />
+              </>
+            )}
           </>
         )}
 
@@ -662,6 +699,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(217,178,74,.1)',
   },
   goldBadgeTxt: { fontFamily: F.headSemi, fontSize: 10, letterSpacing: 1.1, color: C.goldTxt },
+
+  /** Podnaslov razreda sponzora — manji od SectionLabel, da hijerarhija ostane jasna. */
+  tierLabel: {
+    fontFamily: F.headSemi,
+    fontSize: 10,
+    letterSpacing: 1.2,
+    marginTop: SP.divider,
+    marginBottom: SP.gap,
+  },
 
   // ── Turnir u brojkama ───────────────────────────────────────────────────
   statRow: { flexDirection: 'row', gap: SP.gap },

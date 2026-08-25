@@ -10,6 +10,12 @@ export const colors = {
   blue: '#2D6CDF',    // tekstualni linkovi ("Cijeli raspored"), Karta/info
   gold: '#D9B24A',    // SAMO zlatni sponzor + finale
   goldTxt: '#C9B26A', // podnaslov zlatnog sponzora
+  // Niži razredi sponzora. Namjerno prigušeni: zlatna mora ostati jedina
+  // koja se vidi izdaleka, a ove dvije samo razlikuju razred od razreda.
+  silver: '#B9C0CC',
+  silverTxt: '#A6AEBB',
+  bronze: '#C08457',
+  bronzeTxt: '#B0805E',
 
   // Površine (tamna tema — jedina tema)
   bg: '#0B0B0E',

@@ -60,9 +60,13 @@ export function useCountdown(targetIso: string | null | undefined): string | nul
 /** Sponzor u traci: logo ako postoji, inače ime. */
 export type MarqueeSponsor = { name: string; logo_url: string | null };
 
-/** Pločica i razmak — širina trake se računa iz njih, ne mjeri. */
-const TILE_W = 148;
-const TILE_H = 68;
+/**
+ * Pločica i razmak — širina trake se računa iz njih, ne mjeri.
+ * Niža od brončane pločice (60): partneri su zadnji razred i moraju to i
+ * izgledati, inače traka nadglasa plaćene razrede iznad sebe.
+ */
+const TILE_W = 122;
+const TILE_H = 52;
 const TILE_GAP = 9;
 
 export function SponsorMarquee({
@@ -121,6 +125,57 @@ export function SponsorMarquee({
   );
 }
 
+/**
+ * Mreža sponzora jednog razreda.
+ *
+ * Razred se čita iz TRI stvari odjednom, ne samo iz boje: veličine pločice,
+ * koliko ih stane u red i ruba u boji razreda. Srebrni su veliki i dvoje u
+ * redu, brončani manji i troje u redu, a partneri idu u traku koja klizi.
+ * Zlatna se namjerno ne pojavljuje ovdje — ona je rezervirana za pokrovitelja.
+ */
+export function SponsorGrid({
+  sponsors,
+  tier,
+}: {
+  sponsors: MarqueeSponsor[];
+  tier: 'silver' | 'bronze';
+}) {
+  if (sponsors.length === 0) return null;
+  const isSilver = tier === 'silver';
+  // Kad ih je manje nego što stane u red, pločice se rašire — jedan sponzor
+  // stisnut u trećinu reda izgleda kao greška, ne kao razred. Ali brončani se
+  // NIKAD ne šire preko pola reda: samac u razredu inače ispadne širi od
+  // srebrnog i hijerarhija se okrene naopako.
+  // Postotak je malo ispod 100/n da razmak (gap) ima gdje stati — RN nema calc().
+  const cols = Math.min(isSilver ? 2 : 3, Math.max(isSilver ? 1 : 2, sponsors.length));
+  const width = cols === 1 ? '100%' : cols === 2 ? '48%' : '31%';
+  const height = isSilver ? 78 : 60;
+  const accent = isSilver ? 'rgba(185,192,204,.35)' : 'rgba(192,132,87,.35)';
+
+  return (
+    <View style={styles.grid}>
+      {sponsors.map((sp) => (
+        <View
+          key={sp.name}
+          style={[
+            styles.gridTile,
+            { height, width, borderColor: accent },
+            !!sp.logo_url && styles.gridTileLogo,
+          ]}
+        >
+          {sp.logo_url ? (
+            <Image source={{ uri: sp.logo_url }} style={styles.mqLogo} resizeMode="contain" />
+          ) : (
+            <Txt style={[styles.gridName, { fontSize: isSilver ? 14 : 12 }]} numberOfLines={2}>
+              {sp.name}
+            </Txt>
+          )}
+        </View>
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   stripeWrap: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, overflow: 'hidden' },
   stripe: {
@@ -132,6 +187,21 @@ const styles = StyleSheet.create({
     opacity: 0.15,
     transform: [{ rotate: '-62deg' }],
   },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SP.gap },
+  gridTile: {
+    backgroundColor: C.card,
+    borderWidth: 1,
+    borderRadius: R.chip,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+    overflow: 'hidden',
+  },
+  // Logotipi dolaze i kao JPEG s bijelim rubom; na tamnoj pločici bi
+  // izgledali kao zakrpa, pa podloga ide u bijelo.
+  gridTileLogo: { backgroundColor: '#fff', padding: 8 },
+  gridName: { fontFamily: F.headSemi, letterSpacing: 0.4, color: C.txt2, textAlign: 'center' },
+
   mqMask: { overflow: 'hidden' },
   mqTrack: { flexDirection: 'row', gap: TILE_GAP },
   mqTile: {
@@ -153,8 +223,8 @@ const styles = StyleSheet.create({
   mqLogo: { width: '100%', height: '100%' },
   mqName: {
     fontFamily: F.headSemi,
-    fontSize: 14,
-    letterSpacing: 0.5,
+    fontSize: 12,
+    letterSpacing: 0.4,
     color: C.sub,
   },
 });
