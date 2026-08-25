@@ -435,6 +435,28 @@ export type Database = {
         Update: Partial<Database['public']['Tables']['device']['Insert']>;
         Relationships: [];
       };
+      contact: {
+        Row: {
+          id: string;
+          tournament_id: string;
+          name: string;
+          role: string | null;
+          phone: string | null;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tournament_id: string;
+          name: string;
+          role?: string | null;
+          phone?: string | null;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['contact']['Insert']>;
+        Relationships: [];
+      };
       mvp_vote: {
         Row: {
           id: string;
@@ -552,3 +574,4 @@ export type AppUser = Tables<'app_user'>;
 export type NotificationLog = Tables<'notification_log'>;
 export type Device = Tables<'device'>;
 export type MvpVote = Tables<'mvp_vote'>;
+export type Contact = Tables<'contact'>;

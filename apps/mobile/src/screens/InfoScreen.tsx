@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -132,6 +132,43 @@ export function InfoScreen() {
           ))}
         </View>
 
+        {/* Kontakti organizatora — dodir na red zove broj. */}
+        {d.contacts.length > 0 && (
+          <>
+            <SectionLabel>{t('info.contacts')}</SectionLabel>
+            <View style={styles.card}>
+              {d.contacts.map((c, i) => (
+                <Pressable
+                  key={c.id}
+                  disabled={!c.phone}
+                  onPress={() => c.phone && Linking.openURL(`tel:${c.phone.replace(/\s/g, '')}`)}
+                  style={[styles.detailRow, i > 0 && styles.rowBorder]}
+                >
+                  <View style={styles.iconChip}>
+                    <Ionicons name="call-outline" size={17} color={C.redLt} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Txt style={styles.linkLabel} numberOfLines={1}>
+                      {c.name}
+                    </Txt>
+                    {!!c.role && (
+                      <Txt style={styles.detailLabelPlain} numberOfLines={1}>
+                        {c.role}
+                      </Txt>
+                    )}
+                  </View>
+                  {!!c.phone && (
+                    <>
+                      <Txt style={styles.phone}>{c.phone}</Txt>
+                      <Ionicons name="chevron-forward" size={18} color={C.mut} />
+                    </>
+                  )}
+                </Pressable>
+              ))}
+            </View>
+          </>
+        )}
+
         {/* Pravila */}
         <SectionLabel>{t('info.rules')}</SectionLabel>
         <View style={[styles.card, styles.textCard]}>
@@ -223,6 +260,7 @@ const styles = StyleSheet.create({
   },
   detailLabelPlain: { fontFamily: F.body, fontSize: 12, color: C.sub, marginTop: 2 },
   detailValue: { fontFamily: F.bodySemi, fontSize: 14, color: C.txt, marginTop: 2 },
+  phone: { fontFamily: F.bodySemi, fontSize: 13, color: C.blue },
   linkLabel: { fontFamily: F.bodySemi, fontSize: 14, color: C.txt },
 
   bodyTxt: { fontFamily: F.body, fontSize: 13, lineHeight: 21, color: C.txt2 },

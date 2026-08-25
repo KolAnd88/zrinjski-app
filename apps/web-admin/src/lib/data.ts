@@ -3,6 +3,7 @@
 // DEMO grana omogućuje pregled cijelog admina bez baze; ukloni se kad DEMO = false.
 import type {
   AppUser,
+  Contact,
   Day,
   GalleryPhoto,
   Gender,
@@ -1363,5 +1364,54 @@ export async function deleteProgramItem(id: string): Promise<void> {
     return;
   }
   const { error } = await client().from('program_item').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ── Kontakti organizatora ──────────────────────────────────────────────────
+// Javno vidljivi u Info tabu aplikacije. Gledatelj na terenu treba znati koga
+// nazvati; do sada u aplikaciji nije bilo nijednog broja.
+
+export async function fetchContacts(tournamentId: string): Promise<Contact[]> {
+  if (DEMO) return db.contacts.filter((c) => c.tournament_id === tournamentId);
+  const { data, error } = await client()
+    .from('contact')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function createContact(row: TablesInsert<'contact'>): Promise<Contact> {
+  if (DEMO) {
+    const c = {
+      ...row,
+      id: genId('c'),
+      sort_order: row.sort_order ?? 0,
+      created_at: new Date().toISOString(),
+    } as Contact;
+    db.contacts.push(c);
+    return c;
+  }
+  const { data, error } = await client().from('contact').insert(row).select('*').single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateContact(id: string, p: TablesUpdate<'contact'>): Promise<void> {
+  if (DEMO) {
+    patch(db.contacts, id, p as Partial<Contact>);
+    return;
+  }
+  const { error } = await client().from('contact').update(p).eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteContact(id: string): Promise<void> {
+  if (DEMO) {
+    db.contacts = db.contacts.filter((c) => c.id !== id);
+    return;
+  }
+  const { error } = await client().from('contact').delete().eq('id', id);
   if (error) throw error;
 }

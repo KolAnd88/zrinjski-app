@@ -5,6 +5,7 @@ import { Card } from '../components/ui';
 import { useTournamentData } from '../features/tournament/useTournamentData';
 import { DaysEditor } from '../features/tournament/DaysEditor';
 import { ProgramEditor } from '../features/tournament/ProgramEditor';
+import { ContactsEditor } from '../features/tournament/ContactsEditor';
 import './Tournament.css';
 
 type NumKey =
@@ -130,6 +131,10 @@ export function Tournament() {
 
       <Card>
         <ProgramEditor tournamentId={tr.id} days={data.days} />
+      </Card>
+
+      <Card>
+        <ContactsEditor tournamentId={tr.id} />
       </Card>
     </div>
   );

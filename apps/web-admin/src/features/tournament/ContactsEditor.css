@@ -1,0 +1,53 @@
+/* ContactsEditor.css — kontakti organizatora (javno vidljivi u aplikaciji). */
+
+.cont__hint {
+  margin: var(--sp-xs) 0 var(--sp-md);
+  color: var(--sub);
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 70ch;
+}
+
+.cont__empty {
+  margin: var(--sp-sm) 0;
+  color: var(--mut);
+  font-size: 13px;
+}
+
+.cont__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 180px 32px;
+  gap: var(--sp-sm);
+  align-items: center;
+  margin-bottom: var(--sp-sm);
+}
+
+.cont__row--add {
+  grid-template-columns: 1fr 1fr 180px auto;
+  padding-top: var(--sp-sm);
+  border-top: 1px solid var(--line);
+}
+
+.cont__del {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sub);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cont__del:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+@media (max-width: 720px) {
+  .cont__row,
+  .cont__row--add {
+    grid-template-columns: 1fr 32px;
+  }
+}

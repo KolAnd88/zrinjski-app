@@ -7,6 +7,7 @@ import type {
   LocationRow,
   Match,
   MatchEvent,
+  Contact,
   MvpResult,
   Player,
   ProgramItem,
@@ -285,6 +286,13 @@ export const demoMvpResults: MvpResult[] = [
   { player_id: 'izv-p0', gender: 'm', votes: 1 },
   { player_id: 'las-p1', gender: 'z', votes: 2 },
   { player_id: 'zrz-p0', gender: 'z', votes: 1 },
+];
+
+/** Kontakti organizatora — u DEMO načinu izmišljeni. */
+export const demoContacts: Contact[] = [
+  { id: 'c1', tournament_id: 'T', name: 'Ivan Ivić', role: 'Direktor turnira', phone: '+387 63 111 222', sort_order: 0, created_at: '2026-01-01T00:00:00Z' },
+  { id: 'c2', tournament_id: 'T', name: 'Marko Marić', role: 'Delegat', phone: '+387 63 333 444', sort_order: 1, created_at: '2026-01-01T00:00:00Z' },
+  { id: 'c3', tournament_id: 'T', name: 'Ana Anić', role: 'Prijave ekipa', phone: '+387 63 555 666', sort_order: 2, created_at: '2026-01-01T00:00:00Z' },
 ];
 
 export const demoGallery: { id: string; day_id: string; color: string; url: string | null }[] = [

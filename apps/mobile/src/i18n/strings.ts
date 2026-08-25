@@ -187,6 +187,7 @@ export const strings = {
     'info.aboutTournament': 'O turniru',
     'info.locations': 'Lokacije',
     'info.hotels': 'Hoteli',
+    'info.contacts': 'Kontakti organizatora',
     'info.rules': 'Pravila',
     'info.openMap': 'Otvori kartu',
     'info.aboutBody':
@@ -467,6 +468,7 @@ export const strings = {
     'info.aboutTournament': 'About the tournament',
     'info.locations': 'Locations',
     'info.hotels': 'Hotels',
+    'info.contacts': 'Organiser contacts',
     'info.rules': 'Rules',
     'info.openMap': 'Open map',
     'info.aboutBody':

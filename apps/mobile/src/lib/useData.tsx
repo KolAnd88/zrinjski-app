@@ -12,6 +12,7 @@ import type {
   LocationRow,
   Match,
   MatchEvent,
+  Contact,
   MvpResult,
   Player,
   ProgramItem,
@@ -29,6 +30,7 @@ import {
   demoGroups,
   demoLocations,
   demoMatches,
+  demoContacts,
   demoMvpResults,
   demoPlayers,
   demoProgram,
@@ -62,6 +64,8 @@ export type DataStore = {
   gallery: GalleryItem[];
   /** Glasovi za najboljeg igraca. Baza vraca prazno dok admin ne zatvori glasanje. */
   mvpResults: MvpResult[];
+  /** Kontakti organizatora — javni popis za Info tab. */
+  contacts: Contact[];
   teamById: (id: string | null | undefined) => Team | undefined;
   playersOf: (teamId: string) => Player[];
   matchById: (id: string) => Match | undefined;
@@ -105,6 +109,7 @@ type AllData = {
   program: ProgramItem[];
   gallery: GalleryItem[];
   mvpResults: MvpResult[];
+  contacts: Contact[];
 };
 
 async function loadAll(): Promise<AllData> {
@@ -119,12 +124,12 @@ async function loadAll(): Promise<AllData> {
   const empty: AllData = {
     tournament: tournament ?? null,
     days: [], groups: [], teams: [], players: [], matches: [],
-    events: [], sponsors: [], locations: [], program: [], gallery: [], mvpResults: [],
+    events: [], sponsors: [], locations: [], program: [], gallery: [], mvpResults: [], contacts: [],
   };
   if (!tournament) return empty;
   const tid = tournament.id;
 
-  const [days, groups, teams, matches, sponsors, locations, program, gallery] = await Promise.all([
+  const [days, groups, teams, matches, sponsors, locations, program, gallery, contacts] = await Promise.all([
     sb.from('day').select('*').eq('tournament_id', tid).order('sort_order'),
     sb.from('grp').select('*').eq('tournament_id', tid).order('sort_order'),
     sb.from('team').select('*').eq('tournament_id', tid).order('name'),
@@ -133,6 +138,7 @@ async function loadAll(): Promise<AllData> {
     sb.from('location').select('*').eq('tournament_id', tid).order('sort_order'),
     sb.from('program_item').select('*').eq('tournament_id', tid).order('sort_order'),
     sb.from('gallery_photo').select('*').eq('tournament_id', tid),
+    sb.from('contact').select('*').eq('tournament_id', tid).order('sort_order'),
   ]);
 
   // Nagrada za najboljeg igraca: baza sama odlucuje smije li je pokazati.
@@ -157,6 +163,7 @@ async function loadAll(): Promise<AllData> {
     locations: locations.data ?? [],
     program: program.data ?? [],
     mvpResults: (mvp.data ?? []) as MvpResult[],
+    contacts: (contacts.data ?? []) as Contact[],
     gallery: (gallery.data ?? []).map((g, i) => ({
       id: g.id,
       day_id: g.day_id ?? '',
@@ -170,7 +177,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(LIVE);
   const [data, setData] = useState<AllData>(() =>
     LIVE
-      ? { tournament: null, days: [], groups: [], teams: [], players: [], matches: [], events: [], sponsors: [], locations: [], program: [], gallery: [], mvpResults: [] }
+      ? { tournament: null, days: [], groups: [], teams: [], players: [], matches: [], events: [], sponsors: [], locations: [], program: [], gallery: [], mvpResults: [], contacts: [] }
       : {
           tournament: demoTournament,
           days: demoDays,
@@ -184,6 +191,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           program: demoProgram,
           gallery: demoGallery,
           mvpResults: demoMvpResults,
+          contacts: demoContacts,
         }
   );
 

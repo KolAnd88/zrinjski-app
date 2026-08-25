@@ -3,6 +3,7 @@
 // se spoji Supabase (DEMO = false). Predstavlja jedan turnir s muškom i ženskom
 // konkurencijom, grupama, ekipama, igračima, satnicom, sponzorima, prijavama…
 import type {
+  Contact,
   Day,
   GalleryPhoto,
   Grp,
@@ -237,6 +238,11 @@ const gallery: GalleryPhoto[] = [];
 
 const mvpVotes: MvpVote[] = [];
 
+const contacts: Contact[] = [
+  { id: 'c1', tournament_id: T, name: 'Ivan Ivić', role: 'Direktor turnira', phone: '+387 63 111 222', sort_order: 0, created_at: '2026-01-01T00:00:00Z' },
+  { id: 'c2', tournament_id: T, name: 'Marko Marić', role: 'Delegat', phone: '+387 63 333 444', sort_order: 1, created_at: '2026-01-01T00:00:00Z' },
+];
+
 export const db = {
   tournament,
   days,
@@ -253,4 +259,5 @@ export const db = {
   appUsers,
   gallery,
   mvpVotes,
+  contacts,
 };
