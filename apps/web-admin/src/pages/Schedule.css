@@ -63,6 +63,19 @@
   border: 1px solid var(--line);
   border-radius: var(--r-card);
   padding: var(--sp-sm) var(--sp-md);
+  /* Red je gumb (otvara detalj utakmice) — poništi izgled gumba, zadrži izgled retka. */
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.mrow:hover {
+  border-color: var(--red);
+}
+.mrow:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
 }
 .mrow--final {
   border-color: var(--gold);

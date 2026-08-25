@@ -6,6 +6,7 @@ import { Button, Card, Crest } from '../components/ui';
 import { useTournamentData } from '../features/tournament/useTournamentData';
 import { DaysEditor } from '../features/tournament/DaysEditor';
 import { useScheduleMatches, type TeamLite } from '../features/schedule/useScheduleMatches';
+import { MatchDetailModal } from '../features/schedule/MatchDetailModal';
 import { toInputTime, isoToLocalHHMM } from '../lib/timeFormat';
 import './Schedule.css';
 
@@ -31,9 +32,11 @@ function side(
 function MatchRow({
   m,
   teamsById,
+  onOpen,
 }: {
   m: Match;
   teamsById: Map<string, TeamLite>;
+  onOpen: () => void;
 }) {
   const { t } = useT();
   const home = side(m.home_team_id, m.home_placeholder, teamsById);
@@ -42,7 +45,12 @@ function MatchRow({
   const isFinal = m.stage === 'final';
 
   return (
-    <div className={`mrow ${isFinal ? 'mrow--final' : ''}`}>
+    <button
+      type="button"
+      className={`mrow ${isFinal ? 'mrow--final' : ''}`}
+      onClick={onOpen}
+      title={t('mdet.open')}
+    >
       <div className="mrow__time">{time || '—'}</div>
       <Crest code={home.code} index={home.index} logoUrl={home.logoUrl} size={28} />
       <div className={`mrow__team ${home.ph ? 'is-ph' : ''}`}>{home.name}</div>
@@ -62,7 +70,7 @@ function MatchRow({
       <div className={`mrow__team mrow__team--away ${away.ph ? 'is-ph' : ''}`}>{away.name}</div>
       <Crest code={away.code} index={away.index} logoUrl={away.logoUrl} size={28} />
       {STAGE_SHORT[m.stage] && <span className="mrow__stage">{STAGE_SHORT[m.stage]}</span>}
-    </div>
+    </button>
   );
 }
 
@@ -73,6 +81,7 @@ export function Schedule() {
   const [duration, setDuration] = useState('');
   const [gap, setGap] = useState('');
   const [doneMsg, setDoneMsg] = useState<string | null>(null);
+  const [openMatch, setOpenMatch] = useState<Match | null>(null);
 
   useEffect(() => {
     if (data.tournament) {
@@ -194,7 +203,7 @@ export function Schedule() {
               ) : (
                 <div className="sched__rows">
                   {ms.map((m) => (
-                    <MatchRow key={m.id} m={m} teamsById={sched.teamsById} />
+                    <MatchRow key={m.id} m={m} teamsById={sched.teamsById} onOpen={() => setOpenMatch(m)} />
                   ))}
                 </div>
               )}
@@ -203,6 +212,15 @@ export function Schedule() {
         })}
         {data.days.length === 0 && <Card>{t('tournament.noDays')}</Card>}
       </div>
+
+      {openMatch && (
+        <MatchDetailModal
+          m={openMatch}
+          teamsById={sched.teamsById}
+          dayDate={data.days.find((d) => d.id === openMatch.day_id)?.date ?? null}
+          onClose={() => setOpenMatch(null)}
+        />
+      )}
     </div>
   );
 }
