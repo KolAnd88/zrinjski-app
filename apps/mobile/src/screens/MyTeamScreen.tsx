@@ -20,6 +20,7 @@ import {
 import { C, F, R, SP } from '../theme';
 import { Crest, Txt } from '../components/base';
 import { PrimaryButton, SecondaryButton } from '../components/buttons';
+import { MvpVoteCard } from '../components/mvpVote';
 import type { RootStackParamList } from '../navigation/types';
 
 /**
@@ -99,6 +100,9 @@ export function MyTeamScreen() {
             <Crest code={team.short_code} index={team.sort_order} logoUrl={team.logo_url} size={54} />
             <Txt style={styles.hint}>{t('rep.contactAdmin')}</Txt>
           </View>
+
+          {/* Glasanje za najboljeg igrača — samo odobrena ekipa ima pravo glasa. */}
+          <MvpVoteCard team={team} />
 
           <RosterEditor
             players={players}

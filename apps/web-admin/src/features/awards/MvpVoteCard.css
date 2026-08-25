@@ -1,0 +1,26 @@
+/* MvpVoteCard.css — glasanje predstavnika za najboljeg igrača. */
+
+.mvp__hint {
+  margin: var(--sp-xs) 0 var(--sp-md);
+  color: var(--sub);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mvp__row {
+  display: flex;
+  gap: var(--sp-sm);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.mvp__row .input {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.mvp__voted {
+  margin: var(--sp-md) 0 0;
+  color: var(--gold);
+  font-size: 13px;
+}

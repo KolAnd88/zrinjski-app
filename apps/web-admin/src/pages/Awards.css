@@ -1,0 +1,163 @@
+/* Awards.css — nagrade turnira (najbolji igrač, golman, strijelac). */
+
+.awards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
+}
+
+.awards__votehead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-lg);
+  flex-wrap: wrap;
+}
+
+.awards__hint {
+  margin: var(--sp-xs) 0 0;
+  color: var(--sub);
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 60ch;
+}
+
+/* ── M / Ž ─────────────────────────────────────────────────────────────── */
+.awards__genders {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  align-self: flex-start;
+}
+
+.awards__gender {
+  padding: 8px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--sub);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.awards__gender.is-on {
+  background: var(--red);
+  color: #fff;
+}
+
+/* ── Kartice ───────────────────────────────────────────────────────────── */
+.awards__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--sp-lg);
+  align-items: start;
+}
+
+.awards__empty {
+  margin: var(--sp-md) 0 0;
+  color: var(--mut);
+  font-size: 13px;
+}
+
+.awards__winner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  margin-top: var(--sp-md);
+  padding: var(--sp-md);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card2);
+}
+
+/* Zlatna je rezervirana za finale i zlatnog sponzora — najbolji igrač
+   turnira je jedina nagrada koja se dodjeljuje na istoj razini. */
+.awards__winner.is-gold {
+  border-color: rgba(217, 178, 74, 0.45);
+  background: rgba(217, 178, 74, 0.08);
+}
+
+.awards__winnermain {
+  flex: 1;
+  min-width: 0;
+}
+
+.awards__winnername {
+  font-family: var(--font-head);
+  font-size: 17px;
+  color: var(--txt);
+}
+
+.awards__winnerteam {
+  margin-top: 2px;
+  color: var(--sub);
+  font-size: 12px;
+}
+
+.awards__winnerval {
+  font-family: var(--font-head);
+  font-size: 26px;
+  color: var(--txt);
+  text-align: right;
+  line-height: 1.1;
+}
+
+.awards__winnerval span {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--sub);
+}
+
+.awards__tie {
+  margin: var(--sp-sm) 0 0;
+  color: var(--gold);
+  font-size: 12px;
+}
+
+.awards__rest {
+  margin-top: var(--sp-md);
+}
+
+.awards__row {
+  display: grid;
+  grid-template-columns: 20px 1fr auto 36px;
+  gap: var(--sp-sm);
+  align-items: center;
+  padding: 7px 0;
+  border-top: 1px solid var(--line-row, var(--line));
+  font-size: 13px;
+}
+
+.awards__rank {
+  color: var(--mut);
+  text-align: center;
+}
+
+.awards__name {
+  color: var(--txt);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.awards__team {
+  color: var(--sub);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 12ch;
+}
+
+.awards__val {
+  text-align: right;
+  font-family: var(--font-head);
+  color: var(--txt);
+}

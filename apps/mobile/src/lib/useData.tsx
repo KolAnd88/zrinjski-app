@@ -12,6 +12,7 @@ import type {
   LocationRow,
   Match,
   MatchEvent,
+  MvpResult,
   Player,
   ProgramItem,
   Sponsor,
@@ -28,6 +29,7 @@ import {
   demoGroups,
   demoLocations,
   demoMatches,
+  demoMvpResults,
   demoPlayers,
   demoProgram,
   demoSponsors,
@@ -58,6 +60,8 @@ export type DataStore = {
   locations: LocationRow[];
   program: ProgramItem[];
   gallery: GalleryItem[];
+  /** Glasovi za najboljeg igraca. Baza vraca prazno dok admin ne zatvori glasanje. */
+  mvpResults: MvpResult[];
   teamById: (id: string | null | undefined) => Team | undefined;
   playersOf: (teamId: string) => Player[];
   matchById: (id: string) => Match | undefined;
@@ -100,6 +104,7 @@ type AllData = {
   locations: LocationRow[];
   program: ProgramItem[];
   gallery: GalleryItem[];
+  mvpResults: MvpResult[];
 };
 
 async function loadAll(): Promise<AllData> {
@@ -114,7 +119,7 @@ async function loadAll(): Promise<AllData> {
   const empty: AllData = {
     tournament: tournament ?? null,
     days: [], groups: [], teams: [], players: [], matches: [],
-    events: [], sponsors: [], locations: [], program: [], gallery: [],
+    events: [], sponsors: [], locations: [], program: [], gallery: [], mvpResults: [],
   };
   if (!tournament) return empty;
   const tid = tournament.id;
@@ -129,6 +134,9 @@ async function loadAll(): Promise<AllData> {
     sb.from('program_item').select('*').eq('tournament_id', tid).order('sort_order'),
     sb.from('gallery_photo').select('*').eq('tournament_id', tid),
   ]);
+
+  // Nagrada za najboljeg igraca: baza sama odlucuje smije li je pokazati.
+  const mvp = await sb.rpc('mvp_results');
 
   const teamIds = (teams.data ?? []).map((t) => t.id);
   const matchIds = (matches.data ?? []).map((m) => m.id);
@@ -148,6 +156,7 @@ async function loadAll(): Promise<AllData> {
     sponsors: sponsors.data ?? [],
     locations: locations.data ?? [],
     program: program.data ?? [],
+    mvpResults: (mvp.data ?? []) as MvpResult[],
     gallery: (gallery.data ?? []).map((g, i) => ({
       id: g.id,
       day_id: g.day_id ?? '',
@@ -161,7 +170,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(LIVE);
   const [data, setData] = useState<AllData>(() =>
     LIVE
-      ? { tournament: null, days: [], groups: [], teams: [], players: [], matches: [], events: [], sponsors: [], locations: [], program: [], gallery: [] }
+      ? { tournament: null, days: [], groups: [], teams: [], players: [], matches: [], events: [], sponsors: [], locations: [], program: [], gallery: [], mvpResults: [] }
       : {
           tournament: demoTournament,
           days: demoDays,
@@ -174,6 +183,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           locations: demoLocations,
           program: demoProgram,
           gallery: demoGallery,
+          mvpResults: demoMvpResults,
         }
   );
 

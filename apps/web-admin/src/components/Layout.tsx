@@ -14,6 +14,7 @@ const NAV: { to: string; key: StringKey }[] = [
   { to: '/notices', key: 'nav.notices' },
   { to: '/promo', key: 'nav.promo' },
   { to: '/gallery', key: 'nav.gallery' },
+  { to: '/awards', key: 'nav.awards' },
   { to: '/registrations', key: 'nav.registrations' },
   { to: '/users', key: 'nav.users' },
 ];

@@ -16,6 +16,7 @@ import type {
   Sponsor,
   Team,
   Tournament,
+  MvpVote,
 } from '@zrinjski/core';
 
 let seq = 0;
@@ -41,6 +42,7 @@ const tournament: Tournament = {
   reminder_prefs: { day_before_18: true, thirty_min_before: true, schedule_change: true },
   registration_open: true,
   registration_deadline: null,
+  mvp_voting_open: true,
   created_at: '2026-01-01T00:00:00Z',
   updated_at: '2026-01-01T00:00:00Z',
 };
@@ -231,6 +233,8 @@ const appUsers: { id: string; email: string; role: string; team_id: string | nul
 // Galerija u demo modu kreće prazna — fotografije se dodaju uploadom u sesiji.
 const gallery: GalleryPhoto[] = [];
 
+const mvpVotes: MvpVote[] = [];
+
 export const db = {
   tournament,
   days,
@@ -246,4 +250,5 @@ export const db = {
   notifications,
   appUsers,
   gallery,
+  mvpVotes,
 };

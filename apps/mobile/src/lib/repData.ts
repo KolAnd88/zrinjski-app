@@ -94,3 +94,47 @@ export async function deletePlayer(id: string): Promise<void> {
   const { error } = await sb().from('player').delete().eq('id', id);
   if (error) throw error;
 }
+
+// ── Glasanje za najboljeg igrača turnira ───────────────────────────────────
+// Isti RPC-i kao u web adminu; provjere (otvoreno glasanje, ne za vlastitu
+// ekipu, ista konkurencija) su u bazi pa ih ne dupliramo ovdje.
+
+export type MvpVoteError =
+  | 'closed'
+  | 'not_a_rep'
+  | 'own_team'
+  | 'other_gender'
+  | 'no_player';
+
+export class MvpVoteFailed extends Error {
+  constructor(public readonly code: MvpVoteError) {
+    super(code);
+    this.name = 'MvpVoteFailed';
+  }
+}
+
+/** Za koga je prijavljeni predstavnik glasao; null ako još nije. */
+export async function fetchMyMvpVote(): Promise<string | null> {
+  const c = sb();
+  const { data: auth } = await c.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) return null;
+  const { data, error } = await c.from('mvp_vote').select('player_id').eq('voter_id', uid).maybeSingle();
+  if (error) throw error;
+  return data?.player_id ?? null;
+}
+
+/** Predaj ili promijeni glas. */
+export async function castMyMvpVote(playerId: string): Promise<void> {
+  const { error } = await sb().rpc('cast_my_mvp_vote', { p_player_id: playerId });
+  if (!error) return;
+
+  const m = error.message.toLowerCase();
+  if (m.includes('vote_closed')) throw new MvpVoteFailed('closed');
+  if (m.includes('vote_not_a_rep')) throw new MvpVoteFailed('not_a_rep');
+  if (m.includes('vote_own_team')) throw new MvpVoteFailed('own_team');
+  if (m.includes('vote_other_competition')) throw new MvpVoteFailed('other_gender');
+  if (m.includes('vote_no_player')) throw new MvpVoteFailed('no_player');
+  throw error;
+}
+

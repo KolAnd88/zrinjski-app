@@ -66,6 +66,7 @@ export type Database = {
           reminder_prefs: ReminderPrefs;
           registration_open: boolean;
           registration_deadline: string | null;
+          mvp_voting_open: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -82,6 +83,7 @@ export type Database = {
           reminder_prefs?: ReminderPrefs;
           registration_open?: boolean;
           registration_deadline?: string | null;
+          mvp_voting_open?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -429,6 +431,30 @@ export type Database = {
         Update: Partial<Database['public']['Tables']['device']['Insert']>;
         Relationships: [];
       };
+      mvp_vote: {
+        Row: {
+          id: string;
+          tournament_id: string;
+          gender: Gender;
+          voter_id: string;
+          voter_team_id: string | null;
+          player_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tournament_id: string;
+          gender: Gender;
+          voter_id: string;
+          voter_team_id?: string | null;
+          player_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['mvp_vote']['Insert']>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -473,6 +499,15 @@ export type Database = {
         Args: { p_registration_id: string };
         Returns: undefined;
       };
+      cast_my_mvp_vote: {
+        Args: { p_player_id: string };
+        Returns: undefined;
+      };
+      /** Prazno dok je glasanje otvoreno i pozivatelj nije admin. */
+      mvp_results: {
+        Args: Record<string, never>;
+        Returns: { player_id: string; gender: Gender; votes: number }[];
+      };
     };
     Enums: {
       gender: Gender;
@@ -512,3 +547,4 @@ export type GalleryPhoto = Tables<'gallery_photo'>;
 export type AppUser = Tables<'app_user'>;
 export type NotificationLog = Tables<'notification_log'>;
 export type Device = Tables<'device'>;
+export type MvpVote = Tables<'mvp_vote'>;

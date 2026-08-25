@@ -10,6 +10,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Tournament } from './pages/Tournament';
 import { Schedule } from './pages/Schedule';
 import { Teams } from './pages/Teams';
+import { Awards } from './pages/Awards';
 import { Live } from './pages/Live';
 import { Tv } from './pages/Tv';
 import { MatchReport } from './pages/MatchReport';
@@ -114,6 +115,9 @@ function AppRoutes() {
       </Route>
       <Route element={<Layout title="nav.gallery" />}>
         <Route path="/gallery" element={<Gallery />} />
+      </Route>
+      <Route element={<Layout title="nav.awards" />}>
+        <Route path="/awards" element={<Awards />} />
       </Route>
       <Route element={<Layout title="nav.registrations" />}>
         <Route path="/registrations" element={<Registrations />} />

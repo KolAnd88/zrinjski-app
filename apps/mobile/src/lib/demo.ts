@@ -7,6 +7,7 @@ import type {
   LocationRow,
   Match,
   MatchEvent,
+  MvpResult,
   Player,
   ProgramItem,
   Sponsor,
@@ -27,6 +28,7 @@ export const demoTournament: Tournament = {
   reminder_prefs: { day_before_18: true, thirty_min_before: true, schedule_change: true },
   registration_open: true,
   registration_deadline: null,
+  mvp_voting_open: false,
   created_at: '2026-01-01T00:00:00+01:00',
   updated_at: '2026-01-01T00:00:00+01:00',
 };
@@ -271,6 +273,18 @@ export const demoProgram: ProgramItem[] = [
 ];
 
 // Galerija: boje umjesto stvarnih slika (offline demo nema mrežu ni Storage).
+/**
+ * Rezultat glasanja u DEMO načinu — glasanje je zatvoreno pa se nagrada vidi.
+ * Uživo ovo dolazi iz RPC-a mvp_results(), koji vraća prazno dok je otvoreno.
+ */
+export const demoMvpResults: MvpResult[] = [
+  { player_id: 'gru-p2', gender: 'm', votes: 3 },
+  { player_id: 'zri-p3', gender: 'm', votes: 2 },
+  { player_id: 'izv-p0', gender: 'm', votes: 1 },
+  { player_id: 'las-p1', gender: 'z', votes: 2 },
+  { player_id: 'zrz-p0', gender: 'z', votes: 1 },
+];
+
 export const demoGallery: { id: string; day_id: string; color: string; url: string | null }[] = [
   { id: 'g1', day_id: 'D1', color: '#E11D2A', url: null },
   { id: 'g2', day_id: 'D1', color: '#2D6CDF', url: null },

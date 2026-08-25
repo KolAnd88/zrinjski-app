@@ -12,6 +12,7 @@ import {
   type MyRegistration,
   updatePlayer,
 } from '../lib/data';
+import { MvpVoteCard } from '../features/awards/MvpVoteCard';
 import { MyTeamSetup } from './MyTeamSetup';
 import './RepPortal.css';
 
@@ -129,6 +130,11 @@ function ApprovedTeamPortal() {
 
       {flash && <div className="banner banner--ok">{flash}</div>}
       {err && <div className="banner banner--error">{err}</div>}
+
+      {/* Glasanje ima smisla samo za odobrenu ekipu — samo ona ima suparnike. */}
+      <div style={{ marginBottom: 'var(--sp-lg)' }}>
+        <MvpVoteCard team={team} />
+      </div>
 
       <Card>
         <div className="rep__rosterhead">

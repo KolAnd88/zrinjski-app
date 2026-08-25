@@ -9,6 +9,7 @@ import type {
   Grp,
   Match,
   MatchEvent,
+  MvpResult,
   NotificationLog,
   Player,
   Registration,
@@ -1183,4 +1184,97 @@ export async function saveMyRegistrationPlayers(players: RegistrationPlayer[]): 
     p_players: players,
   });
   if (error) throw error;
+}
+
+// ── Glasanje za najboljeg igrača turnira ───────────────────────────────────
+// Golman i strijelac se računaju iz događaja (vidi @zrinjski/core awards.ts) i
+// ne trebaju ništa od baze. Najbolji igrač se ne da izmjeriti brojkom, pa ga
+// biraju predstavnici ekipa — jedan glas po računu, nikad za vlastitu ekipu.
+
+export type MvpVoteError =
+  | 'closed'        // admin još nije otvorio (ili je već zatvorio) glasanje
+  | 'not_a_rep'     // račun nije predstavnik odobrene ekipe
+  | 'own_team'      // pokušaj glasanja za vlastitog igrača
+  | 'other_gender'  // igrač iz druge konkurencije
+  | 'no_player';
+
+export class MvpVoteFailed extends Error {
+  constructor(public readonly code: MvpVoteError) {
+    super(code);
+    this.name = 'MvpVoteFailed';
+  }
+}
+
+/** U DEMO grani nema prijave, pa svi glasovi idu na isti izmišljeni račun. */
+const DEMO_VOTER = 'demo-rep';
+
+/** Za koga je prijavljeni korisnik glasao; null ako još nije. */
+export async function fetchMyMvpVote(): Promise<string | null> {
+  if (DEMO) return db.mvpVotes.find((v) => v.voter_id === DEMO_VOTER)?.player_id ?? null;
+  const c = client();
+  const { data: auth } = await c.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) return null;
+
+  // RLS ionako propušta samo vlastiti glas; filtar je tu radi jasnoće.
+  const { data, error } = await c
+    .from('mvp_vote')
+    .select('player_id')
+    .eq('voter_id', uid)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.player_id ?? null;
+}
+
+/** Predaj ili promijeni glas. Provjere su u bazi — klijentu se ne vjeruje. */
+export async function castMyMvpVote(playerId: string): Promise<void> {
+  if (DEMO) {
+    const player = db.players.find((p) => p.id === playerId);
+    const gender = db.teams.find((t) => t.id === player?.team_id)?.gender ?? 'm';
+    const existing = db.mvpVotes.find((v) => v.voter_id === DEMO_VOTER);
+    if (existing) existing.player_id = playerId;
+    else
+      db.mvpVotes.push({
+        id: genId('v'),
+        tournament_id: db.tournament.id,
+        gender,
+        voter_id: DEMO_VOTER,
+        voter_team_id: null,
+        player_id: playerId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+    return;
+  }
+  const { error } = await client().rpc('cast_my_mvp_vote', { p_player_id: playerId });
+  if (!error) return;
+
+  const m = error.message.toLowerCase();
+  if (m.includes('vote_closed')) throw new MvpVoteFailed('closed');
+  if (m.includes('vote_not_a_rep')) throw new MvpVoteFailed('not_a_rep');
+  if (m.includes('vote_own_team')) throw new MvpVoteFailed('own_team');
+  if (m.includes('vote_other_competition')) throw new MvpVoteFailed('other_gender');
+  if (m.includes('vote_no_player')) throw new MvpVoteFailed('no_player');
+  throw error;
+}
+
+export type { MvpResult } from '@zrinjski/core';
+
+/**
+ * Brojevi glasova. Dok je glasanje otvoreno baza vraća prazno svima osim
+ * adminu — namjerno, da se predstavnici ne povode za trenutnim vodećim.
+ */
+export async function fetchMvpResults(): Promise<MvpResult[]> {
+  if (DEMO) {
+    const counts = new Map<string, MvpResult>();
+    for (const v of db.mvpVotes) {
+      const row = counts.get(v.player_id) ?? { player_id: v.player_id, gender: v.gender, votes: 0 };
+      row.votes += 1;
+      counts.set(v.player_id, row);
+    }
+    return [...counts.values()].sort((a, b) => b.votes - a.votes);
+  }
+  const { data, error } = await client().rpc('mvp_results');
+  if (error) throw error;
+  return (data ?? []) as MvpResult[];
 }

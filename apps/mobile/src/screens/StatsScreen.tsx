@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { aggregateStats, type StatCategory } from '@zrinjski/core';
+import { Ionicons } from '@expo/vector-icons';
+import { aggregateStats, rankByEvent, winnerOf, type StatCategory } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import type { StringKey } from '../i18n/strings';
 import { useData } from '../lib/useData';
@@ -34,6 +35,33 @@ export function StatsScreen() {
     const team = p ? d.teamById(p.team_id) : undefined;
     return { name: p?.name ?? '—', team };
   };
+
+  // Nagrade turnira. Najbolji igrač dolazi iz glasova predstavnika i baza ga
+  // vrati tek kad admin zatvori glasanje — zato prazan popis znači "još traje"
+  // i cijeli blok se ne prikazuje. Golman i strijelac se računaju iz događaja.
+  const mvpRows = d.mvpResults
+    .filter((r) => r.gender === gender)
+    .map((r) => ({ playerId: r.player_id, count: r.votes, rank: 0 }))
+    .sort((a, b) => b.count - a.count || a.playerId.localeCompare(b.playerId))
+    .map((r, i) => ({ ...r, rank: i + 1 }));
+
+  const awards = mvpRows.length
+    ? [
+        { key: 'awards.mvp' as StringKey, unit: 'awards.unitVotes' as StringKey, w: winnerOf(mvpRows), gold: true },
+        {
+          key: 'awards.keeper' as StringKey,
+          unit: 'stats.unit.saves' as StringKey,
+          w: winnerOf(rankByEvent(events, 'goalkeepers')),
+          gold: false,
+        },
+        {
+          key: 'awards.scorer' as StringKey,
+          unit: 'stats.unit.goals' as StringKey,
+          w: winnerOf(rankByEvent(events, 'scorers')),
+          gold: false,
+        },
+      ].filter((a) => a.w)
+    : [];
 
   const meta = CATS.find((c) => c.cat === cat)!;
   const top = rows[0] ?? null;
@@ -91,6 +119,35 @@ export function StatsScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={refreshControl}
       >
+        {/* Nagrade turnira — pojave se tek kad je glasanje zatvoreno. */}
+        {awards.length > 0 && (
+          <View style={styles.awards}>
+            <Txt style={styles.awardsTitle}>{t('awards.title').toUpperCase()}</Txt>
+            {awards.map((a, i) => {
+              const info = playerInfo(a.w!.playerId);
+              return (
+                <View key={a.key} style={[styles.awardRow, i > 0 && styles.awardBorder]}>
+                  <Ionicons
+                    name={a.gold ? 'trophy' : 'ribbon-outline'}
+                    size={17}
+                    color={a.gold ? C.gold : C.sub}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Txt style={[styles.awardLabel, a.gold && { color: C.goldTxt }]}>{t(a.key)}</Txt>
+                    <Txt style={styles.awardName} numberOfLines={1}>
+                      {info.name}
+                      {info.team ? ` · ${info.team.name}` : ''}
+                    </Txt>
+                  </View>
+                  <Txt style={styles.awardVal}>
+                    {a.w!.count} {t(a.unit)}
+                  </Txt>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
         {rows.length === 0 ? (
           <Txt color={C.sub} style={{ paddingVertical: SP.rowY }}>
             {t('stats.emptyCat')}
@@ -222,6 +279,35 @@ const styles = StyleSheet.create({
   segTxt: { fontFamily: F.headSemi, fontSize: 13, color: C.sub },
 
   content: { paddingHorizontal: SP.screenX, paddingTop: 10, paddingBottom: 28 },
+
+  awards: {
+    backgroundColor: C.card,
+    borderWidth: 1,
+    borderColor: 'rgba(217,178,74,.28)',
+    borderRadius: R.card,
+    paddingHorizontal: 15,
+    paddingVertical: 4,
+    marginBottom: 18,
+  },
+  awardsTitle: {
+    fontFamily: F.headSemi,
+    fontSize: 11,
+    letterSpacing: 1.4,
+    color: C.goldTxt,
+    paddingTop: 12,
+    paddingBottom: 4,
+  },
+  awardRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11 },
+  awardBorder: { borderTopWidth: 1, borderTopColor: C.lineRow },
+  awardLabel: {
+    fontFamily: F.body,
+    fontSize: 11,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    color: C.sub,
+  },
+  awardName: { fontFamily: F.bodySemi, fontSize: 14, color: C.txt, marginTop: 2 },
+  awardVal: { fontFamily: F.headSemi, fontSize: 13, color: C.sub },
 
   leader: {
     borderRadius: 16,
