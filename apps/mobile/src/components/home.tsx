@@ -60,27 +60,40 @@ export function useCountdown(targetIso: string | null | undefined): string | nul
 /** Sponzor u traci: logo ako postoji, inače ime. */
 export type MarqueeSponsor = { name: string; logo_url: string | null };
 
-/**
- * Pločica i razmak — širina trake se računa iz njih, ne mjeri.
- * Niža od brončane pločice (60): partneri su zadnji razred i moraju to i
- * izgledati, inače traka nadglasa plaćene razrede iznad sebe.
- */
-const TILE_W = 122;
-const TILE_H = 52;
+/** Razmak među pločicama; širina trake se računa iz njega, ne mjeri. */
 const TILE_GAP = 9;
+
+/**
+ * Brzina je zadana u PIKSELIMA PO SEKUNDI, ne trajanjem kruga.
+ *
+ * S fiksnim trajanjem (prije: 14 s po krugu) brzina je ovisila o tome koliko
+ * sponzora ima i koliko su pločice široke — mjereno 9,4 px/s za jednog
+ * partnera, 37,4 px/s za četvoricu. Isti kod, sasvim drugi dojam. Ovako svaka
+ * traka ide jednako, bez obzira na razred i broj sponzora.
+ *
+ * Jedini broj koji treba dirati ako se traži brže ili sporije.
+ */
+const MARQUEE_PX_PER_SEC = 40;
+
+/** Veličine pločica po razredu — srebrni zadržavaju veličinu iz mreže. */
+export const MARQUEE_SIZE = {
+  silver: { w: 163, h: 78, border: 'rgba(185,192,204,.35)' },
+  partner: { w: 122, h: 52, border: C.line },
+} as const;
 
 export function SponsorMarquee({
   sponsors,
-  durationMs = 14000,
+  tier = 'partner',
 }: {
   sponsors: MarqueeSponsor[];
-  durationMs?: number;
+  tier?: keyof typeof MARQUEE_SIZE;
 }) {
   const x = useRef(new Animated.Value(0)).current;
+  const { w, h, border } = MARQUEE_SIZE[tier];
   // Širinu jedne kopije znamo unaprijed. Mjerenje kroz onLayout vraćalo je
   // širinu spremnika (koji je uži od sadržaja), pa se traka pomicala
   // premalo ili nikako.
-  const half = sponsors.length * (TILE_W + TILE_GAP);
+  const half = sponsors.length * (w + TILE_GAP);
 
   useEffect(() => {
     if (half <= 0) return;
@@ -88,7 +101,7 @@ export function SponsorMarquee({
     const loop = Animated.loop(
       Animated.timing(x, {
         toValue: -half,
-        duration: durationMs,
+        duration: (half / MARQUEE_PX_PER_SEC) * 1000,
         easing: Easing.linear,
         // Na webu nativni pogon ne pomiče stil, pa bi traka stajala.
         useNativeDriver: Platform.OS !== 'web',
@@ -96,7 +109,7 @@ export function SponsorMarquee({
     );
     loop.start();
     return () => loop.stop();
-  }, [half, durationMs, x]);
+  }, [half, x]);
 
   if (sponsors.length === 0) return null;
   const doubled = [...sponsors, ...sponsors];
@@ -107,14 +120,21 @@ export function SponsorMarquee({
         style={[styles.mqTrack, { width: half * 2, transform: [{ translateX: x }] }]}
       >
         {doubled.map((sp, i) => (
-          <View key={`${sp.name}-${i}`} style={[styles.mqTile, sp.logo_url && styles.mqTileLogo]}>
+          <View
+            key={`${sp.name}-${i}`}
+            style={[
+              styles.mqTile,
+              { width: w, height: h, borderColor: border },
+              !!sp.logo_url && styles.mqTileLogo,
+            ]}
+          >
             {sp.logo_url ? (
               // contain — cijeli logo mora stati u pločicu, nikad obrezan.
               // Podloga je bijela jer logotipi dolaze i kao JPEG s bijelim
               // rubom; na tamnoj pločici bi izgledali kao zakrpa.
               <Image source={{ uri: sp.logo_url }} style={styles.mqLogo} resizeMode="contain" />
             ) : (
-              <Txt style={styles.mqName} numberOfLines={1}>
+              <Txt style={[styles.mqName, tier === 'silver' && { fontSize: 14 }]} numberOfLines={2}>
                 {sp.name}
               </Txt>
             )}
@@ -126,31 +146,21 @@ export function SponsorMarquee({
 }
 
 /**
- * Mreža sponzora jednog razreda.
+ * Mreža brončanih sponzora — jedini razred koji stoji, ne klizi.
  *
- * Razred se čita iz TRI stvari odjednom, ne samo iz boje: veličine pločice,
- * koliko ih stane u red i ruba u boji razreda. Srebrni su veliki i dvoje u
- * redu, brončani manji i troje u redu, a partneri idu u traku koja klizi.
- * Zlatna se namjerno ne pojavljuje ovdje — ona je rezervirana za pokrovitelja.
+ * Razred se čita iz tri stvari odjednom, ne samo iz boje: veličine pločice,
+ * koliko ih stane u red i ruba u boji razreda. Srebrni i partneri idu u traku
+ * (SponsorMarquee), zlatni ima vlastitu sekciju.
  */
-export function SponsorGrid({
-  sponsors,
-  tier,
-}: {
-  sponsors: MarqueeSponsor[];
-  tier: 'silver' | 'bronze';
-}) {
+export function SponsorGrid({ sponsors }: { sponsors: MarqueeSponsor[] }) {
   if (sponsors.length === 0) return null;
-  const isSilver = tier === 'silver';
-  // Kad ih je manje nego što stane u red, pločice se rašire — jedan sponzor
-  // stisnut u trećinu reda izgleda kao greška, ne kao razred. Ali brončani se
-  // NIKAD ne šire preko pola reda: samac u razredu inače ispadne širi od
-  // srebrnog i hijerarhija se okrene naopako.
-  // Postotak je malo ispod 100/n da razmak (gap) ima gdje stati — RN nema calc().
-  const cols = Math.min(isSilver ? 2 : 3, Math.max(isSilver ? 1 : 2, sponsors.length));
-  const width = cols === 1 ? '100%' : cols === 2 ? '48%' : '31%';
-  const height = isSilver ? 78 : 60;
-  const accent = isSilver ? 'rgba(185,192,204,.35)' : 'rgba(192,132,87,.35)';
+  // Troje u redu, ali kad ih je manje pločice se rašire — jedan sponzor
+  // stisnut u trećinu reda izgleda kao greška, a ne kao razred. Nikad preko
+  // pola reda: samac bi inače ispao širi od srebrnog i hijerarhija bi se
+  // okrenula naopako. Postotak je ispod 100/n da razmak ima gdje stati (RN
+  // nema calc()).
+  const cols = Math.min(3, Math.max(2, sponsors.length));
+  const width = cols === 2 ? '48%' : '31%';
 
   return (
     <View style={styles.grid}>
@@ -159,14 +169,14 @@ export function SponsorGrid({
           key={sp.name}
           style={[
             styles.gridTile,
-            { height, width, borderColor: accent },
+            { height: 60, width, borderColor: 'rgba(192,132,87,.35)' },
             !!sp.logo_url && styles.gridTileLogo,
           ]}
         >
           {sp.logo_url ? (
             <Image source={{ uri: sp.logo_url }} style={styles.mqLogo} resizeMode="contain" />
           ) : (
-            <Txt style={[styles.gridName, { fontSize: isSilver ? 14 : 12 }]} numberOfLines={2}>
+            <Txt style={styles.gridName} numberOfLines={2}>
               {sp.name}
             </Txt>
           )}
@@ -200,19 +210,16 @@ const styles = StyleSheet.create({
   // Logotipi dolaze i kao JPEG s bijelim rubom; na tamnoj pločici bi
   // izgledali kao zakrpa, pa podloga ide u bijelo.
   gridTileLogo: { backgroundColor: '#fff', padding: 8 },
-  gridName: { fontFamily: F.headSemi, letterSpacing: 0.4, color: C.txt2, textAlign: 'center' },
+  gridName: { fontFamily: F.headSemi, fontSize: 12, letterSpacing: 0.4, color: C.txt2, textAlign: 'center' },
 
   mqMask: { overflow: 'hidden' },
   mqTrack: { flexDirection: 'row', gap: TILE_GAP },
   mqTile: {
-    width: TILE_W,
-    height: TILE_H,
     // Bez ovoga se pločice stisnu na širinu ekrana i traka nema što klizati.
     flexGrow: 0,
     flexShrink: 0,
     backgroundColor: C.card,
     borderWidth: 1,
-    borderColor: C.line,
     borderRadius: R.chip,
     alignItems: 'center',
     justifyContent: 'center',
@@ -225,6 +232,7 @@ const styles = StyleSheet.create({
     fontFamily: F.headSemi,
     fontSize: 12,
     letterSpacing: 0.4,
-    color: C.sub,
+    textAlign: 'center',
+    color: C.txt2,
   },
 });

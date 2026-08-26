@@ -307,7 +307,7 @@ export function HomeScreen() {
                 <Txt style={[styles.tierLabel, { color: C.silverTxt }]}>
                   {t('home.tierSilver').toUpperCase()}
                 </Txt>
-                <SponsorGrid sponsors={silver} tier="silver" />
+                <SponsorMarquee sponsors={silver} tier="silver" />
               </>
             )}
 
@@ -316,7 +316,7 @@ export function HomeScreen() {
                 <Txt style={[styles.tierLabel, { color: C.bronzeTxt }]}>
                   {t('home.tierBronze').toUpperCase()}
                 </Txt>
-                <SponsorGrid sponsors={bronze} tier="bronze" />
+                <SponsorGrid sponsors={bronze} />
               </>
             )}
 
