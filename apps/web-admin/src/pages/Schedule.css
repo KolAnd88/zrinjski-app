@@ -47,6 +47,12 @@
   font-size: 14px;
   padding: var(--sp-sm) 0;
 }
+.sched__swaphint {
+  margin: 0 0 var(--sp-md);
+  color: var(--sub);
+  font-size: 12px;
+  line-height: 1.5;
+}
 .sched__rows {
   display: flex;
   flex-direction: column;
@@ -54,6 +60,43 @@
 }
 
 /* Red utakmice */
+/* Red + strelice za zamjenu termina. Strelice su izvan .mrow jer je .mrow
+   gumb (otvara detalj), a gumbi se ne smiju gnijezditi. */
+.mrow-wrap {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-sm);
+}
+.mrow-wrap .mrow {
+  flex: 1;
+  min-width: 0;
+}
+.mrow__move {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.mrow__arrow {
+  width: 30px;
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--sub);
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+}
+.mrow__arrow:hover:not(:disabled) {
+  border-color: var(--red);
+  color: var(--txt);
+}
+.mrow__arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
 .mrow {
   display: grid;
   grid-template-columns: 56px 28px 1fr auto 1fr 28px auto;

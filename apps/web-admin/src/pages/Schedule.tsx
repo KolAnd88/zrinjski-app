@@ -33,24 +33,36 @@ function MatchRow({
   m,
   teamsById,
   onOpen,
+  onMove,
+  canUp,
+  canDown,
+  busy,
 }: {
   m: Match;
   teamsById: Map<string, TeamLite>;
   onOpen: () => void;
+  onMove: (dir: 'up' | 'down') => void;
+  canUp: boolean;
+  canDown: boolean;
+  busy: boolean;
 }) {
   const { t } = useT();
   const home = side(m.home_team_id, m.home_placeholder, teamsById);
   const away = side(m.away_team_id, m.away_placeholder, teamsById);
   const time = isoToLocalHHMM(m.scheduled_time);
   const isFinal = m.stage === 'final';
+  // Odigrane i tekuće utakmice se ne premještaju — termin im je već prošao,
+  // a zamjena bi pomaknula rezultat na tuđe vrijeme.
+  const movable = m.status === 'scheduled';
 
   return (
-    <button
-      type="button"
-      className={`mrow ${isFinal ? 'mrow--final' : ''}`}
-      onClick={onOpen}
-      title={t('mdet.open')}
-    >
+    <div className="mrow-wrap">
+      <button
+        type="button"
+        className={`mrow ${isFinal ? 'mrow--final' : ''}`}
+        onClick={onOpen}
+        title={t('mdet.open')}
+      >
       <div className="mrow__time">{time || '—'}</div>
       <Crest code={home.code} index={home.index} logoUrl={home.logoUrl} size={28} />
       <div className={`mrow__team ${home.ph ? 'is-ph' : ''}`}>{home.name}</div>
@@ -69,8 +81,34 @@ function MatchRow({
       </div>
       <div className={`mrow__team mrow__team--away ${away.ph ? 'is-ph' : ''}`}>{away.name}</div>
       <Crest code={away.code} index={away.index} logoUrl={away.logoUrl} size={28} />
-      {STAGE_SHORT[m.stage] && <span className="mrow__stage">{STAGE_SHORT[m.stage]}</span>}
-    </button>
+        {STAGE_SHORT[m.stage] && <span className="mrow__stage">{STAGE_SHORT[m.stage]}</span>}
+      </button>
+
+      {/* Zamjena termina sa susjednom utakmicom. Izvan gornjeg gumba jer se
+          gumbi ne smiju gnijezditi. */}
+      <div className="mrow__move">
+        <button
+          type="button"
+          className="mrow__arrow"
+          disabled={!movable || !canUp || busy}
+          title={t('schedule.moveUp')}
+          aria-label={t('schedule.moveUp')}
+          onClick={() => onMove('up')}
+        >
+          ▲
+        </button>
+        <button
+          type="button"
+          className="mrow__arrow"
+          disabled={!movable || !canDown || busy}
+          title={t('schedule.moveDown')}
+          aria-label={t('schedule.moveDown')}
+          onClick={() => onMove('down')}
+        >
+          ▼
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -82,6 +120,7 @@ export function Schedule() {
   const [gap, setGap] = useState('');
   const [doneMsg, setDoneMsg] = useState<string | null>(null);
   const [openMatch, setOpenMatch] = useState<Match | null>(null);
+  const [moving, setMoving] = useState(false);
 
   useEffect(() => {
     if (data.tournament) {
@@ -189,6 +228,7 @@ export function Schedule() {
           <h2 className="section-label">{t('schedule.generated')}</h2>
           <span className="sched__auto">{t('schedule.auto')}</span>
         </div>
+        <p className="sched__swaphint">{t('schedule.swapHint')}</p>
 
         {data.days.map((d) => {
           const ms = matchesByDay.get(d.id) ?? [];
@@ -202,8 +242,20 @@ export function Schedule() {
                 <div className="sched__day-empty">{t('schedule.noMatches')}</div>
               ) : (
                 <div className="sched__rows">
-                  {ms.map((m) => (
-                    <MatchRow key={m.id} m={m} teamsById={sched.teamsById} onOpen={() => setOpenMatch(m)} />
+                  {ms.map((m, i) => (
+                    <MatchRow
+                      key={m.id}
+                      m={m}
+                      teamsById={sched.teamsById}
+                      onOpen={() => setOpenMatch(m)}
+                      canUp={i > 0}
+                      canDown={i < ms.length - 1}
+                      busy={moving}
+                      onMove={(dir) => {
+                        setMoving(true);
+                        void sched.swap(m.id, dir).finally(() => setMoving(false));
+                      }}
+                    />
                   ))}
                 </div>
               )}

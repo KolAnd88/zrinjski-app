@@ -18,6 +18,7 @@ import type {
   Registration,
   RegistrationPlayer,
   RegistrationStatus,
+  SlotPatch,
   Sponsor,
   Team,
   Tournament,
@@ -142,6 +143,29 @@ export async function fetchMatchesForSchedule(tournamentId: string): Promise<Mat
     .order('sort_order', { ascending: true });
   if (error) throw error;
   return data ?? [];
+}
+
+/**
+ * Zamijeni termin i mjesto u redu dvjema utakmicama.
+ *
+ * Ne pregenerira satnicu — samo dva reda. Ponovno generiranje bi obrisalo
+ * zabiljezena kasnjenja (shiftScheduleFrom) svim ostalim utakmicama tog dana.
+ */
+export async function applySlotSwap(patches: SlotPatch[]): Promise<void> {
+  if (DEMO) {
+    for (const p of patches) {
+      patch(db.matches, p.id, { sort_order: p.sort_order, scheduled_time: p.scheduled_time });
+    }
+    return;
+  }
+  const c = client();
+  const results = await Promise.all(
+    patches.map((p) =>
+      c.from('match').update({ sort_order: p.sort_order, scheduled_time: p.scheduled_time }).eq('id', p.id)
+    )
+  );
+  const firstErr = results.find((r) => r.error)?.error;
+  if (firstErr) throw firstErr;
 }
 
 export async function applyScheduledTimes(updates: { id: string; scheduledTime: string }[]): Promise<void> {

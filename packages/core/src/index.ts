@@ -13,5 +13,6 @@ export * from './domain/standings';
 export * from './domain/bracket';
 export * from './domain/stats';
 export * from './domain/awards';
+export * from './domain/reorder';
 export * from './domain/fixtures';
 export * from './outbox';

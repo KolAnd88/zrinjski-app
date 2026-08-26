@@ -205,6 +205,9 @@ export const strings = {
     'schedule.editLink': 'uredi na kartici Turnir',
     'schedule.vs': 'vs',
     'schedule.live': 'UŽIVO',
+    'schedule.moveUp': 'Zamijeni termin s utakmicom iznad',
+    'schedule.moveDown': 'Zamijeni termin s utakmicom ispod',
+    'schedule.swapHint': 'Strelicama zamijeni termin dvjema utakmicama — vrijeme ide zajedno s mjestom u redu. Odigrane i tekuće se ne premještaju.',
     'schedule.tbd': 'Pobjednik PF',
 
     // Ekipe i igrači
@@ -723,6 +726,9 @@ export const strings = {
     'schedule.editLink': 'edit in Tournament tab',
     'schedule.vs': 'vs',
     'schedule.live': 'LIVE',
+    'schedule.moveUp': 'Swap slot with the match above',
+    'schedule.moveDown': 'Swap slot with the match below',
+    'schedule.swapHint': 'Use the arrows to swap two matches — the time moves with the position. Played and live matches cannot be moved.',
     'schedule.tbd': 'SF winner',
 
     'teams.men': 'Men',

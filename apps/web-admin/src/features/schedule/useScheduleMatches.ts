@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Day, Match, Tournament } from '@zrinjski/core';
-import { generateSchedule, type DayInput } from '@zrinjski/core';
+import { adjacentInDay, generateSchedule, swapSlots, type DayInput } from '@zrinjski/core';
 import { HAS_DATA } from '../../lib/supabase';
-import { applyScheduledTimes, fetchAllTeams, fetchMatchesForSchedule } from '../../lib/data';
+import { applyScheduledTimes, applySlotSwap, fetchAllTeams, fetchMatchesForSchedule } from '../../lib/data';
 import { toInputTime } from '../../lib/timeFormat';
 
 export type TeamLite = {
@@ -22,6 +22,8 @@ export type ScheduleMatchesState = {
   teamsById: Map<string, TeamLite>;
   generating: boolean;
   reload: () => Promise<void>;
+  /** Zamijeni termin sa susjednom utakmicom istog dana. */
+  swap: (matchId: string, dir: 'up' | 'down') => Promise<void>;
   /** Generiraj satnicu iz dana + postavki; vrati broj raspoređenih utakmica. */
   generate: (tournament: Tournament, days: Day[]) => Promise<number>;
 };
@@ -95,5 +97,29 @@ export function useScheduleMatches(tournamentId: string | null): ScheduleMatches
     [matches]
   );
 
-  return { loading, matches, teamsById, generating, reload, generate };
+  /**
+   * Zamijeni utakmicu sa susjednom istog dana — termin i mjesto u redu idu
+   * zajedno. Namijenjeno situaciji "ekipa ne stiže u 10:20", gdje bi ponovno
+   * generiranje satnice bilo pretjerano i obrisalo bi zabilježena kašnjenja.
+   */
+  const swap = useCallback(
+    async (matchId: string, dir: 'up' | 'down') => {
+      const me = matches.find((m) => m.id === matchId);
+      const other = adjacentInDay(matches, matchId, dir);
+      if (!me || !other) return; // rub dana — nema se s kim zamijeniti
+
+      const patches = swapSlots(me, other);
+      await applySlotSwap(patches);
+
+      const byId = new Map(patches.map((p) => [p.id, p]));
+      setMatches((prev) =>
+        [...prev.map((m) => (byId.has(m.id) ? { ...m, ...byId.get(m.id)! } : m))].sort(
+          (a, b) => a.sort_order - b.sort_order
+        )
+      );
+    },
+    [matches]
+  );
+
+  return { loading, matches, teamsById, generating, reload, generate, swap };
 }
