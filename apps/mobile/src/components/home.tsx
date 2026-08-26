@@ -75,9 +75,16 @@ const TILE_GAP = 9;
  */
 const MARQUEE_PX_PER_SEC = 40;
 
-/** Veličine pločica po razredu — srebrni zadržavaju veličinu iz mreže. */
+/**
+ * Veličine pločica po razredu. Svi razredi se vrte, pa razliku nosi isključivo
+ * veličina i boja ruba — visina pada od srebrnog prema partnerima.
+ */
+// Boje ruba su pune, ne prozirne: pločica s logom ima BIJELU podlogu, a
+// prozirni sivi/brončani rub na bijelom nestane — pa bi razred nestao točno
+// kod sponzora koji su poslali logo, dakle kod većine.
 export const MARQUEE_SIZE = {
-  silver: { w: 163, h: 78, border: 'rgba(185,192,204,.35)' },
+  silver: { w: 163, h: 78, border: C.silverTxt },
+  bronze: { w: 163, h: 60, border: C.bronzeTxt },
   partner: { w: 122, h: 52, border: C.line },
 } as const;
 
@@ -134,54 +141,13 @@ export function SponsorMarquee({
               // rubom; na tamnoj pločici bi izgledali kao zakrpa.
               <Image source={{ uri: sp.logo_url }} style={styles.mqLogo} resizeMode="contain" />
             ) : (
-              <Txt style={[styles.mqName, tier === 'silver' && { fontSize: 14 }]} numberOfLines={2}>
+              <Txt style={[styles.mqName, tier !== 'partner' && { fontSize: 14 }]} numberOfLines={2}>
                 {sp.name}
               </Txt>
             )}
           </View>
         ))}
       </Animated.View>
-    </View>
-  );
-}
-
-/**
- * Mreža brončanih sponzora — jedini razred koji stoji, ne klizi.
- *
- * Razred se čita iz tri stvari odjednom, ne samo iz boje: veličine pločice,
- * koliko ih stane u red i ruba u boji razreda. Srebrni i partneri idu u traku
- * (SponsorMarquee), zlatni ima vlastitu sekciju.
- */
-export function SponsorGrid({ sponsors }: { sponsors: MarqueeSponsor[] }) {
-  if (sponsors.length === 0) return null;
-  // Troje u redu, ali kad ih je manje pločice se rašire — jedan sponzor
-  // stisnut u trećinu reda izgleda kao greška, a ne kao razred. Nikad preko
-  // pola reda: samac bi inače ispao širi od srebrnog i hijerarhija bi se
-  // okrenula naopako. Postotak je ispod 100/n da razmak ima gdje stati (RN
-  // nema calc()).
-  const cols = Math.min(3, Math.max(2, sponsors.length));
-  const width = cols === 2 ? '48%' : '31%';
-
-  return (
-    <View style={styles.grid}>
-      {sponsors.map((sp) => (
-        <View
-          key={sp.name}
-          style={[
-            styles.gridTile,
-            { height: 60, width, borderColor: 'rgba(192,132,87,.35)' },
-            !!sp.logo_url && styles.gridTileLogo,
-          ]}
-        >
-          {sp.logo_url ? (
-            <Image source={{ uri: sp.logo_url }} style={styles.mqLogo} resizeMode="contain" />
-          ) : (
-            <Txt style={styles.gridName} numberOfLines={2}>
-              {sp.name}
-            </Txt>
-          )}
-        </View>
-      ))}
     </View>
   );
 }
@@ -197,20 +163,6 @@ const styles = StyleSheet.create({
     opacity: 0.15,
     transform: [{ rotate: '-62deg' }],
   },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SP.gap },
-  gridTile: {
-    backgroundColor: C.card,
-    borderWidth: 1,
-    borderRadius: R.chip,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-    overflow: 'hidden',
-  },
-  // Logotipi dolaze i kao JPEG s bijelim rubom; na tamnoj pločici bi
-  // izgledali kao zakrpa, pa podloga ide u bijelo.
-  gridTileLogo: { backgroundColor: '#fff', padding: 8 },
-  gridName: { fontFamily: F.headSemi, fontSize: 12, letterSpacing: 0.4, color: C.txt2, textAlign: 'center' },
 
   mqMask: { overflow: 'hidden' },
   mqTrack: { flexDirection: 'row', gap: TILE_GAP },
@@ -226,7 +178,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     overflow: 'hidden',
   },
-  mqTileLogo: { backgroundColor: '#fff', borderColor: 'rgba(255,255,255,.25)', padding: 9 },
+  // Rub NE diramo — dolazi iz razreda (MARQUEE_SIZE) i mora ostati vidljiv.
+  mqTileLogo: { backgroundColor: '#fff', padding: 9 },
   mqLogo: { width: '100%', height: '100%' },
   mqName: {
     fontFamily: F.headSemi,

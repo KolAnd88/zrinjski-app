@@ -24,7 +24,7 @@ import {
   useRefreshControl,
 } from '../components/base';
 import { PrimaryButton } from '../components/buttons';
-import { BrandStripe, SponsorGrid, SponsorMarquee, useCountdown } from '../components/home';
+import { BrandStripe, SponsorMarquee, useCountdown } from '../components/home';
 import type { RootStackParamList } from '../navigation/types';
 
 const STAGE: Record<string, string> = {
@@ -316,7 +316,7 @@ export function HomeScreen() {
                 <Txt style={[styles.tierLabel, { color: C.bronzeTxt }]}>
                   {t('home.tierBronze').toUpperCase()}
                 </Txt>
-                <SponsorGrid sponsors={bronze} />
+                <SponsorMarquee sponsors={bronze} tier="bronze" />
               </>
             )}
 
