@@ -5,6 +5,7 @@ import { formatDayLabel } from '../i18n/dateLabels';
 import { Button, Card, Crest } from '../components/ui';
 import { useTournamentData } from '../features/tournament/useTournamentData';
 import { DaysEditor } from '../features/tournament/DaysEditor';
+import { swappableNeighbour } from '@zrinjski/core';
 import { useScheduleMatches, type TeamLite } from '../features/schedule/useScheduleMatches';
 import { MatchDetailModal } from '../features/schedule/MatchDetailModal';
 import { toInputTime, isoToLocalHHMM } from '../lib/timeFormat';
@@ -51,9 +52,6 @@ function MatchRow({
   const away = side(m.away_team_id, m.away_placeholder, teamsById);
   const time = isoToLocalHHMM(m.scheduled_time);
   const isFinal = m.stage === 'final';
-  // Odigrane i tekuće utakmice se ne premještaju — termin im je već prošao,
-  // a zamjena bi pomaknula rezultat na tuđe vrijeme.
-  const movable = m.status === 'scheduled';
 
   return (
     <div className="mrow-wrap">
@@ -90,7 +88,7 @@ function MatchRow({
         <button
           type="button"
           className="mrow__arrow"
-          disabled={!movable || !canUp || busy}
+          disabled={!canUp || busy}
           title={t('schedule.moveUp')}
           aria-label={t('schedule.moveUp')}
           onClick={() => onMove('up')}
@@ -100,7 +98,7 @@ function MatchRow({
         <button
           type="button"
           className="mrow__arrow"
-          disabled={!movable || !canDown || busy}
+          disabled={!canDown || busy}
           title={t('schedule.moveDown')}
           aria-label={t('schedule.moveDown')}
           onClick={() => onMove('down')}
@@ -248,8 +246,8 @@ export function Schedule() {
                       m={m}
                       teamsById={sched.teamsById}
                       onOpen={() => setOpenMatch(m)}
-                      canUp={i > 0}
-                      canDown={i < ms.length - 1}
+                      canUp={!!swappableNeighbour(sched.matches, m.id, 'up')}
+                      canDown={!!swappableNeighbour(sched.matches, m.id, 'down')}
                       busy={moving}
                       onMove={(dir) => {
                         setMoving(true);

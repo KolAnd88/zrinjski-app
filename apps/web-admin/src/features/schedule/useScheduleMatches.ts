@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Day, Match, Tournament } from '@zrinjski/core';
-import { adjacentInDay, generateSchedule, swapSlots, type DayInput } from '@zrinjski/core';
+import { generateSchedule, swapSlots, swappableNeighbour, type DayInput } from '@zrinjski/core';
 import { HAS_DATA } from '../../lib/supabase';
 import { applyScheduledTimes, applySlotSwap, fetchAllTeams, fetchMatchesForSchedule } from '../../lib/data';
 import { toInputTime } from '../../lib/timeFormat';
@@ -22,7 +22,7 @@ export type ScheduleMatchesState = {
   teamsById: Map<string, TeamLite>;
   generating: boolean;
   reload: () => Promise<void>;
-  /** Zamijeni termin sa susjednom utakmicom istog dana. */
+  /** Zamijeni termin sa susjednom utakmicom istog dana; odbija zaključane. */
   swap: (matchId: string, dir: 'up' | 'down') => Promise<void>;
   /** Generiraj satnicu iz dana + postavki; vrati broj raspoređenih utakmica. */
   generate: (tournament: Tournament, days: Day[]) => Promise<number>;
@@ -105,8 +105,10 @@ export function useScheduleMatches(tournamentId: string | null): ScheduleMatches
   const swap = useCallback(
     async (matchId: string, dir: 'up' | 'down') => {
       const me = matches.find((m) => m.id === matchId);
-      const other = adjacentInDay(matches, matchId, dir);
-      if (!me || !other) return; // rub dana — nema se s kim zamijeniti
+      // Vraća null i kad je zaključana sama utakmica i kad je zaključan susjed:
+      // najavljena ne smije povući onu koja traje u svoj termin.
+      const other = swappableNeighbour(matches, matchId, dir);
+      if (!me || !other) return;
 
       const patches = swapSlots(me, other);
       await applySlotSwap(patches);

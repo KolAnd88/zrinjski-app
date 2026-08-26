@@ -10,7 +10,18 @@ export type SlotMatch = {
   day_id: string | null;
   sort_order: number;
   scheduled_time: string | null;
+  status: 'scheduled' | 'live' | 'finished';
 };
+
+/**
+ * Termin se smije mijenjati samo utakmici koja još nije počela.
+ *
+ * Utakmica uživo je u tijeku u dvorani, a odigrana ima rezultat vezan uz svoj
+ * termin — pomicanje bilo koje od njih lagalo bi o tome kad se što dogodilo.
+ */
+export function isMovable(m: Pick<SlotMatch, 'status'>): boolean {
+  return m.status === 'scheduled';
+}
 
 /**
  * Susjedna utakmica istog dana, u smjeru `dir`.
@@ -31,6 +42,24 @@ export function adjacentInDay<T extends SlotMatch>(
   const i = sameDay.findIndex((m) => m.id === matchId);
   if (i < 0) return null;
   return sameDay[dir === 'up' ? i - 1 : i + 1] ?? null;
+}
+
+/**
+ * Susjed s kojim se termin SMIJE zamijeniti.
+ *
+ * Ne provjerava se samo utakmica koju pomičemo nego i ona u koju bi upala:
+ * inače bi najavljena utakmica gurnula onu koja upravo traje u drugi termin,
+ * a njezine su strelice zaključane baš zato da se to ne dogodi.
+ */
+export function swappableNeighbour<T extends SlotMatch>(
+  matches: T[],
+  matchId: string,
+  dir: 'up' | 'down'
+): T | null {
+  const me = matches.find((m) => m.id === matchId);
+  if (!me || !isMovable(me)) return null;
+  const other = adjacentInDay(matches, matchId, dir);
+  return other && isMovable(other) ? other : null;
 }
 
 export type SlotPatch = { id: string; sort_order: number; scheduled_time: string | null };

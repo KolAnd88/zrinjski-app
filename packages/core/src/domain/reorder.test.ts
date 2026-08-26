@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { adjacentInDay, swapSlots, type SlotMatch } from './reorder';
+import { adjacentInDay, isMovable, swapSlots, swappableNeighbour, type SlotMatch } from './reorder';
 
-const m = (id: string, day: string | null, order: number, time: string | null = null): SlotMatch => ({
-  id,
-  day_id: day,
-  sort_order: order,
-  scheduled_time: time,
-});
+const m = (
+  id: string,
+  day: string | null,
+  order: number,
+  time: string | null = null,
+  status: SlotMatch['status'] = 'scheduled'
+): SlotMatch => ({ id, day_id: day, sort_order: order, scheduled_time: time, status });
 
 // Namjerno izmiješan redoslijed u polju: susjed se traži po sort_order,
 // ne po tome kako su utakmice slučajno došle iz baze.
@@ -73,5 +74,48 @@ describe('swapSlots', () => {
     const back = swapSlots({ ...a, ...p1 }, { ...b, ...p2 });
     expect(back[0]).toEqual({ id: 'a', sort_order: 0, scheduled_time: 'T10' });
     expect(back[1]).toEqual({ id: 'b', sort_order: 1, scheduled_time: 'T11' });
+  });
+});
+
+describe('swappableNeighbour — zaključavanje termina', () => {
+  it('najavljene se međusobno smiju zamijeniti', () => {
+    const list = [m('a', 'd1', 0), m('b', 'd1', 1)];
+    expect(swappableNeighbour(list, 'a', 'down')?.id).toBe('b');
+  });
+
+  it('utakmica koja traje se ne može pomaknuti', () => {
+    const list = [m('live', 'd1', 0, null, 'live'), m('b', 'd1', 1)];
+    expect(swappableNeighbour(list, 'live', 'down')).toBeNull();
+  });
+
+  it('odigrana utakmica se ne može pomaknuti', () => {
+    const list = [m('done', 'd1', 0, null, 'finished'), m('b', 'd1', 1)];
+    expect(swappableNeighbour(list, 'done', 'down')).toBeNull();
+  });
+
+  // Ovo je rupa zbog koje funkcija i postoji: strelice utakmice uzivo su
+  // zakljucane, ali bi je susjedna najavljena inace povukla u svoj termin.
+  it('najavljena NE MOŽE povući utakmicu koja traje', () => {
+    const list = [m('live', 'd1', 0, null, 'live'), m('b', 'd1', 1)];
+    expect(swappableNeighbour(list, 'b', 'up')).toBeNull();
+  });
+
+  it('najavljena NE MOŽE povući odigranu', () => {
+    const list = [m('done', 'd1', 0, null, 'finished'), m('b', 'd1', 1)];
+    expect(swappableNeighbour(list, 'b', 'up')).toBeNull();
+  });
+
+  it('preskakanje preko zaključane nije dopušteno — susjed je susjed', () => {
+    const list = [m('done', 'd1', 0, null, 'finished'), m('b', 'd1', 1), m('c', 'd1', 2)];
+    expect(swappableNeighbour(list, 'b', 'up')).toBeNull();
+    expect(swappableNeighbour(list, 'b', 'down')?.id).toBe('c');
+  });
+});
+
+describe('isMovable', () => {
+  it('samo najavljena utakmica', () => {
+    expect(isMovable({ status: 'scheduled' })).toBe(true);
+    expect(isMovable({ status: 'live' })).toBe(false);
+    expect(isMovable({ status: 'finished' })).toBe(false);
   });
 });
