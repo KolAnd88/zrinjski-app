@@ -44,7 +44,8 @@
           "imageWidth": 220,
           "resizeMode": "contain"
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "extra": {
       "eas": {

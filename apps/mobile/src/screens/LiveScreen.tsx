@@ -1,4 +1,4 @@
-import { useLayoutEffect } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
@@ -12,6 +12,10 @@ import { useData } from '../lib/useData';
 import { isoToHHMM } from '../lib/dates';
 import { C, F, R, SP } from '../theme';
 import { Crest, HeroCard, SectionLabel, Txt } from '../components/base';
+import { PrimaryButton } from '../components/buttons';
+import { useShareCardExport } from '../components/shareCard';
+import { buildShareCard, sharePng } from '../lib/shareResult';
+import { formatDayLabel } from '../lib/dates';
 import type { RootStackParamList } from '../navigation/types';
 
 const STAGE: Record<string, StringKey> = {
@@ -29,10 +33,13 @@ const EV: Record<EventType, { icon: keyof typeof Ionicons.glyphMap; label: Strin
 };
 
 export function LiveScreen() {
-  const { t } = useT();
+  const { t, locale } = useT();
   const nav = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'Live'>>();
   const d = useData();
+  const { Renderer, toPngBase64 } = useShareCardExport();
+  const [busy, setBusy] = useState(false);
+  const [shareErr, setShareErr] = useState(false);
 
   const m = d.matchById(route.params.matchId);
   const home = d.teamById(m?.home_team_id);
@@ -95,6 +102,35 @@ export function LiveScreen() {
       label: t('live.qCards'),
     },
   ];
+
+  /** Sastavi sliku rezultata i otvori izbornik dijeljenja. */
+  async function shareResult() {
+    if (!m) return;
+    setBusy(true);
+    setShareErr(false);
+    try {
+      const svg = await buildShareCard({
+        match: m,
+        home,
+        away,
+        events: asc,
+        players: d.players,
+        sponsors: d.sponsors,
+        tournamentName: d.tournament?.name ?? t('appName'),
+        stageLabel: stageTitle,
+        dateLabel: m.scheduled_time ? formatDayLabel(m.scheduled_time.slice(0, 10), locale) : '',
+      });
+      const png = await toPngBase64(svg);
+      await sharePng(png, `rezultat-${home?.short_code ?? 'X'}-${away?.short_code ?? 'X'}.png`);
+    } catch (e) {
+      // Ne gutamo tiho — bez traga se ovakav kvar otkrije tek kad netko prijavi
+      // "ne radi", a tada nema po čemu tražiti.
+      console.error('[dijeljenje]', e);
+      setShareErr(true);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const statusLine = isLive
     ? `${t('home.halfN', { n: m.current_half ?? 1 }).toUpperCase()} · ${m.current_minute ?? 0}'`
@@ -221,7 +257,23 @@ export function LiveScreen() {
               </View>
             )
         )}
+
+        {/* Dijeljenje rezultata — tek kad utakmica završi; slika bez konačnog
+            rezultata nema smisla objaviti. */}
+        {isDone && (
+          <>
+            <PrimaryButton
+              label={busy ? t('share.working') : t('share.button')}
+              disabled={busy}
+              onPress={() => void shareResult()}
+              style={{ marginTop: SP.section }}
+            />
+            <Txt style={styles.shareHint}>{shareErr ? t('share.error') : t('share.hint')}</Txt>
+          </>
+        )}
       </ScrollView>
+
+      <Renderer />
     </SafeAreaView>
   );
 }
@@ -356,6 +408,7 @@ const styles = StyleSheet.create({
   },
   bestLabel: { fontFamily: F.headSemi, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: C.goldTxt },
   bestName: { flex: 1, textAlign: 'right', fontFamily: F.bodySemi, fontSize: 14, color: C.txt },
+  shareHint: { fontFamily: F.body, fontSize: 12, lineHeight: 18, color: C.sub, textAlign: 'center', marginTop: SP.gap },
   flowCard: {
     backgroundColor: C.card,
     borderWidth: 1,

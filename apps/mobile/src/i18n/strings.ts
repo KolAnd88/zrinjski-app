@@ -156,6 +156,10 @@ export const strings = {
     'live.scheduledMsg': 'Utakmica još nije počela.',
     'live.bestPlayer': 'Najbolji igrač',
     'live.qGoals': 'Golova',
+    'share.button': 'Podijeli rezultat',
+    'share.working': 'Pripremam sliku…',
+    'share.hint': 'Slika s rezultatom, strijelcima i sponzorima — spremna za Facebook i Instagram.',
+    'share.error': 'Slika se nije uspjela napraviti. Pokušaj ponovno.',
     'live.qSaves': 'Obrana',
     'live.qCards': 'Kartona',
 
@@ -439,6 +443,10 @@ export const strings = {
     'live.scheduledMsg': 'The match has not started yet.',
     'live.bestPlayer': 'Player of the match',
     'live.qGoals': 'Goals',
+    'share.button': 'Share result',
+    'share.working': 'Preparing image…',
+    'share.hint': 'Image with the score, scorers and sponsors — ready for Facebook and Instagram.',
+    'share.error': 'Could not create the image. Please try again.',
     'live.qSaves': 'Saves',
     'live.qCards': 'Cards',
 
