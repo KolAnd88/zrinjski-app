@@ -1,0 +1,37 @@
+# Netlify — korisnička aplikacija za gledatelje (Expo web izvoz).
+#
+# Zašto ova mapa postoji umjesto da Netlify gradi izravno iz apps/mobile:
+# `@zrinjski/core` i `@zrinjski/ui-tokens` označeni su kao "*", što se razrješava
+# ISKLJUČIVO kroz npm workspaces iz korijena repozitorija. Kad bi Netlify za
+# korijen projekta uzeo apps/mobile, instalacija bi pukla jer ta dva paketa ne
+# postoje u registru — isti problem koji je oborio prvi build web admina.
+#
+# Ova mapa namjerno NEMA package.json: Netlify tada nema što sam instalirati,
+# pa prepušta cijeli posao naredbi ispod, koja radi iz vrha repozitorija.
+#
+# U Netlify sučelju za ovaj projekt postavi:
+#   Base directory   = deploy/spectator
+#   (Build command i Publish directory dolaze odavde, ne diraj ih)
+
+[build]
+  command = "cd ../.. && npm ci && npm run build:app && rm -rf deploy/spectator/dist && cp -r apps/mobile/dist deploy/spectator/dist"
+  publish = "dist"
+
+  # Ne troši objavu kad se aplikacija nije promijenila. Netlify naplaćuje 15
+  # kredita po produkcijskoj objavi, a commit koji dira samo web admin ovdje
+  # ne mijenja ništa. Izlazni kod 0 = preskoči.
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- apps/mobile packages package.json package-lock.json deploy/spectator"
+
+[build.environment]
+  NODE_VERSION = "20"
+  # Anon ključ je javan po dizajnu — ionako se isporučuje u svakom klijentu i
+  # već stoji u eas.json. Prava zaštita su RLS politike, ne skrivanje ključa.
+  EXPO_PUBLIC_SUPABASE_URL = "https://iymdqfxltwhvngfxkjfy.supabase.co"
+  EXPO_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5bWRxZnhsdHdodm5nZnhramZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3NDkyNzgsImV4cCI6MjA5NzMyNTI3OH0.FcoKqxH-APXffBuBbyAdtO5qmfQrsCYuLFVHANrU7NA"
+
+# Aplikacija je SPA — svaka putanja mora vratiti index.html, inače osvježavanje
+# stranice vrati 404.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
