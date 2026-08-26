@@ -6,7 +6,16 @@ import { DEMO } from '../lib/supabase';
 import { Button } from '../components/ui';
 import './Login.css';
 
-export function Login() {
+/**
+ * Prijava, u dva lica.
+ *
+ * Ista provjera identiteta, ali drugi tekst i druge poveznice: klub treba
+ * otvaranje računa i prijavu ekipe, organizacija ne treba ništa od toga.
+ * Prije je sve bilo na jednoj stranici koja je pisala "samo za organizaciju",
+ * a ispod toga zvala klubove — pa nitko nije znao gdje pripada.
+ */
+export function Login({ mode = 'staff' }: { mode?: 'staff' | 'club' }) {
+  const club = mode === 'club';
   const { t } = useT();
   const { configured, signInWithPassword, signInWithMagicLink } = useAuth();
   const [email, setEmail] = useState(DEMO ? 'demo@zrinjski.ba' : '');
@@ -51,7 +60,7 @@ export function Login() {
         <div className="login__brand">
           <div className="login__logo">ZRI</div>
           <div className="login__title">{t('appName')}</div>
-          <div className="login__subtitle">{t('login.title')}</div>
+          <div className="login__subtitle">{t(club ? 'login.clubTitle' : 'login.title')}</div>
         </div>
 
         {!configured && <div className="banner banner--info">{t('login.notConfigured')}</div>}
@@ -70,7 +79,7 @@ export function Login() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="delegat@zrinjski.ba"
+            placeholder={club ? 'predstavnik@klub.ba' : 'delegat@zrinjski.ba'}
           />
         </div>
 
@@ -107,11 +116,21 @@ export function Login() {
           </button>
         </div>
 
-        <div className="login__note">{t('login.note')}</div>
+        <div className="login__note">{t(club ? 'login.clubNote' : 'login.note')}</div>
 
-        <div style={{ textAlign: 'center', marginTop: 'var(--sp-md)' }}>
-          <Link to="/registracija" className="btn-link">
-            {t('login.registerLink')}
+        <div className="login__links">
+          {club && (
+            <>
+              <Link to="/registracija" className="btn-link">
+                {t('login.registerLink')}
+              </Link>
+              <Link to="/prijava" className="btn-link">
+                {t('login.publicFormLink')}
+              </Link>
+            </>
+          )}
+          <Link to="/" className="btn-link">
+            {t('login.backHome')}
           </Link>
         </div>
       </form>

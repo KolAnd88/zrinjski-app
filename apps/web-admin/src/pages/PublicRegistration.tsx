@@ -302,7 +302,7 @@ export function PublicRegistration() {
         )}
 
         <div className="regform__adminlink">
-          <Link to="/login" className="btn-link">
+          <Link to="/admin" className="btn-link">
             {t('regform.adminLink')}
           </Link>
         </div>

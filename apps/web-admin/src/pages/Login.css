@@ -72,3 +72,13 @@
 .login__magic {
   text-align: center;
 }
+
+/* Poveznice ispod obrasca — klub ih ima vise (racun, javna prijava), pa se
+   slazu okomito i centrirano umjesto da se lome u redu. */
+.login__links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-sm);
+  margin-top: var(--sp-md);
+}

@@ -10,6 +10,18 @@ export const strings = {
 
     // Auth
     'login.title': 'Prijava organizatora',
+    'login.clubTitle': 'Prijava predstavnika ekipe',
+    'login.clubNote': 'Za klubove koji nastupaju na turniru — prijava ekipe i unos sastava.',
+    'login.registerLink': 'Nemaš račun? Otvori ga ovdje',
+    'login.publicFormLink': 'Prijavi ekipu bez otvaranja računa',
+    'login.backHome': '← Natrag',
+    'landing.subtitle': 'Prijave ekipa i vođenje turnira',
+    'landing.clubTitle': 'Predstavnik ekipe',
+    'landing.clubText': 'Prijavi svoju ekipu, unesi sastav i glasaj za najboljeg igrača turnira.',
+    'landing.staffTitle': 'Organizator',
+    'landing.staffText': 'Vođenje turnira: raspored, unos uživo, ekipe, sponzori i obavijesti.',
+    'landing.enter': 'Uđi',
+    'landing.note': 'Nisi siguran? Ako vodiš klub koji igra na turniru — lijevo. Ako vodiš sam turnir — desno.',
     'login.email': 'E-mail',
     'login.password': 'Lozinka',
     'login.show': 'prikaži',
@@ -497,7 +509,6 @@ export const strings = {
     'regform.maxPlayers': 'Najviše 40 igrača po prijavi.',
     'regform.note': 'Prijava je besplatna i ne obvezuje — potvrda slijedi od organizatora.',
     'regform.adminLink': 'Ulaz za organizatore',
-    'login.registerLink': 'Prijava ekipe za turnir →',
 
     // Prijave
     'reg.pendingTitle': 'Čekaju odobrenje',
@@ -549,6 +560,17 @@ export const strings = {
     webAdmin: 'WEB ADMIN',
 
     'login.title': 'Organizer login',
+    'login.clubTitle': 'Team representative sign in',
+    'login.clubNote': 'For clubs taking part in the tournament — team registration and roster.',
+    'login.publicFormLink': 'Register a team without an account',
+    'login.backHome': '← Back',
+    'landing.subtitle': 'Team registration and tournament management',
+    'landing.clubTitle': 'Team representative',
+    'landing.clubText': 'Register your team, enter the roster and vote for the player of the tournament.',
+    'landing.staffTitle': 'Organiser',
+    'landing.staffText': 'Running the tournament: schedule, live entry, teams, sponsors and notices.',
+    'landing.enter': 'Enter',
+    'landing.note': 'Not sure? If you run a club playing in the tournament — left. If you run the tournament — right.',
     'login.email': 'E-mail',
     'login.password': 'Password',
     'login.show': 'show',
@@ -1017,7 +1039,7 @@ export const strings = {
     'regform.maxPlayers': 'A registration can contain up to 40 players.',
     'regform.note': 'Registration is free and non-binding — the organizer will confirm.',
     'regform.adminLink': 'Organizer sign-in',
-    'login.registerLink': 'Register a team for the tournament →',
+    'login.registerLink': 'No account? Create one here',
 
     'reg.pendingTitle': 'Awaiting approval',
     'reg.approvedTitle': 'Approved teams',

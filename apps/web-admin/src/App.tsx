@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { I18nProvider, useT } from './i18n/I18nProvider';
 import { Layout } from './components/Layout';
+import { Landing } from './pages/Landing';
 import { Login } from './pages/Login';
 import { PublicRegistration } from './pages/PublicRegistration';
 import { Signup } from './pages/Signup';
@@ -54,12 +55,18 @@ function AppRoutes() {
   if (!session) {
     return (
       <Routes>
-        <Route path="/login" element={<Login />} />
+        {/* Gola adresa pita tko si — klubova je puno, organizatora nekoliko,
+            i jednima i drugima se salje SVOJ link. */}
+        <Route index element={<Landing />} />
+        <Route path="/klub" element={<Login mode="club" />} />
+        <Route path="/admin" element={<Login mode="staff" />} />
+        {/* Stara adresa: postoje poslani linkovi i spremljene knjizne oznake. */}
+        <Route path="/login" element={<Navigate to="/admin" replace />} />
         {/* Predstavnik kluba sam otvara racun */}
         <Route path="/registracija" element={<Signup />} />
         {/* Javna prijava ekipe — dostupna bez prijave */}
         <Route path="/prijava" element={<PublicRegistration />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
   }

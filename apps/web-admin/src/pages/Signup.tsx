@@ -51,7 +51,7 @@ export function Signup() {
           </div>
           <h1 className="login__title">{t('signup.checkMailTitle')}</h1>
           <p className="login__note">{t('signup.checkMailBody', { e: email.trim() })}</p>
-          <Link className="login__link" to="/login">
+          <Link className="login__link" to="/klub">
             {t('signup.toLogin')}
           </Link>
         </div>
@@ -109,7 +109,7 @@ export function Signup() {
           {busy ? t('signup.creating') : t('signup.submit')}
         </Button>
 
-        <Link className="login__link" to="/login">
+        <Link className="login__link" to="/klub">
           {t('signup.haveAccount')}
         </Link>
       </div>

@@ -1,0 +1,104 @@
+/* Landing.css — razdvojnica: klub ili organizacija. */
+
+.landing {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--sp-xl, 32px);
+  max-width: 780px;
+  margin: 0 auto;
+  padding: var(--sp-lg);
+}
+
+.landing__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+}
+
+.landing__logo {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--red-dk, #9c0c18), var(--red));
+  color: #fff;
+  font-family: var(--font-head);
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+.landing__name {
+  font-family: var(--font-head);
+  font-size: 24px;
+  color: var(--txt);
+}
+
+.landing__sub {
+  margin-top: 2px;
+  color: var(--sub);
+  font-size: 13px;
+}
+
+/* ── Dvije kartice ─────────────────────────────────────────────────────── */
+.landing__cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-md);
+}
+
+.landing__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+  padding: var(--sp-lg);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+
+.landing__card:hover {
+  border-color: var(--red);
+}
+
+/* Klubova je mnogo, organizatora nekoliko — klub dobiva naglasak. */
+.landing__card--primary {
+  border-color: rgba(225, 29, 42, 0.45);
+  background: linear-gradient(160deg, rgba(225, 29, 42, 0.1), var(--card) 60%);
+}
+
+.landing__cardTitle {
+  font-family: var(--font-head);
+  font-size: 19px;
+  color: var(--txt);
+}
+
+.landing__cardText {
+  color: var(--sub);
+  font-size: 13px;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.landing__cardGo {
+  color: var(--red-lt, #ff5662);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.landing__note {
+  margin: 0;
+  color: var(--mut);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+  .landing__cards {
+    grid-template-columns: 1fr;
+  }
+}
