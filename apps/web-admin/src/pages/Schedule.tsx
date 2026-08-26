@@ -270,6 +270,8 @@ export function Schedule() {
           m={openMatch}
           teamsById={sched.teamsById}
           dayDate={data.days.find((d) => d.id === openMatch.day_id)?.date ?? null}
+          tournamentId={tr.id}
+          tournamentName={tr.name}
           onClose={() => setOpenMatch(null)}
         />
       )}

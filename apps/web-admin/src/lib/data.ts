@@ -19,6 +19,7 @@ import type {
   RegistrationPlayer,
   RegistrationStatus,
   SlotPatch,
+  ShareSponsor,
   Sponsor,
   Team,
   Tournament,
@@ -1438,4 +1439,52 @@ export async function deleteContact(id: string): Promise<void> {
   }
   const { error } = await client().from('contact').delete().eq('id', id);
   if (error) throw error;
+}
+
+// ── Slika rezultata za društvene mreže ─────────────────────────────────────
+
+/**
+ * Logotipi sponzora kao data URI, spremni za ugradnju u sliku rezultata.
+ *
+ * Ugrađuju se, a ne povezuju: slika se dijeli dalje i otvara na tuđim
+ * uređajima, gdje poveznica na Storage nije dohvatljiva, a i canvas bi je pri
+ * pretvorbi u PNG "zatrovao" pa se slika ne bi dala izvesti.
+ *
+ * Rezultat se pamti u memoriji — logotipi se ne mijenjaju tijekom turnira, a
+ * bez toga bi se skidali iznova za svaku utakmicu.
+ */
+const logoCache = new Map<string, string | null>();
+
+export async function sponsorLogoDataUri(url: string | null): Promise<string | null> {
+  if (!url) return null;
+  if (logoCache.has(url)) return logoCache.get(url)!;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(String(res.status));
+    const blob = await res.blob();
+    const data = await new Promise<string>((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(String(fr.result));
+      fr.onerror = () => reject(fr.error);
+      fr.readAsDataURL(blob);
+    });
+    logoCache.set(url, data);
+    return data;
+  } catch {
+    // Sponzor bez dohvatljivog logotipa pada na ime — slika se svejedno radi.
+    logoCache.set(url, null);
+    return null;
+  }
+}
+
+/** Aktivni sponzori s ugrađenim logotipima, u obliku koji traži shareCardSvg. */
+export async function fetchShareSponsors(tournamentId: string): Promise<ShareSponsor[]> {
+  const list = (await fetchSponsors(tournamentId)).filter((s) => s.is_active);
+  return Promise.all(
+    list.map(async (s) => ({
+      name: s.name,
+      tier: s.tier,
+      logo: await sponsorLogoDataUri(s.logo_url),
+    }))
+  );
 }

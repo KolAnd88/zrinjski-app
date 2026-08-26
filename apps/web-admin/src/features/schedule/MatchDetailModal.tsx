@@ -8,6 +8,7 @@ import { Button, Crest } from '../../components/ui';
 import { fetchEvents, fetchPlayersByTeams } from '../../lib/data';
 import { isoToLocalHHMM } from '../../lib/timeFormat';
 import type { TeamLite } from './useScheduleMatches';
+import { buildShareCard, downloadCardPng } from './shareResult';
 import './MatchDetailModal.css';
 
 const STAGE: Record<string, StringKey> = {
@@ -34,17 +35,23 @@ export function MatchDetailModal({
   m,
   teamsById,
   dayDate,
+  tournamentId,
+  tournamentName,
   onClose,
 }: {
   m: Match;
   teamsById: Map<string, TeamLite>;
   dayDate: string | null;
+  tournamentId: string;
+  tournamentName: string;
   onClose: () => void;
 }) {
   const { t, locale } = useT();
   const navigate = useNavigate();
   const [events, setEvents] = useState<MatchEvent[] | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [sharing, setSharing] = useState(false);
+  const [shareErr, setShareErr] = useState(false);
 
   const home = m.home_team_id ? teamsById.get(m.home_team_id) : undefined;
   const away = m.away_team_id ? teamsById.get(m.away_team_id) : undefined;
@@ -98,6 +105,31 @@ export function MatchDetailModal({
 
   const roster = (teamId: string | null | undefined) =>
     teamId ? players.filter((p) => p.team_id === teamId) : [];
+
+  /** Sastavi sliku rezultata i preuzmi je kao PNG spreman za objavu. */
+  async function share() {
+    setSharing(true);
+    setShareErr(false);
+    try {
+      const svg = await buildShareCard({
+        match: m,
+        home,
+        away,
+        events: events ?? [],
+        players,
+        tournamentId,
+        tournamentName,
+        dateLabel: dayDate ? formatDayLabel(dayDate, locale) : isoToLocalHHMM(m.scheduled_time),
+        groupName: null,
+      });
+      const naziv = `${home?.short_code ?? 'X'}-${away?.short_code ?? 'X'}-${m.home_score}-${m.away_score}`;
+      await downloadCardPng(svg, `rezultat-${naziv}.png`);
+    } catch {
+      setShareErr(true);
+    } finally {
+      setSharing(false);
+    }
+  }
 
   const statusKey: StringKey =
     m.status === 'live' ? 'mdet.statusLive' : m.status === 'finished' ? 'mdet.statusFinished' : 'mdet.statusScheduled';
@@ -201,7 +233,14 @@ export function MatchDetailModal({
             {t('mdet.openReport')}
           </Button>
           <Button onClick={() => navigate(`/live?match=${m.id}`)}>{t('mdet.openLive')}</Button>
-          <span className="mdet__hint">{t('mdet.reportHint')}</span>
+          <Button
+            disabled={sharing || m.status !== 'finished'}
+            title={m.status === 'finished' ? undefined : t('mdet.shareOnlyFinished')}
+            onClick={() => void share()}
+          >
+            {sharing ? t('mdet.sharing') : t('mdet.share')}
+          </Button>
+          <span className="mdet__hint">{shareErr ? t('mdet.shareError') : t('mdet.reportHint')}</span>
         </div>
       </div>
     </div>
