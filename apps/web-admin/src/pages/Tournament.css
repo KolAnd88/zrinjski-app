@@ -32,3 +32,11 @@
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+.tour__hint {
+  margin: var(--sp-md) 0 0;
+  color: var(--sub);
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 70ch;
+}

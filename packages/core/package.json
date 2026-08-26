@@ -14,7 +14,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.0"
+    "@supabase/supabase-js": "^2.45.0",
+    "@zrinjski/ui-tokens": "*"
   },
   "devDependencies": {
     "typescript": "^5.5.0",

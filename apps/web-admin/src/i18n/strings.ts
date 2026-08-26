@@ -171,6 +171,11 @@ export const strings = {
     'cal.taken': 'Dan već postoji.',
 
     // Turnir / postavke
+    'tournament.identity': 'Naziv turnira',
+    'tournament.name': 'Naziv',
+    'tournament.namePlaceholder': 'npr. Ponos Hercegovine 2026',
+    'tournament.season': 'Godina',
+    'tournament.nameHint': 'Pojavljuje se u aplikaciji, na zapisniku i na slici rezultata koja se dijeli na društvene mreže.',
     'tournament.durationGap': 'Trajanje i razmak',
     'tournament.duration': 'Trajanje utakmice',
     'tournament.gap': 'Razmak između',
@@ -693,6 +698,11 @@ export const strings = {
     'cal.add': 'Add day',
     'cal.taken': 'Day already exists.',
 
+    'tournament.identity': 'Tournament name',
+    'tournament.name': 'Name',
+    'tournament.namePlaceholder': 'e.g. Ponos Hercegovine 2026',
+    'tournament.season': 'Year',
+    'tournament.nameHint': 'Shown in the app, on the match report and on the result image shared to social media.',
     'tournament.durationGap': 'Duration and gap',
     'tournament.duration': 'Match duration',
     'tournament.gap': 'Gap between',
