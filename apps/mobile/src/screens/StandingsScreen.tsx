@@ -42,6 +42,18 @@ export function StandingsScreen() {
       ? buildBracket({ gender, groupA: standingsOf(groups[0]!), groupB: standingsOf(groups[1]!) })
       : [];
 
+  /**
+   * Do ždrijeba ovaj ekran nije imao što pokazati — ni jedna grupa nema ekipa,
+   * pa je ispod prekidača ostajala praznina. Tada prikazujemo popis prijavljenih,
+   * jer je to jedino što se u toj fazi zna i jedino što ljude zanima.
+   */
+  const drawn = groups.some((g) => d.teams.some((tm) => tm.group_id === g.id));
+  // Abecedno, ne po `sort_order`: taj redoslijed nosi boju grba i nema veze s
+  // imenom, pa bi čovjek koji traži svoj klub morao čitati cijeli popis.
+  const registered = d.teams
+    .filter((tm) => tm.gender === gender)
+    .sort((a, b) => a.name.localeCompare(b.name, 'hr'));
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <BrandStripe />
@@ -58,6 +70,52 @@ export function StandingsScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={refreshControl}
       >
+        {/* ── PRIJAVLJENE EKIPE (do ždrijeba) ──────────────────────────── */}
+        {!drawn && (
+          <>
+            <View style={styles.regHead}>
+              <Txt style={styles.groupLabel}>{t('standings.registered').toUpperCase()}</Txt>
+              {registered.length > 0 && (
+                <Txt style={styles.regCount}>
+                  {t('standings.registeredCount', { n: registered.length })}
+                </Txt>
+              )}
+            </View>
+
+            {registered.length === 0 ? (
+              <Txt style={styles.regEmpty}>{t('standings.registeredEmpty')}</Txt>
+            ) : (
+              <>
+                <View style={styles.table}>
+                  {registered.map((tm, i) => {
+                    const mine = followed.includes(tm.id);
+                    return (
+                      <Pressable
+                        key={tm.id}
+                        onPress={() => nav.navigate('Team', { teamId: tm.id })}
+                        // Bez zaglavlja tablice prvi red ne smije nositi gornju
+                        // crtu — inače visi odvojen od ruba kartice.
+                        style={[styles.trow, i === 0 && styles.trowFirst, mine && styles.trowMine]}
+                      >
+                        <Crest
+                          code={tm.short_code}
+                          index={tm.sort_order}
+                          logoUrl={tm.logo_url}
+                          size={26}
+                        />
+                        <Txt numberOfLines={1} style={[styles.tName, mine ? styles.tNameMine : null]}>
+                          {tm.name}
+                        </Txt>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                <Txt style={styles.regHint}>{t('standings.registeredHint')}</Txt>
+              </>
+            )}
+          </>
+        )}
+
         {groups.map((g) => (
           <View key={g.id}>
             <Txt style={styles.groupLabel}>{g.name}</Txt>
@@ -218,8 +276,33 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: C.lineRow,
   },
+  trowFirst: { borderTopWidth: 0 },
   // Praćena ekipa dobiva blagi crveni podložak i jači tekst.
   trowMine: { backgroundColor: 'rgba(225,29,42,.06)' },
+
+  regHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
+  regCount: {
+    fontFamily: F.headSemi,
+    fontSize: 11,
+    letterSpacing: 0.8,
+    color: C.sub,
+    marginHorizontal: SP.hair,
+  },
+  regHint: {
+    fontFamily: F.body,
+    fontSize: 12,
+    lineHeight: 18,
+    color: C.mut,
+    marginTop: SP.gap,
+    marginHorizontal: SP.hair,
+  },
+  regEmpty: {
+    fontFamily: F.body,
+    fontSize: 13,
+    lineHeight: 20,
+    color: C.sub,
+    marginHorizontal: SP.hair,
+  },
 
   cRank: { width: 16, alignItems: 'center', justifyContent: 'center' },
   cPlayed: { width: 26 },

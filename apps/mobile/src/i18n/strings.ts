@@ -83,6 +83,7 @@ export const strings = {
     'schedule.title': 'Raspored',
     'schedule.final': 'FINALE',
     'schedule.program': 'Program',
+    'schedule.notYet': 'Satnica još nije objavljena. Popis prijavljenih ekipa nađeš pod Poredak.',
 
     // Poredak
     'standings.title': 'Poredak',
@@ -96,6 +97,11 @@ export const strings = {
     'standings.semifinal': 'Polufinale',
     'standings.thirdPlace': 'Za 3. mjesto',
     'standings.final': 'Finale',
+    // Popis prijavljenih — vidi se dok grupe nisu izvučene.
+    'standings.registered': 'Prijavljene ekipe',
+    'standings.registeredCount': '{n} prijavljenih',
+    'standings.registeredHint': 'Grupe još nisu izvučene. Popis se dopunjuje kako prijave stižu.',
+    'standings.registeredEmpty': 'U ovoj konkurenciji još nema prijavljenih ekipa.',
 
     // Statistika
     'stats.title': 'Statistika',
@@ -376,6 +382,7 @@ export const strings = {
     'schedule.title': 'Schedule',
     'schedule.final': 'FINAL',
     'schedule.program': 'Program',
+    'schedule.notYet': 'The schedule is not published yet. Registered teams are listed under Standings.',
 
     'standings.title': 'Standings',
     'standings.played': 'Played',
@@ -388,6 +395,10 @@ export const strings = {
     'standings.semifinal': 'Semifinal',
     'standings.thirdPlace': 'Third place',
     'standings.final': 'Final',
+    'standings.registered': 'Registered teams',
+    'standings.registeredCount': '{n} registered',
+    'standings.registeredHint': 'Groups have not been drawn yet. The list grows as entries arrive.',
+    'standings.registeredEmpty': 'No teams have registered in this competition yet.',
 
     'stats.title': 'Stats',
     'stats.scorers': 'Scorers',

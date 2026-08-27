@@ -90,7 +90,9 @@ export function ScheduleScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={refreshControl}
       >
-        {rows.length === 0 && <Txt color={C.sub}>{t('common.empty')}</Txt>}
+        {/* Prije objave satnice "Nema podataka" zvuči kao kvar. Recimo umjesto
+            toga što se čeka i gdje se u međuvremenu vidi tko dolazi. */}
+        {rows.length === 0 && <Txt color={C.sub}>{t('schedule.notYet')}</Txt>}
 
         {rows.map((row, i) => {
           const isLive = row.kind === 'match' && row.match.status === 'live';
