@@ -213,6 +213,8 @@ export const strings = {
     'schedule.generate': 'Generiraj satnicu',
     'schedule.generating': 'Generiranje…',
     'schedule.delayNote': 'Kod kašnjenja uživo sve se pomiče samo + šalje obavijest.',
+    'schedule.locked':
+      'Automatska satnica je zaključana jer je turnir već počeo. Za izmjene koristi strelice ili pomak zbog kašnjenja.',
     'schedule.generated': 'Generirana satnica',
     'schedule.auto': 'auto · uredivo',
     'schedule.noMatches': 'Nema utakmica za raspoređivanje. Prvo dodaj ekipe i utakmice.',
@@ -751,6 +753,8 @@ export const strings = {
     'schedule.generate': 'Generate schedule',
     'schedule.generating': 'Generating…',
     'schedule.delayNote': 'On live delays everything shifts automatically + notification is sent.',
+    'schedule.locked':
+      'Automatic scheduling is locked because the tournament has started. Use the arrows or the delay shift for changes.',
     'schedule.generated': 'Generated schedule',
     'schedule.auto': 'auto · editable',
     'schedule.noMatches': 'No matches to schedule. Add teams and matches first.',

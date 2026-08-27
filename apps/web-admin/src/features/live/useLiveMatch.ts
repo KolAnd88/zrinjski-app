@@ -161,19 +161,18 @@ export function useLiveMatch(matchId: string | null): LiveMatchState {
       const m = matchRef.current;
       if (!m) return;
       const ev = await insertEvent({ match_id: m.id, team_id: teamId, player_id: playerId, type, minute });
-      setEvents((prev) => [...prev, ev]);
-      // Gol → DB trigger podiže rezultat; lokalno optimistično odrazimo.
+      // Realtime može stići prije odgovora na INSERT. Spajanje po ID-u sprječava
+      // da isti događaj nakratko bude prikazan dvaput.
+      setEvents((prev) => (prev.some((item) => item.id === ev.id) ? prev : [...prev, ev]));
+      // Gol podiže DB trigger. Učitaj autoritativni rezultat umjesto lokalnog
+      // +1, jer bi Realtime UPDATE i optimistični +1 u utrci mogli dati dupli gol.
       if (type === 'goal') {
-        const isHome = teamId === m.home_team_id;
-        setMatch((cur) =>
-          cur
-            ? {
-                ...cur,
-                home_score: cur.home_score + (isHome ? 1 : 0),
-                away_score: cur.away_score + (isHome ? 0 : 1),
-              }
-            : cur
-        );
+        try {
+          const fresh = await fetchMatch(m.id);
+          if (fresh) setMatch(fresh);
+        } catch {
+          // Realtime će svejedno donijeti rezultat; događaj je već sigurno upisan.
+        }
       }
     },
     []
@@ -184,18 +183,15 @@ export function useLiveMatch(matchId: string | null): LiveMatchState {
     const m = matchRef.current;
     if (!last || !m) return;
     await deleteEvent(last.id);
-    setEvents((prev) => prev.slice(0, -1));
+    // Filter po ID-u je siguran i ako je Realtime već osvježio popis.
+    setEvents((prev) => prev.filter((item) => item.id !== last.id));
     if (last.type === 'goal') {
-      const isHome = last.team_id === m.home_team_id;
-      setMatch((cur) =>
-        cur
-          ? {
-              ...cur,
-              home_score: Math.max(0, cur.home_score - (isHome ? 1 : 0)),
-              away_score: Math.max(0, cur.away_score - (isHome ? 0 : 1)),
-            }
-          : cur
-      );
+      try {
+        const fresh = await fetchMatch(m.id);
+        if (fresh) setMatch(fresh);
+      } catch {
+        // Realtime će donijeti kanonski rezultat kad se veza oporavi.
+      }
     }
   }, [events]);
 

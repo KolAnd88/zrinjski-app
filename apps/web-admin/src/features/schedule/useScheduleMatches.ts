@@ -54,6 +54,9 @@ export function useScheduleMatches(tournamentId: string | null): ScheduleMatches
 
   const generate = useCallback(
     async (tournament: Tournament, days: Day[]): Promise<number> => {
+      // Nakon početka turnira ponovno generiranje bi prepisalo stvarne termine
+      // odigranih/tekućih utakmica i sva evidentirana kašnjenja.
+      if (matches.some((match) => match.status !== 'scheduled')) return 0;
       setGenerating(true);
       try {
         // Grupiraj utakmice po danu, u redoslijedu igranja (matches su već sortirane po sort_order).

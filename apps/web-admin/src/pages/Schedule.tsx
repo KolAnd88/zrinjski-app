@@ -144,6 +144,7 @@ export function Schedule() {
 
   const tr = data.tournament;
   const daysWithTime = data.days.filter((d) => !!d.first_match_time);
+  const scheduleLocked = sched.matches.some((m) => m.status !== 'scheduled');
 
   async function commitNum(key: 'match_duration_min' | 'gap_min', raw: string, fallback: number) {
     const n = Number(raw);
@@ -205,12 +206,13 @@ export function Schedule() {
           variant="primary"
           size="lg"
           block
-          disabled={sched.generating || daysWithTime.length === 0 || sched.matches.length === 0}
+          disabled={sched.generating || scheduleLocked || daysWithTime.length === 0 || sched.matches.length === 0}
           onClick={() => void handleGenerate()}
         >
           {sched.generating ? t('schedule.generating') : t('schedule.generate')}
         </Button>
 
+        {scheduleLocked && <div className="banner banner--info">{t('schedule.locked')}</div>}
         {daysWithTime.length === 0 && <div className="banner banner--info">{t('schedule.noDaysWarn')}</div>}
         {sched.matches.length === 0 && !sched.loading && (
           <div className="banner banner--info">{t('schedule.noMatches')}</div>
