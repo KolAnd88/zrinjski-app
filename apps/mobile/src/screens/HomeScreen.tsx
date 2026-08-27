@@ -196,7 +196,7 @@ export function HomeScreen() {
               <View style={styles.goldBadge}>
                 <Ionicons name="star" size={11} color={C.gold} />
                 <Txt style={styles.goldBadgeTxt}>
-                  {t('home.goldSponsor').toUpperCase()} · {d.tournament?.season_year ?? ''}
+                  {t('home.goldSponsor').toUpperCase()}
                 </Txt>
               </View>
             </LinearGradient>

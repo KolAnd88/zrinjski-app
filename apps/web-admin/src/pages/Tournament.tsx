@@ -92,26 +92,18 @@ export function Tournament() {
         <h2 className="section-label" style={{ marginBottom: 'var(--sp-md)' }}>
           {t('tournament.identity')}
         </h2>
-        <div className="grid-2">
-          <div>
-            <label className="field-label">{t('tournament.name')}</label>
-            <input
-              className="input"
-              defaultValue={tr.name}
-              placeholder={t('tournament.namePlaceholder')}
-              onBlur={(e) => {
-                const v = e.target.value.trim();
-                if (v && v !== tr.name) void data.saveSettings({ name: v });
-              }}
-            />
-          </div>
-          <NumberField
-            label={t('tournament.season')}
-            value={tr.season_year}
-            min={2000}
-            onSave={(v) => data.saveSettings({ season_year: v })}
-          />
-        </div>
+        {/* Godina se ne unosi zasebno — nosi je sam naziv ("… 2026"). Dva
+            mjesta za istu informaciju znače da se prije ili kasnije raziđu. */}
+        <label className="field-label">{t('tournament.name')}</label>
+        <input
+          className="input"
+          defaultValue={tr.name}
+          placeholder={t('tournament.namePlaceholder')}
+          onBlur={(e) => {
+            const v = e.target.value.trim();
+            if (v && v !== tr.name) void data.saveSettings({ name: v });
+          }}
+        />
         <p className="tour__hint">{t('tournament.nameHint')}</p>
       </Card>
 
