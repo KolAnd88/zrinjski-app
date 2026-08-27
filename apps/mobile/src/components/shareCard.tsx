@@ -4,6 +4,9 @@ import { SvgXml } from 'react-native-svg';
 
 type SvgRef = { toDataURL: (cb: (base64: string) => void, options?: object) => void };
 
+/** Slika je 1080×1350; i na sporom uređaju to je gotovo u par sekundi. */
+const EXPORT_TIMEOUT_MS = 12000;
+
 /**
  * Pretvaranje SVG-a u PNG na uređaju.
  *
@@ -23,29 +26,53 @@ export function useShareCardExport() {
   useEffect(() => {
     if (!xml || !waiting.current) return;
 
-    // Jedan okvir da se crtež stigne postaviti prije izvoza.
-    const id = setTimeout(() => {
-      const ref = svgRef.current;
+    /** Zatvori posao jednom — drugi poziv nakon isteka roka nema učinka. */
+    const finish = (fn: (p: NonNullable<typeof waiting.current>) => void) => {
       const pending = waiting.current;
       if (!pending) return;
+      waiting.current = null;
+      setXml(null);
+      fn(pending);
+    };
+
+    // Rok: `toDataURL` prima povratni poziv koji se na Androidu zna nikad ne
+    // javiti (crtež izvan ekrana). Bez roka bi obećanje visjelo zauvijek —
+    // gumb ostane u radu, greška se ne pojavi i kvar izgleda kao "ništa se ne
+    // događa". Radije javi grešku nego da čekaš u prazno.
+    const bail = setTimeout(() => {
+      finish((p) => p.reject(new Error('izrada slike je predugo trajala')));
+    }, EXPORT_TIMEOUT_MS);
+
+    // Crtež se mora stići postaviti prije izvoza. Logotipi sponzora ugrađeni su
+    // kao data URI i moraju se dekodirati, pa jedan okvir zna biti prekratak.
+    const id = setTimeout(() => {
+      const ref = svgRef.current;
+      if (!waiting.current) return;
       if (!ref?.toDataURL) {
-        waiting.current = null;
-        setXml(null);
-        pending.reject(new Error('svg_export_unavailable'));
+        finish((p) => p.reject(new Error('crtež nije spreman za izvoz')));
         return;
       }
-      ref.toDataURL((base64) => {
-        waiting.current = null;
-        setXml(null);
-        pending.resolve(base64);
-      });
-    }, 120);
+      try {
+        ref.toDataURL((base64) => {
+          if (!base64) finish((p) => p.reject(new Error('izvoz je vratio praznu sliku')));
+          else finish((p) => p.resolve(base64));
+        });
+      } catch (e) {
+        finish((p) => p.reject(new Error(`izvoz: ${e instanceof Error ? e.message : String(e)}`)));
+      }
+    }, 350);
 
-    return () => clearTimeout(id);
+    return () => {
+      clearTimeout(id);
+      clearTimeout(bail);
+    };
   }, [xml]);
 
   const toPngBase64 = useCallback((svg: string) => {
     return new Promise<string>((resolve, reject) => {
+      // Prethodni posao se odbija, inače bi njegovo obećanje ostalo neriješeno
+      // i pozivatelj bi zauvijek čekao odgovor koji više nitko ne šalje.
+      waiting.current?.reject(new Error('izrada slike je prekinuta novom'));
       waiting.current = { resolve, reject };
       setXml(svg);
     });

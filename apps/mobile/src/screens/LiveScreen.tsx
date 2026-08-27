@@ -39,7 +39,7 @@ export function LiveScreen() {
   const d = useData();
   const { Renderer, toPngBase64 } = useShareCardExport();
   const [busy, setBusy] = useState(false);
-  const [shareErr, setShareErr] = useState(false);
+  const [shareErr, setShareErr] = useState<string | null>(null);
 
   const m = d.matchById(route.params.matchId);
   const home = d.teamById(m?.home_team_id);
@@ -107,7 +107,7 @@ export function LiveScreen() {
   async function shareResult() {
     if (!m) return;
     setBusy(true);
-    setShareErr(false);
+    setShareErr(null);
     try {
       const svg = await buildShareCard({
         match: m,
@@ -126,7 +126,9 @@ export function LiveScreen() {
       // Ne gutamo tiho — bez traga se ovakav kvar otkrije tek kad netko prijavi
       // "ne radi", a tada nema po čemu tražiti.
       console.error('[dijeljenje]', e);
-      setShareErr(true);
+      // Poruka ide i na ekran: bez uređaja spojenog na računalo dnevnik nitko
+      // ne vidi, pa je ovo jedini način da se sazna ŠTO je puklo.
+      setShareErr(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
     }
@@ -269,6 +271,7 @@ export function LiveScreen() {
               style={{ marginTop: SP.section }}
             />
             <Txt style={styles.shareHint}>{shareErr ? t('share.error') : t('share.hint')}</Txt>
+            {!!shareErr && <Txt style={styles.shareErrDetail}>{shareErr}</Txt>}
           </>
         )}
       </ScrollView>
@@ -409,6 +412,14 @@ const styles = StyleSheet.create({
   bestLabel: { fontFamily: F.headSemi, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: C.goldTxt },
   bestName: { flex: 1, textAlign: 'right', fontFamily: F.bodySemi, fontSize: 14, color: C.txt },
   shareHint: { fontFamily: F.body, fontSize: 12, lineHeight: 18, color: C.sub, textAlign: 'center', marginTop: SP.gap },
+  shareErrDetail: {
+    fontFamily: F.body,
+    fontSize: 11,
+    lineHeight: 16,
+    color: C.red,
+    textAlign: 'center',
+    marginTop: 4,
+  },
   flowCard: {
     backgroundColor: C.card,
     borderWidth: 1,
