@@ -1,4 +1,4 @@
-import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -27,6 +27,12 @@ export function InfoScreen() {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const d = useData();
   const refreshControl = useRefreshControl();
+
+  // Tekstovi iz admina imaju prednost; zadani ostaju samo dok organizator ne
+  // upiše svoje, da ekran nikad ne ostane s praznom karticom.
+  const formatTxt = d.tournament?.format?.trim() || '';
+  const rulesTxt = d.tournament?.rules?.trim() || t('info.rulesBody');
+  const aboutTxt = d.tournament?.about_club?.trim() || t('info.aboutBody');
 
   const hall = d.locations.find((l) => l.type === 'hall');
   const days = d.days;
@@ -70,14 +76,13 @@ export function InfoScreen() {
           style={styles.hero}
         >
           <View style={styles.heroRow}>
-            <LinearGradient
-              colors={[C.red, C.redDk]}
-              start={{ x: 0.15, y: 0 }}
-              end={{ x: 0.85, y: 1 }}
+            {/* Grb kluba, kao i na početnoj — "ZC" je bio ostatak iz vremena
+                prije nego što je grb postojao u aplikaciji. */}
+            <Image
+              source={require('../../assets/crest.png')}
               style={styles.heroLogo}
-            >
-              <Txt style={styles.heroLogoTxt}>ZC</Txt>
-            </LinearGradient>
+              resizeMode="contain"
+            />
             <View style={{ flex: 1 }}>
               <Txt style={styles.heroName} numberOfLines={2}>
                 {d.tournament?.name ?? t('appName')}
@@ -169,16 +174,25 @@ export function InfoScreen() {
           </>
         )}
 
-        {/* Pravila */}
+        {/* Format, pravila i o klubu — unose se u adminu. Ako organizator još
+            nije ništa upisao, ostaje zadani tekst umjesto prazne rupe. */}
+        {!!formatTxt && (
+          <>
+            <SectionLabel>{t('info.dFormat')}</SectionLabel>
+            <View style={[styles.card, styles.textCard]}>
+              <Txt style={styles.bodyTxt}>{formatTxt}</Txt>
+            </View>
+          </>
+        )}
+
         <SectionLabel>{t('info.rules')}</SectionLabel>
         <View style={[styles.card, styles.textCard]}>
-          <Txt style={styles.bodyTxt}>{t('info.rulesBody')}</Txt>
+          <Txt style={styles.bodyTxt}>{rulesTxt}</Txt>
         </View>
 
-        {/* O klubu */}
         <SectionLabel>{t('info.about')}</SectionLabel>
         <View style={[styles.card, styles.textCard]}>
-          <Txt style={styles.bodyTxt}>{t('info.aboutBody')}</Txt>
+          <Txt style={styles.bodyTxt}>{aboutTxt}</Txt>
         </View>
 
         {/* Organizator */}
@@ -223,8 +237,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   heroRow: { flexDirection: 'row', alignItems: 'center', gap: SP.divider },
-  heroLogo: { width: 48, height: 48, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  heroLogoTxt: { fontFamily: F.head, fontSize: 16, color: '#fff' },
+  heroLogo: { width: 48, height: 48 },
   heroName: { fontFamily: F.head, fontSize: 18, letterSpacing: 0.4, color: C.txt },
   heroSub: { fontFamily: F.body, fontSize: 13, color: C.sub, marginTop: 2 },
 

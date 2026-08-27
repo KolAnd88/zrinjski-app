@@ -40,3 +40,25 @@
   line-height: 1.5;
   max-width: 70ch;
 }
+
+/* Traka sa "Spremi" prati skrol — obrazac je dulji od ekrana. */
+.tour__savewrap {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  background: var(--bg);
+  padding-bottom: var(--sp-md);
+}
+.tour__savewrap .savebar {
+  margin-top: 0;
+}
+
+.tour__text {
+  margin-bottom: var(--sp-lg);
+}
+.tour__textarea {
+  min-height: 96px;
+  resize: vertical;
+  line-height: 1.5;
+  font-family: inherit;
+}

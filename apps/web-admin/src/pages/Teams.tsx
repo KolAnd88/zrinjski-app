@@ -5,6 +5,7 @@ import { Button, Card, Crest } from '../components/ui';
 import { useTournamentData } from '../features/tournament/useTournamentData';
 import { useTeamsData } from '../features/teams/useTeamsData';
 import { TeamEditor } from '../features/teams/TeamEditor';
+import { GroupDraw } from '../features/teams/GroupDraw';
 import './Teams.css';
 
 export function Teams() {
@@ -150,10 +151,15 @@ export function Teams() {
           {t('teams.genMatches')}
         </Button>
         {genMsg && <div className="banner banner--ok">{genMsg}</div>}
+        <p className="teams__hint">{t('draw.thenSchedule')}</p>
       </div>
 
-      {/* Desno: uređivanje */}
+      {/* Desno: ždrijeb pa uređivanje odabrane ekipe */}
       <div className="teams__right">
+        <Card>
+          <GroupDraw teams={data.teams} groups={data.groups} onSave={data.assignGroups} />
+        </Card>
+
         {selectedTeam ? (
           <Card accent>
             <TeamEditor team={selectedTeam} players={selectedPlayers} groups={data.groups} data={data} />

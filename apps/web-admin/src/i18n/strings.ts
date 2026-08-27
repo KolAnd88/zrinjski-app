@@ -207,6 +207,23 @@ export const strings = {
     'tournament.saved': 'Spremljeno.',
     'tournament.noDays': 'Još nema dana. Dodaj prvi dan kalendarom.',
     'tournament.deleteDayConfirm': 'Obrisati ovaj dan?',
+    // Spremanje na gumb
+    'form.save': 'Spremi',
+    'form.saving': 'Spremam…',
+    'form.cancel': 'Odustani',
+    'form.saved': 'Spremljeno.',
+    'form.unsaved': 'Nespremljene izmjene',
+    'form.leaveConfirm': 'Imaš nespremljenih izmjena. Napustiti stranicu?',
+    // Tekstovi turnira
+    'texts.title': 'Pravila, format i o klubu',
+    'texts.rules': 'Pravila natjecanja',
+    'texts.rulesPlaceholder': 'npr. Igra se 2×15 minuta, tri izmjene po poluvremenu…',
+    'texts.format': 'Format natjecanja',
+    'texts.formatPlaceholder': 'npr. Dvije grupe po šest ekipa, prve dvije idu u polufinale…',
+    'texts.about': 'O klubu',
+    'texts.aboutPlaceholder': 'npr. VHMRK Zrinjski Mostar osnovan je…',
+    'texts.hint':
+      'Prikazuje se u aplikaciji pod Info. Dok su Pravila i O klubu prazni, stoji zadani tekst; Format se prazan ne prikazuje.',
 
     // Raspored / auto-satnica
     'schedule.autoTitle': 'Automatska satnica',
@@ -271,6 +288,17 @@ export const strings = {
     'teams.genMatches': 'Generiraj grupne utakmice',
     'teams.genMatchesDone': 'Kreirano {created} utakmica · {skipped} grupa preskočeno.',
     'teams.teamNamePrompt': 'Naziv nove ekipe:',
+    // Ždrijeb
+    'draw.title': 'Ždrijeb — raspored po grupama',
+    'draw.none': '— bez grupe —',
+    'draw.unassigned': 'bez grupe',
+    'draw.save': 'Spremi ždrijeb',
+    // Broj ide na kraj: hrvatski mijenja oblik uz 1, 2 i 5 ("1 izmjena",
+    // "2 izmjene", "5 izmjena"), pa se jedan zajednički oblik ne može složiti.
+    'draw.pending': 'Nespremljeno izmjena: {n}',
+    'draw.noGroups': 'Prvo dodaj barem jednu grupu iznad, pa rasporedi ekipe.',
+    'draw.thenSchedule': 'Kad je ždrijeb spremljen, generiraj grupne utakmice pa posloži satnicu pod Raspored.',
+    'draw.lockedByMatches': 'Grupne utakmice već postoje. Ždrijeb se više ne mijenja jer bi rezultati ostali na krivim ekipama.',
 
     // Unos uživo
     'live.pickMatch': 'Odaberi utakmicu za unos',
@@ -748,6 +776,21 @@ export const strings = {
     'tournament.saved': 'Saved.',
     'tournament.noDays': 'No days yet. Add the first day via the calendar.',
     'tournament.deleteDayConfirm': 'Delete this day?',
+    'form.save': 'Save',
+    'form.saving': 'Saving…',
+    'form.cancel': 'Cancel',
+    'form.saved': 'Saved.',
+    'form.unsaved': 'Unsaved changes',
+    'form.leaveConfirm': 'You have unsaved changes. Leave the page?',
+    'texts.title': 'Rules, format and about the club',
+    'texts.rules': 'Competition rules',
+    'texts.rulesPlaceholder': 'e.g. Two halves of 15 minutes, three substitutions per half…',
+    'texts.format': 'Competition format',
+    'texts.formatPlaceholder': 'e.g. Two groups of six, top two advance to the semifinals…',
+    'texts.about': 'About the club',
+    'texts.aboutPlaceholder': 'e.g. VHMRK Zrinjski Mostar was founded in…',
+    'texts.hint':
+      'Shown in the app under Info. While Rules and About are empty the default text stands; Format is hidden when empty.',
 
     'schedule.autoTitle': 'Automatic schedule',
     'schedule.generate': 'Generate schedule',
@@ -810,6 +853,14 @@ export const strings = {
     'teams.genMatches': 'Generate group matches',
     'teams.genMatchesDone': 'Created {created} matches · {skipped} groups skipped.',
     'teams.teamNamePrompt': 'New team name:',
+    'draw.title': 'Draw — group assignment',
+    'draw.none': '— no group —',
+    'draw.unassigned': 'no group',
+    'draw.save': 'Save draw',
+    'draw.pending': '{n} unsaved changes',
+    'draw.noGroups': 'Add at least one group above first, then assign the teams.',
+    'draw.thenSchedule': 'Once the draw is saved, generate the group matches and then arrange the schedule under Schedule.',
+    'draw.lockedByMatches': 'Group matches already exist. The draw is locked, otherwise results would stay with the wrong teams.',
 
     'live.pickMatch': 'Choose a match to score',
     'live.noMatches': 'No scheduled or live matches.',

@@ -266,3 +266,12 @@
 .prow__add:hover {
   background: rgba(225, 29, 42, 0.08);
 }
+
+/* Grupa u uredniku ekipe je samo prikaz — mijenja se u ždrijebu. */
+.teditor__readonly {
+  display: flex;
+  align-items: center;
+  color: var(--sub);
+  background: transparent;
+  cursor: default;
+}

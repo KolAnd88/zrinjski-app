@@ -1,0 +1,59 @@
+/* Ždrijeb — raspoređivanje ekipa po grupama, sprema se tek na gumb. */
+
+.draw__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-md);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-md);
+}
+
+.draw__counts {
+  font-size: 12px;
+  color: var(--sub);
+}
+
+.draw__list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: var(--r-chip);
+  overflow: hidden;
+}
+
+.draw__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  padding: var(--sp-sm) var(--sp-md);
+  min-height: 44px;
+}
+.draw__row + .draw__row {
+  border-top: 1px solid var(--line-row, var(--line));
+}
+/* Nespremljena promjena ostaje vidljiva dok se ne pritisne Spremi. */
+.draw__row.is-changed {
+  background: rgba(217, 178, 74, 0.08);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+
+.draw__name {
+  flex: 1;
+  font-size: 14px;
+  color: var(--txt);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.draw__select {
+  width: 140px;
+  flex: none;
+}
+
+.draw__hint {
+  font-size: 13px;
+  color: var(--sub);
+  line-height: 1.5;
+}

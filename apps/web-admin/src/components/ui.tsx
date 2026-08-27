@@ -50,6 +50,46 @@ export function Card({
   );
 }
 
+/**
+ * Traka sa "Spremi" i "Odustani" za obrasce koji koriste `useDraft`.
+ *
+ * Uvijek je vidljiva, i kad nema izmjena — tako korisnik unaprijed zna da se
+ * ovdje sprema tek na gumb. Da se pojavljuje tek nakon prve izmjene, prvi bi
+ * unos uvijek bio korak u prazno.
+ */
+export function SaveBar({
+  draft,
+  labels,
+}: {
+  draft: {
+    dirty: boolean;
+    saving: boolean;
+    error: string | null;
+    saved: boolean;
+    save: () => Promise<void>;
+    reset: () => void;
+  };
+  labels: { save: string; saving: string; cancel: string; saved: string; unsaved: string };
+}) {
+  return (
+    <div className="savebar">
+      <Button
+        variant="primary"
+        disabled={!draft.dirty || draft.saving}
+        onClick={() => void draft.save()}
+      >
+        {draft.saving ? labels.saving : labels.save}
+      </Button>
+      <Button variant="ghost" disabled={!draft.dirty || draft.saving} onClick={draft.reset}>
+        {labels.cancel}
+      </Button>
+      {draft.dirty && !draft.saving && <span className="savebar__dirty">{labels.unsaved}</span>}
+      {draft.saved && !draft.dirty && <span className="savebar__ok">{labels.saved}</span>}
+      {draft.error && <span className="savebar__err">{draft.error}</span>}
+    </div>
+  );
+}
+
 /** Radijus grba prati veličinu (vidi DIZAJN.md): 7 → 9 → 11 → 15 → 17 → 44. */
 function crestRadius(size: number) {
   if (size <= 26) return 7;

@@ -69,6 +69,12 @@ export type Database = {
           mvp_voting_open: boolean;
           mvp_m_player_id: string | null;
           mvp_z_player_id: string | null;
+          /** Pravila natjecanja — slobodan tekst u više redaka. */
+          rules: string | null;
+          /** Format natjecanja: grupe, završnica, trajanje. */
+          format: string | null;
+          /** Tekst o klubu domaćinu. */
+          about_club: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -88,6 +94,9 @@ export type Database = {
           mvp_voting_open?: boolean;
           mvp_m_player_id?: string | null;
           mvp_z_player_id?: string | null;
+          rules?: string | null;
+          format?: string | null;
+          about_club?: string | null;
           created_at?: string;
           updated_at?: string;
         };

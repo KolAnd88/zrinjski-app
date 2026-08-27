@@ -250,20 +250,14 @@ export function TeamEditor({
       </div>
 
       <div className="teditor__grid">
+        {/* Grupa se ovdje samo prikazuje. Mijenja se u ždrijebu iznad, gdje se
+            vidi cjelina i gdje se sprema tek na gumb — dva mjesta za istu
+            promjenu, od kojih jedno sprema odmah, samo su zbunjivala. */}
         <div>
           <label className="field-label">{t('teams.group')}</label>
-          <select
-            className="input"
-            value={team.group_id ?? ''}
-            onChange={(e) => void data.editTeam(team.id, { group_id: e.target.value || null })}
-          >
-            <option value="">{t('teams.noGroup')}</option>
-            {groups.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.name}
-              </option>
-            ))}
-          </select>
+          <div className="input teditor__readonly">
+            {groups.find((g) => g.id === team.group_id)?.name ?? t('teams.noGroup')}
+          </div>
         </div>
         <Field
           label={t('teams.coach')}

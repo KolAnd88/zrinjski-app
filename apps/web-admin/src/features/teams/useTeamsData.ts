@@ -34,6 +34,7 @@ export type TeamsData = {
   removeGroup: (id: string) => Promise<void>;
   addTeam: (name: string) => Promise<Team>;
   editTeam: (id: string, patch: TablesUpdate<'team'>) => Promise<void>;
+  assignGroups: (changes: { id: string; group_id: string | null }[]) => Promise<void>;
   removeTeam: (id: string) => Promise<void>;
   addPlayer: (teamId: string, row: Omit<TablesInsert<'player'>, 'team_id'>) => Promise<void>;
   editPlayer: (id: string, patch: TablesUpdate<'player'>) => Promise<void>;
@@ -142,6 +143,26 @@ export function useTeamsData(tournamentId: string | null): TeamsData {
     setPlayers((x) => x.filter((p) => p.id !== id));
   }, []);
 
+  /**
+   * Spremi cijeli ždrijeb odjednom.
+   *
+   * Ide red po red jer `team` nema skupni upis kroz postojeći sloj, ali se u
+   * stanje upisuje tek nakon što svi redovi prođu — djelomično spremljen
+   * ždrijeb u sučelju izgledao bi kao da je sve prošlo.
+   */
+  const assignGroups = useCallback(
+    async (changes: { id: string; group_id: string | null }[]) => {
+      for (const c of changes) await updateTeam(c.id, { group_id: c.group_id });
+      setTeams((x) =>
+        x.map((t) => {
+          const c = changes.find((ch) => ch.id === t.id);
+          return c ? { ...t, group_id: c.group_id } : t;
+        })
+      );
+    },
+    []
+  );
+
   const generateGroupMatches = useCallback(
     async (days: Day[]) => {
       if (!tournamentId) return { created: 0, skipped: 0 };
@@ -197,6 +218,7 @@ export function useTeamsData(tournamentId: string | null): TeamsData {
     addPlayer,
     editPlayer,
     removePlayer,
+    assignGroups,
     generateGroupMatches,
   };
 }

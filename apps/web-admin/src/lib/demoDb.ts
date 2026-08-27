@@ -46,6 +46,9 @@ const tournament: Tournament = {
   mvp_voting_open: true,
   mvp_m_player_id: null,
   mvp_z_player_id: null,
+  rules: null,
+  format: null,
+  about_club: null,
   created_at: '2026-01-01T00:00:00Z',
   updated_at: '2026-01-01T00:00:00Z',
 };

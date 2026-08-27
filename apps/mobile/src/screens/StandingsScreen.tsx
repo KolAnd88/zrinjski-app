@@ -116,7 +116,9 @@ export function StandingsScreen() {
           </>
         )}
 
-        {groups.map((g) => (
+        {/* Tablice i završnica postoje tek nakon ždrijeba — prazna grupa bez
+            ekipa nikome ništa ne govori, samo zbunjuje. */}
+        {drawn && groups.map((g) => (
           <View key={g.id}>
             <Txt style={styles.groupLabel}>{g.name}</Txt>
 
@@ -175,7 +177,7 @@ export function StandingsScreen() {
         ))}
 
         {/* ── ZAVRŠNICA ────────────────────────────────────────────────── */}
-        {bracket.length > 0 && (
+        {drawn && bracket.length > 0 && (
           <>
             <Txt style={[styles.groupLabel, { marginTop: SP.section }]}>{t('standings.bracket')}</Txt>
             {bracket.map((bm) => {
