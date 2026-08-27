@@ -108,12 +108,21 @@ export async function buildShareCard(i: BuildInput): Promise<string> {
  * sustav je smije obrisati kad zatreba mjesta.
  */
 export async function sharePng(base64: string, filename: string): Promise<void> {
-  const file = new File(Paths.cache, filename);
-  if (file.exists) file.delete();
-  file.create();
-  file.write(base64, { encoding: 'base64' });
+  // toDataURL zna vratiti i puni data URI; zapisujemo samo sadržaj, inače
+  // datoteka dobije "data:image/png;base64," na početku i nije valjani PNG.
+  const clean = base64.includes(',') ? base64.slice(base64.indexOf(',') + 1) : base64;
+  if (!clean) throw new Error('prazna slika');
 
-  if (!(await Sharing.isAvailableAsync())) throw new Error('sharing_unavailable');
+  const file = new File(Paths.cache, filename);
+  try {
+    if (file.exists) file.delete();
+    file.create({ overwrite: true });
+    file.write(clean, { encoding: 'base64' });
+  } catch (e) {
+    throw new Error(`zapis datoteke: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  if (!(await Sharing.isAvailableAsync())) throw new Error('dijeljenje nije dostupno na uređaju');
   await Sharing.shareAsync(file.uri, {
     mimeType: 'image/png',
     dialogTitle: filename,
