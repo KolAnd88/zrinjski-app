@@ -90,7 +90,15 @@ export function HomeScreen() {
   const stats = [
     { value: d.teams.length, label: t('home.statTeams') },
     { value: d.matches.length, label: t('home.statMatches') },
-    { value: d.events.filter((e) => e.type === 'goal').length, label: t('home.statGoals') },
+    // Golovi iz REZULTATA odigranih utakmica, ne iz događaja: brojka tako
+    // uvijek odgovara onome što piše na semaforima i u poretku. Utakmica u
+    // tijeku se ne broji — polovičan rezultat nije podatak o turniru.
+    {
+      value: d.matches
+        .filter((m) => m.status === 'finished')
+        .reduce((n, m) => n + m.home_score + m.away_score, 0),
+      label: t('home.statGoals'),
+    },
     { value: d.days.length, label: t('home.statDays') },
   ];
 

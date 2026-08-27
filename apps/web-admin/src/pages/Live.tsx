@@ -212,18 +212,6 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
             </div>
           </div>
 
-          <div className="live__adjust">
-            <div className="live__adjust-group">
-              <button disabled={!canEnter} onClick={() => void live.adjustScore(true, -1)}>−</button>
-              <span>{t('live.manual')}</span>
-              <button disabled={!canEnter} onClick={() => void live.adjustScore(true, 1)}>+</button>
-            </div>
-            <div className="live__adjust-group">
-              <button disabled={!canEnter} onClick={() => void live.adjustScore(false, -1)}>−</button>
-              <span>{t('live.manual')}</span>
-              <button disabled={!canEnter} onClick={() => void live.adjustScore(false, 1)}>+</button>
-            </div>
-          </div>
 
           <div className="live__startfinish">
             <Button variant="primary" disabled={m.status !== 'scheduled'} onClick={() => void live.start()}>

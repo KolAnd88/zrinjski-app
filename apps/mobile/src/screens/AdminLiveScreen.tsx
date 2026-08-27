@@ -199,7 +199,7 @@ export function AdminLiveScreen() {
         </View>
 
         <View style={styles.center}>
-          <ScoreWithAdjust value={m.home_score} disabled={!canEnter} onAdjust={(dv) => d.adjustScore(m.id, true, dv)} />
+          <Txt style={styles.scoreNum}>{m.home_score}</Txt>
           <View style={styles.clockCol}>
             <Pressable
               style={styles.clockBtn}
@@ -214,7 +214,7 @@ export function AdminLiveScreen() {
               {isLive ? t('home.halfN', { n: m.current_half ?? 1 }).toUpperCase() : t('admin.scheduledBadge')}
             </Txt>
           </View>
-          <ScoreWithAdjust value={m.away_score} disabled={!canEnter} onAdjust={(dv) => d.adjustScore(m.id, false, dv)} />
+          <Txt style={styles.scoreNum}>{m.away_score}</Txt>
         </View>
 
         <View style={[styles.teamSide, styles.teamSideRight]}>
@@ -318,31 +318,6 @@ export function AdminLiveScreen() {
   );
 }
 
-/** Rezultat s malim ručnim ispravkom — sigurnosni ventil kad unos zapne. */
-function ScoreWithAdjust({
-  value,
-  onAdjust,
-  disabled,
-}: {
-  value: number;
-  onAdjust: (d: number) => void;
-  disabled?: boolean;
-}) {
-  return (
-    <View style={styles.scoreCol}>
-      <Txt style={styles.scoreNum}>{value}</Txt>
-      <View style={styles.adjRow}>
-        <Pressable style={[styles.adjBtn, disabled && styles.actOff]} disabled={disabled} onPress={() => onAdjust(-1)}>
-          <Txt style={styles.adjTxt}>−</Txt>
-        </Pressable>
-        <Pressable style={[styles.adjBtn, disabled && styles.actOff]} disabled={disabled} onPress={() => onAdjust(1)}>
-          <Txt style={styles.adjTxt}>+</Txt>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.bg },
 
@@ -417,19 +392,7 @@ const styles = StyleSheet.create({
   teamName: { flex: 1, fontFamily: F.headSemi, fontSize: 22, letterSpacing: 0.4, color: C.txt },
 
   center: { flexDirection: 'row', alignItems: 'center', gap: 20 },
-  scoreCol: { alignItems: 'center', gap: 4 },
   scoreNum: { fontFamily: F.head, fontSize: 64, lineHeight: 66, letterSpacing: 1, color: C.txt },
-  adjRow: { flexDirection: 'row', gap: 6 },
-  adjBtn: {
-    width: 34,
-    height: 30,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: C.line,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  adjTxt: { fontFamily: F.head, fontSize: 17, color: C.sub },
 
   clockCol: { alignItems: 'center', gap: 6 },
   clockBtn: {

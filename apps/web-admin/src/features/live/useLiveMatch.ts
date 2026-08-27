@@ -38,7 +38,6 @@ export type LiveMatchState = {
   feed: FeedEntry[];
   start: () => Promise<void>;
   finish: () => Promise<void>;
-  adjustScore: (sideIsHome: boolean, delta: number) => Promise<void>;
   addEvent: (teamId: string, playerId: string | null, type: EventType, minute: number) => Promise<void>;
   undoLast: () => Promise<void>;
   persistMinute: (minute: number) => Promise<void>;
@@ -157,19 +156,6 @@ export function useLiveMatch(matchId: string | null): LiveMatchState {
     setMatch((m) => (m ? { ...m, status: 'finished' } : m));
   }, [match]);
 
-  const adjustScore = useCallback(
-    async (sideIsHome: boolean, delta: number) => {
-      const m = matchRef.current;
-      if (!m) return;
-      const next = sideIsHome
-        ? { home_score: Math.max(0, m.home_score + delta) }
-        : { away_score: Math.max(0, m.away_score + delta) };
-      await updateMatch(m.id, next);
-      setMatch((cur) => (cur ? { ...cur, ...next } : cur));
-    },
-    []
-  );
-
   const addEvent = useCallback(
     async (teamId: string, playerId: string | null, type: EventType, minute: number) => {
       const m = matchRef.current;
@@ -243,7 +229,6 @@ export function useLiveMatch(matchId: string | null): LiveMatchState {
     feed,
     start,
     finish,
-    adjustScore,
     addEvent,
     undoLast,
     persistMinute,

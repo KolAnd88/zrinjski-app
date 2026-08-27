@@ -1,6 +1,6 @@
 // useData.tsx — jedinstveni izvor podataka za app (korisnik + mobilni admin).
 // Dvije grane:
-//  • ŽIVO (isSupabaseConfigured): učitava iz Supabasea + realtime (match/match_event),
+//  • ŽIVO (isSupabaseConfigured): učitava iz Supabasea + realtime (match/match_event/team/day),
 //    a admin mutatori pišu u bazu (DB trigger sam diže rezultat na gol).
 //  • DEMO (bez .env): lokalni demo podaci u stanju (offline pregled).
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
@@ -72,7 +72,6 @@ export type DataStore = {
   eventsOf: (matchId: string) => MatchEvent[];
   startMatch: (id: string) => void;
   finishMatch: (id: string) => void;
-  adjustScore: (id: string, isHome: boolean, delta: number) => void;
   setMinute: (id: string, minute: number) => void;
   addEvent: (matchId: string, teamId: string, playerId: string | null, type: EventType, minute: number) => void;
   undoLastEvent: (matchId: string) => void;
@@ -256,6 +255,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       .channel('public-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'match' }, () => void refreshMatchesEvents())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'match_event' }, () => void refreshMatchesEvents())
+      // Ekipe i dani se mijenjaju rijetko (odobrena prijava, dodan dan), ali
+      // dotad se nova ekipa nije vidjela dok gledatelj ne povuce prstom.
+      // Puno ucitavanje je ovdje jeftino jer se dogada nekoliko puta u turniru.
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'team' }, () => void reload())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'day' }, () => void reload())
       .subscribe();
 
     return () => {
@@ -308,15 +312,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
         // Kozmetički tik (svake minute) — bez alarma da ne spamamo; greška se vidi na pravim akcijama.
         patchMatchLocal(id, { current_minute: minute });
         if (LIVE && sb) void sb.from('match').update({ current_minute: minute }).eq('id', id);
-      },
-      adjustScore: (id, isHome, delta) => {
-        const m = matches.find((x) => x.id === id);
-        if (!m) return;
-        const next = isHome
-          ? { home_score: Math.max(0, m.home_score + delta) }
-          : { away_score: Math.max(0, m.away_score + delta) };
-        patchMatchLocal(id, next);
-        if (LIVE && sb) enqueue({ kind: 'match.update', id, patch: next });
       },
       addEvent: (matchId, teamId, playerId, type, minute) => {
         // Optimistično lokalno (gol diže rezultat); u živo modu DB trigger radi isto na serveru.
