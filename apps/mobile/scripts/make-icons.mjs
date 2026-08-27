@@ -211,6 +211,13 @@ const favFit = fitted(src, box, 48, 0.04);
 draw(fav, favFit.img, favFit.x, favFit.y);
 write('favicon.png', fav);
 
+// Grb za zaglavlje u aplikaciji: izrezan iz bijele pozadine i tijesno obrezan,
+// jer stoji uz naziv turnira na tamnoj podlozi.
+const crest = canvas(256, CLEAR);
+const crestFit = fitted(src, box, 256, 0.02);
+draw(crest, cutout(crestFit.img), crestFit.x, crestFit.y);
+write('crest.png', crest);
+
 // Ekran učitavanja stoji na tamnoj boji aplikacije, pa grb mora biti izrezan
 // iz bijele pozadine — inače se vidi bijeli pravokutnik oko štita.
 const splash = canvas(1024, CLEAR);

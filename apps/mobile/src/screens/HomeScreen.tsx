@@ -102,6 +102,16 @@ export function HomeScreen() {
     { value: d.days.length, label: t('home.statDays') },
   ];
 
+  // Naziv turnira dolazi iz baze, ne iz koda — mijenja se u adminu, a stoji i
+  // na zapisniku i na slici za mreže.
+  //
+  // U zaglavlju ostaje samo ~173px (grb + dvije ikone pojedu ostatak), pa se
+  // duži naziv PRELAMA u dva retka umjesto da se gura u jedan. Mjereno:
+  // "PONOS HERCEGOVINE 2026" u jednom retku traži 13px slova — presitno da se
+  // pročita u prolazu. U dva retka staje na 17px.
+  const brandTitle = (d.tournament?.name ?? t('appName')).toUpperCase();
+  const brandSize = brandTitle.length > 28 ? 15 : brandTitle.length > 16 ? 17 : 21;
+
   const shortcuts = [
     { icon: 'calendar-outline', label: t('nav.schedule'), screen: 'Schedule' },
     { icon: 'trophy-outline', label: t('nav.standings'), screen: 'Standings' },
@@ -115,16 +125,11 @@ export function HomeScreen() {
 
       {/* Brand header */}
       <View style={styles.header}>
-        <LinearGradient
-          colors={[C.red, C.redDk]}
-          start={{ x: 0.15, y: 0 }}
-          end={{ x: 0.85, y: 1 }}
-          style={styles.logo}
-        >
-          <Txt style={styles.logoTxt}>ZC</Txt>
-        </LinearGradient>
+        <Image source={require('../../assets/crest.png')} style={styles.logo} resizeMode="contain" />
         <View style={{ flex: 1 }}>
-          <Txt style={styles.brandName}>{t('appName').toUpperCase()}</Txt>
+          <Txt style={[styles.brandName, { fontSize: brandSize, lineHeight: brandSize + 3 }]} numberOfLines={2}>
+            {brandTitle}
+          </Txt>
           <Txt style={styles.brandSub}>{t('home.subtitle')}</Txt>
         </View>
         <Pressable onPress={() => nav.navigate('Search')} style={styles.iconBtn}>
@@ -436,16 +441,29 @@ export function HomeScreen() {
                       <Txt style={styles.progTitle}>{p.title}</Txt>
                       {loc ? (
                         <View style={styles.progLocRow}>
-                          <Ionicons name="location-outline" size={12} color={C.sub} />
-                          <Txt style={styles.progLoc} numberOfLines={1}>
+                          <Ionicons
+                            name="location"
+                            size={13}
+                            color={canNavigate ? C.blue : C.sub}
+                          />
+                          {/* Mjesto koje se može otvoriti izgleda kao poveznica —
+                              plavo i podcrtano. Bez toga nitko ne pogodi da red
+                              uopće nešto radi na dodir. */}
+                          <Txt
+                            style={[styles.progLoc, canNavigate && styles.progLocLink]}
+                            numberOfLines={1}
+                          >
                             {loc.name}
                           </Txt>
+                          {canNavigate && (
+                            <Txt style={styles.progOpen}>{t('home.openMap')}</Txt>
+                          )}
                         </View>
                       ) : (
                         <Txt style={styles.progNoLoc}>{t('home.noVenue')}</Txt>
                       )}
                     </View>
-                    {canNavigate && <Ionicons name="navigate-outline" size={16} color={C.blue} />}
+                    {canNavigate && <Ionicons name="chevron-forward" size={16} color={C.blue} />}
                   </Row>
                 );
               })}
@@ -607,8 +625,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: SP.cardGap,
   },
-  logo: { width: 42, height: 42, borderRadius: R.chip, alignItems: 'center', justifyContent: 'center' },
-  logoTxt: { fontFamily: F.head, fontSize: 17, color: '#fff' },
+  logo: { width: 46, height: 46 },
   brandName: { fontFamily: F.head, fontSize: 21, letterSpacing: 0.6, color: C.txt },
   brandSub: { fontFamily: F.body, fontSize: 12, color: C.sub, marginTop: 3 },
   iconBtn: {
@@ -864,6 +881,19 @@ const styles = StyleSheet.create({
   progTime: { fontFamily: F.head, fontSize: 14, color: C.redLt },
   progTitle: { fontFamily: F.bodySemi, fontSize: 14, color: C.txt },
   progLocRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
-  progLoc: { flex: 1, fontFamily: F.body, fontSize: 12, color: C.sub },
+  progLoc: { flexShrink: 1, fontFamily: F.body, fontSize: 12, color: C.sub },
+  progLocLink: { color: C.blue, textDecorationLine: 'underline' },
+  progOpen: {
+    fontFamily: F.bodySemi,
+    fontSize: 10,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    color: C.blue,
+    borderWidth: 1,
+    borderColor: 'rgba(45,108,223,.45)',
+    borderRadius: R.pill,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
   progNoLoc: { fontFamily: F.body, fontSize: 12, color: C.mut, marginTop: 3 },
 });
