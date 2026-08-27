@@ -39,7 +39,7 @@ Claude će:
 
 ## 6. Nadogradnja već postavljenog projekta
 
-Povezani produkcijski projekt trenutno je usklađen s migracijama `0001`–`0016`.
+Povezani produkcijski projekt trenutno je usklađen s migracijama `0001`–`0017`.
 Za svaku buduću promjenu baze dodaje se nova migracija; postojeće migracije se
 ne mijenjaju nakon što su jednom primijenjene.
 
@@ -55,8 +55,9 @@ Ako se koristi **SQL Editor**, ne upisuj putanju datoteke kao SQL naredbu. Otvor
 svaku migraciju koja nedostaje, kopiraj njezin cijeli sadržaj u **New query** i
 pokreni ih redom. Za potpuno novi projekt dovoljan je ažurirani `supabase/all.sql`.
 
-Migracije `0012`–`0016` donose samostalnu prijavu predstavnika, MVP glasanje i
-ručni izbor, kontakte organizatora te realtime osvježavanje ekipa i dana.
+Migracije `0012`–`0017` donose samostalnu prijavu predstavnika, MVP glasanje i
+ručni izbor, kontakte organizatora, realtime osvježavanje ekipa i dana te
+sigurno spajanje sastava pri odobravanju prijave bez dupliciranja igrača.
 
 Zatim ponovno deployaj Edge Function **admin-users** sadržajem iz
 `supabase/functions/admin-users/index.ts`. Nova verzija sprječava delegate da

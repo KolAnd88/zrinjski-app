@@ -385,6 +385,8 @@ declare
   v_code text;
   v_sort integer;
   v_player_sort integer;
+  v_player record;
+  v_existing_player_id uuid;
 begin
   if not public.is_admin() then raise exception using errcode = '42501', message = 'insufficient_privilege'; end if;
   select * into v_reg from public.registration where id = p_registration_id for update;
@@ -406,21 +408,34 @@ begin
     insert into public.team (tournament_id, name, short_code, gender, rep_email, sort_order)
     values (v_reg.tournament_id, trim(v_reg.team_name), v_code, v_reg.gender, lower(trim(v_reg.rep_email)), v_sort)
     returning id into v_team_id;
+  else
+    update public.team set rep_email = lower(trim(v_reg.rep_email)) where id = v_team_id;
   end if;
 
   select coalesce(max(sort_order), -1) + 1 into v_player_sort from public.player where team_id = v_team_id;
-  insert into public.player (team_id, name, number, sort_order)
-  select v_team_id, trim(item.value->>'name'),
-    case when item.value->>'number' is null or item.value->>'number' = '' then null else (item.value->>'number')::integer end,
-    v_player_sort + item.ordinality::integer - 1
-  from jsonb_array_elements(coalesce(v_reg.players, '[]'::jsonb)) with ordinality as item(value, ordinality)
-  where length(trim(coalesce(item.value->>'name', ''))) > 0
-    and not exists (
-      select 1 from public.player p where p.team_id = v_team_id
-        and lower(trim(p.name)) = lower(trim(item.value->>'name'))
-        and p.number is not distinct from case
-          when item.value->>'number' is null or item.value->>'number' = '' then null else (item.value->>'number')::integer end
-    );
+  for v_player in
+    select trim(item.value->>'name') as player_name,
+      case when item.value->>'number' is null or item.value->>'number' = '' then null
+        else (item.value->>'number')::integer end as shirt_number
+    from jsonb_array_elements(coalesce(v_reg.players, '[]'::jsonb))
+      with ordinality as item(value, ordinality)
+    where length(trim(coalesce(item.value->>'name', ''))) > 0
+    order by item.ordinality
+  loop
+    select p.id into v_existing_player_id from public.player p
+    where p.team_id = v_team_id and lower(trim(p.name)) = lower(v_player.player_name)
+    order by p.sort_order, p.id limit 1;
+
+    if v_existing_player_id is not null then
+      if v_player.shirt_number is not null then
+        update public.player set number = v_player.shirt_number where id = v_existing_player_id;
+      end if;
+    else
+      insert into public.player (team_id, name, number, sort_order)
+      values (v_team_id, v_player.player_name, v_player.shirt_number, v_player_sort);
+      v_player_sort := v_player_sort + 1;
+    end if;
+  end loop;
 
   update public.registration set status = 'approved', approved_team_id = v_team_id,
     processed_at = now(), processed_by = auth.uid() where id = p_registration_id;

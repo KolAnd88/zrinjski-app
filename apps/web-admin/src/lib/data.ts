@@ -1045,18 +1045,27 @@ export async function approveRegistration(id: string, shortCode: string): Promis
         rep_email: reg.rep_email.trim().toLocaleLowerCase(),
         short_code: shortCode,
       });
+    } else {
+      // Ako je ekipa već ručno napravljena, odobrena prijava je mjerodavna za
+      // kontakt predstavnika. Bez ovoga bi u ekipi ostao stari ili prazan mail.
+      await updateTeam(team.id, { rep_email: reg.rep_email.trim().toLocaleLowerCase() });
     }
 
     const existingPlayers = db.players.filter((p) => p.team_id === team!.id);
     for (const player of reg.players ?? []) {
       const name = player.name.trim();
       if (!name) continue;
-      const exists = existingPlayers.some(
-        (candidate) =>
-          candidate.name.trim().toLocaleLowerCase() === name.toLocaleLowerCase() &&
-          candidate.number === player.number
+      // Igrača prepoznajemo po imenu, ne po kombinaciji imena i broja dresa:
+      // broj se smije promijeniti između ručnog unosa i službene prijave.
+      const existing = existingPlayers.find(
+        (candidate) => candidate.name.trim().toLocaleLowerCase() === name.toLocaleLowerCase()
       );
-      if (!exists) {
+      if (existing) {
+        if (player.number != null && existing.number !== player.number) {
+          await updatePlayer(existing.id, { number: player.number });
+          existing.number = player.number;
+        }
+      } else {
         const created = await createPlayer({
           team_id: team.id,
           name,
