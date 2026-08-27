@@ -557,6 +557,299 @@ create policy team_logos_admin_write on storage.objects for all to authenticated
   using (bucket_id = 'team-logos' and public.is_admin())
   with check (bucket_id = 'team-logos' and public.is_admin());
 
+-- ════════════════════════════════════════════════ PRIJAVA PREDSTAVNIKA (0012)
+alter table public.registration
+  add column if not exists created_by uuid references auth.users(id) on delete set null;
+
+create index if not exists idx_registration_created_by
+  on public.registration (created_by)
+  where created_by is not null;
+
+create or replace function public.ensure_my_profile()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_email text := coalesce(auth.jwt() ->> 'email', '');
+begin
+  if v_uid is null then return; end if;
+  insert into public.app_user (id, email, role, team_id)
+  values (v_uid, v_email, 'rep', null)
+  on conflict (id) do nothing;
+end;
+$$;
+
+create or replace function public.submit_my_registration(
+  p_team_name text,
+  p_gender gender,
+  p_rep_name text
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_email text;
+  v_t public.tournament;
+  v_id uuid;
+begin
+  if v_uid is null then raise exception 'registration_unauthorized'; end if;
+  if coalesce(trim(p_team_name), '') = '' then raise exception 'registration_invalid'; end if;
+
+  select * into v_t from public.tournament order by created_at limit 1;
+  if v_t.id is null then raise exception 'registration_unavailable'; end if;
+  if not v_t.registration_open
+     or (v_t.registration_deadline is not null and now() > v_t.registration_deadline) then
+    raise exception 'registration_closed';
+  end if;
+
+  select id into v_id
+  from public.registration
+  where created_by = v_uid and status <> 'rejected'
+  limit 1;
+  if v_id is not null then return v_id; end if;
+
+  v_email := coalesce(auth.jwt() ->> 'email', '');
+  insert into public.registration (
+    tournament_id, team_name, gender, rep_name, rep_email, created_by, players
+  ) values (
+    v_t.id,
+    trim(p_team_name),
+    p_gender,
+    coalesce(nullif(trim(p_rep_name), ''), split_part(v_email, '@', 1)),
+    lower(trim(v_email)),
+    v_uid,
+    '[]'::jsonb
+  )
+  returning id into v_id;
+
+  return v_id;
+end;
+$$;
+
+create or replace function public.update_my_registration_players(p_players jsonb)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare v_uid uuid := auth.uid();
+begin
+  if v_uid is null then raise exception 'registration_unauthorized'; end if;
+  if jsonb_typeof(coalesce(p_players, '[]'::jsonb)) <> 'array' then
+    raise exception 'registration_invalid';
+  end if;
+
+  update public.registration
+  set players = coalesce(p_players, '[]'::jsonb),
+      player_count = jsonb_array_length(coalesce(p_players, '[]'::jsonb))
+  where created_by = v_uid and status = 'pending';
+end;
+$$;
+
+drop policy if exists registration_own_read on public.registration;
+create policy registration_own_read
+  on public.registration for select to authenticated
+  using (created_by = auth.uid());
+
+revoke all on function public.ensure_my_profile() from public;
+grant execute on function public.ensure_my_profile() to authenticated;
+revoke all on function public.submit_my_registration(text, gender, text) from public;
+grant execute on function public.submit_my_registration(text, gender, text) to authenticated;
+revoke all on function public.update_my_registration_players(jsonb) from public;
+grant execute on function public.update_my_registration_players(jsonb) to authenticated;
+
+create or replace function public.link_registration_owner()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.status = 'approved'
+     and new.approved_team_id is not null
+     and new.created_by is not null then
+    update public.app_user
+    set team_id = new.approved_team_id,
+        role = case when role = 'rep' then 'rep' else role end
+    where id = new.created_by;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_registration_approved on public.registration;
+create trigger on_registration_approved
+  after update of status on public.registration
+  for each row
+  when (new.status = 'approved')
+  execute function public.link_registration_owner();
+
+-- ════════════════════════════════════════════════════════ MVP GLASANJE (0013)
+alter table public.tournament
+  add column if not exists mvp_voting_open boolean not null default false;
+
+create table if not exists public.mvp_vote (
+  id uuid primary key default gen_random_uuid(),
+  tournament_id uuid not null references public.tournament(id) on delete cascade,
+  gender gender not null,
+  voter_id uuid not null references auth.users(id) on delete cascade,
+  voter_team_id uuid references public.team(id) on delete set null,
+  player_id uuid not null references public.player(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (tournament_id, voter_id)
+);
+
+create index if not exists idx_mvp_vote_player on public.mvp_vote (player_id);
+drop trigger if exists trg_mvp_vote_updated on public.mvp_vote;
+create trigger trg_mvp_vote_updated before update on public.mvp_vote
+  for each row execute function public.set_updated_at();
+
+alter table public.mvp_vote enable row level security;
+drop policy if exists mvp_vote_own_read on public.mvp_vote;
+create policy mvp_vote_own_read on public.mvp_vote for select to authenticated
+  using (voter_id = auth.uid());
+drop policy if exists mvp_vote_admin_read on public.mvp_vote;
+create policy mvp_vote_admin_read on public.mvp_vote for select to authenticated
+  using (public.is_admin());
+
+create or replace function public.cast_my_mvp_vote(p_player_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_team uuid;
+  v_role text;
+  v_t public.tournament;
+  v_pteam uuid;
+  v_pgender gender;
+  v_mygender gender;
+begin
+  if v_uid is null then raise exception 'vote_unauthorized'; end if;
+  select role, team_id into v_role, v_team from public.app_user where id = v_uid;
+  if v_role is distinct from 'rep' or v_team is null then raise exception 'vote_not_a_rep'; end if;
+
+  select * into v_t from public.tournament order by created_at limit 1;
+  if v_t.id is null or not v_t.mvp_voting_open then raise exception 'vote_closed'; end if;
+
+  select gender into v_mygender from public.team where id = v_team;
+  select t.id, t.gender into v_pteam, v_pgender
+  from public.player p
+  join public.team t on t.id = p.team_id
+  where p.id = p_player_id;
+
+  if v_pteam is null then raise exception 'vote_no_player'; end if;
+  if v_pteam = v_team then raise exception 'vote_own_team'; end if;
+  if v_pgender is distinct from v_mygender then raise exception 'vote_other_competition'; end if;
+
+  insert into public.mvp_vote (tournament_id, gender, voter_id, voter_team_id, player_id)
+  values (v_t.id, v_mygender, v_uid, v_team, p_player_id)
+  on conflict (tournament_id, voter_id)
+  do update set player_id = excluded.player_id, voter_team_id = excluded.voter_team_id;
+end;
+$$;
+
+create or replace function public.mvp_results()
+returns table (player_id uuid, gender gender, votes bigint)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare v_t public.tournament;
+begin
+  select * into v_t from public.tournament order by created_at limit 1;
+  if v_t.id is null then return; end if;
+  if v_t.mvp_voting_open and not public.is_admin() then return; end if;
+
+  return query
+    select v.player_id, v.gender, count(*)::bigint
+    from public.mvp_vote v
+    where v.tournament_id = v_t.id
+    group by v.player_id, v.gender
+    order by count(*) desc;
+end;
+$$;
+
+revoke all on function public.cast_my_mvp_vote(uuid) from public;
+grant execute on function public.cast_my_mvp_vote(uuid) to authenticated;
+revoke all on function public.mvp_results() from public;
+grant execute on function public.mvp_results() to anon, authenticated;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'mvp_vote'
+  ) then
+    alter publication supabase_realtime add table public.mvp_vote;
+  end if;
+end $$;
+
+-- ════════════════════════════════════════════════ RUČNI IZBOR MVP-a (0014)
+alter table public.tournament
+  add column if not exists mvp_m_player_id uuid references public.player(id) on delete set null;
+alter table public.tournament
+  add column if not exists mvp_z_player_id uuid references public.player(id) on delete set null;
+
+-- ════════════════════════════════════════════════════════ KONTAKTI (0015)
+create table if not exists public.contact (
+  id uuid primary key default gen_random_uuid(),
+  tournament_id uuid not null references public.tournament(id) on delete cascade,
+  name text not null,
+  role text,
+  phone text,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_contact_tournament on public.contact (tournament_id);
+alter table public.contact enable row level security;
+drop policy if exists contact_read on public.contact;
+create policy contact_read on public.contact for select using (true);
+drop policy if exists contact_admin_write on public.contact;
+create policy contact_admin_write on public.contact for all to authenticated
+  using (public.is_admin()) with check (public.is_admin());
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'contact'
+  ) then
+    alter publication supabase_realtime add table public.contact;
+  end if;
+end $$;
+
+-- ════════════════════════════════════════════════════════ REALTIME (0016)
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'team'
+  ) then
+    alter publication supabase_realtime add table public.team;
+  end if;
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'day'
+  ) then
+    alter publication supabase_realtime add table public.day;
+  end if;
+end $$;
+
+alter table public.team replica identity full;
+alter table public.day replica identity full;
+
 -- ════════════════════════════════════════════════════════════ POČETNI TURNIR (samo ako ne postoji)
 insert into public.tournament (name, season_year, match_duration_min, gap_min)
 select 'VHMRK Zrinjski Cup', 2026, 15, 5

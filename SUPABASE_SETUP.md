@@ -39,15 +39,24 @@ Claude će:
 
 ## 6. Nadogradnja već postavljenog projekta
 
-Ako je projekt već postavljen ranijom verzijom `all.sql`, ne pokreći naziv
-datoteke kao SQL naredbu. U **SQL Editor → New query** redom kopiraj cijeli
-sadržaj ovih datoteka i za svaku klikni **Run**:
+Povezani produkcijski projekt trenutno je usklađen s migracijama `0001`–`0016`.
+Za svaku buduću promjenu baze dodaje se nova migracija; postojeće migracije se
+ne mijenjaju nakon što su jednom primijenjene.
 
-1. `supabase/migrations/0009_push_devices.sql`
-2. `supabase/migrations/0010_security_hardening.sql`
+Najsigurnije je iz korijena projekta pokrenuti:
 
-Obje trebaju završiti porukom **Success**. Druga migracija uklanja stare
-anonimne politike nad uređajima i ograničava upravljanje korisnicima na admina.
+```powershell
+npx.cmd supabase db push --dry-run
+npx.cmd supabase db push
+```
+
+Prva naredba samo pokaže što će se promijeniti, a druga primijeni migracije.
+Ako se koristi **SQL Editor**, ne upisuj putanju datoteke kao SQL naredbu. Otvori
+svaku migraciju koja nedostaje, kopiraj njezin cijeli sadržaj u **New query** i
+pokreni ih redom. Za potpuno novi projekt dovoljan je ažurirani `supabase/all.sql`.
+
+Migracije `0012`–`0016` donose samostalnu prijavu predstavnika, MVP glasanje i
+ručni izbor, kontakte organizatora te realtime osvježavanje ekipa i dana.
 
 Zatim ponovno deployaj Edge Function **admin-users** sadržajem iz
 `supabase/functions/admin-users/index.ts`. Nova verzija sprječava delegate da
@@ -55,5 +64,5 @@ kreiraju ili promoviraju druge admine.
 
 ## Kasnije promjene
 - **Izgled/tekst/funkcije:** mijenjaš kod kad god — ne dira bazu.
-- **Nova polja u bazi:** nova migracija (`0006_…sql`) koju pokreneš u SQL Editoru. Radimo dodavanjem, ne brišemo — podaci ostaju.
+- **Nova polja u bazi:** nova migracija (sljedeći broj iza postojeće) koju prvo provjerimo pa primijenimo. Radimo dodavanjem, ne brišemo — podaci ostaju.
 - **Demo mod** ostaje kao rezerva (radi čim makneš `.env`).
