@@ -81,7 +81,7 @@ export function useShareCardExport() {
   const Renderer = useCallback(
     () =>
       xml ? (
-        <View style={styles.offscreen} pointerEvents="none">
+        <View style={styles.offscreen} pointerEvents="none" collapsable={false}>
           <SvgXml
             xml={xml}
             width={1080}
@@ -98,6 +98,8 @@ export function useShareCardExport() {
 
 const styles = StyleSheet.create({
   // Izvan ekrana, ali stvarno nacrtano — prazan izvoz bi nastao da je skriveno
-  // kroz display:none ili nultu veličinu.
+  // kroz display:none ili nultu veličinu. Uz to pogled nosi `collapsable={false}`,
+  // jer Android inače izbaci iz nativnog stabla pogled koji služi samo rasporedu,
+  // a tada nema što izvesti i ispada prazna ili neispravna slika.
   offscreen: { position: 'absolute', left: -5000, top: 0, width: 1080, height: 1350 },
 });

@@ -107,9 +107,13 @@ export async function buildShareCard(i: BuildInput): Promise<string> {
  * Datoteka ide u cache, ne u dokumente: nakon dijeljenja je ne treba nitko, a
  * sustav je smije obrisati kad zatreba mjesta.
  */
-export async function sharePng(base64: string, filename: string): Promise<void> {
+/** Ispod ovoga PNG ove veličine ne može biti ispravan — 1080×1350 daje stotine kB. */
+const MIN_PNG_BYTES = 20000;
+
+export async function sharePng(base64: string, filename: string): Promise<string> {
   // toDataURL zna vratiti i puni data URI; zapisujemo samo sadržaj, inače
   // datoteka dobije "data:image/png;base64," na početku i nije valjani PNG.
+  // Zarez je siguran biljeg: u base64 abecedi (A–Z a–z 0–9 + / =) ga nema.
   const clean = base64.includes(',') ? base64.slice(base64.indexOf(',') + 1) : base64;
   if (!clean) throw new Error('prazna slika');
 
@@ -122,10 +126,20 @@ export async function sharePng(base64: string, filename: string): Promise<void> 
     throw new Error(`zapis datoteke: ${e instanceof Error ? e.message : String(e)}`);
   }
 
+  // Provjera veličine razlučuje dva posve različita kvara koja izvana izgledaju
+  // isto: neispravnu sliku (Android tada nudi samo preglednik datoteka, jer je
+  // ne prepoznaje kao sliku) i ispravnu sliku koju odbija ciljna aplikacija.
+  const bytes = file.info().size ?? 0;
+  if (bytes < MIN_PNG_BYTES) {
+    throw new Error(`slika je neispravna (${bytes} B, base64 ${clean.length} znakova)`);
+  }
+
   if (!(await Sharing.isAvailableAsync())) throw new Error('dijeljenje nije dostupno na uređaju');
   await Sharing.shareAsync(file.uri, {
     mimeType: 'image/png',
     dialogTitle: filename,
     UTI: 'public.png',
   });
+
+  return `${Math.round(bytes / 1024)} kB`;
 }

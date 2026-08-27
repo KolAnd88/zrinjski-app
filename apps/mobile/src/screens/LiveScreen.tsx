@@ -40,6 +40,7 @@ export function LiveScreen() {
   const { Renderer, toPngBase64 } = useShareCardExport();
   const [busy, setBusy] = useState(false);
   const [shareErr, setShareErr] = useState<string | null>(null);
+  const [shareOk, setShareOk] = useState<string | null>(null);
 
   const m = d.matchById(route.params.matchId);
   const home = d.teamById(m?.home_team_id);
@@ -108,6 +109,7 @@ export function LiveScreen() {
     if (!m) return;
     setBusy(true);
     setShareErr(null);
+    setShareOk(null);
     try {
       const svg = await buildShareCard({
         match: m,
@@ -121,7 +123,8 @@ export function LiveScreen() {
         dateLabel: m.scheduled_time ? formatDayLabel(m.scheduled_time.slice(0, 10), locale) : '',
       });
       const png = await toPngBase64(svg);
-      await sharePng(png, `rezultat-${home?.short_code ?? 'X'}-${away?.short_code ?? 'X'}.png`);
+      const size = await sharePng(png, `rezultat-${home?.short_code ?? 'X'}-${away?.short_code ?? 'X'}.png`);
+      setShareOk(size);
     } catch (e) {
       // Ne gutamo tiho — bez traga se ovakav kvar otkrije tek kad netko prijavi
       // "ne radi", a tada nema po čemu tražiti.
@@ -272,6 +275,7 @@ export function LiveScreen() {
             />
             <Txt style={styles.shareHint}>{shareErr ? t('share.error') : t('share.hint')}</Txt>
             {!!shareErr && <Txt style={styles.shareErrDetail}>{shareErr}</Txt>}
+            {!!shareOk && <Txt style={styles.shareOkDetail}>{`slika spremna: ${shareOk}`}</Txt>}
           </>
         )}
       </ScrollView>
@@ -417,6 +421,14 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
     color: C.red,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  shareOkDetail: {
+    fontFamily: F.body,
+    fontSize: 11,
+    lineHeight: 16,
+    color: C.green,
     textAlign: 'center',
     marginTop: 4,
   },
