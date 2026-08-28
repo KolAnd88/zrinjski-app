@@ -242,7 +242,7 @@ function ev(id: string, match: string, team: string, player: string, type: Match
 }
 
 // Tijek za UŽIVO utakmicu m5 (ZRI 4:2 GRU) + ponešto za statistiku.
-export const demoEvents: MatchEvent[] = [
+const baseEvents: MatchEvent[] = [
   ev('e1', 'm5', 'zri', 'zri-p0', 'goal', 2),
   ev('e2', 'm5', 'gru', 'gru-p0', 'save', 3),
   ev('e3', 'm5', 'zri', 'zri-p2', 'goal', 5),
@@ -258,6 +258,41 @@ export const demoEvents: MatchEvent[] = [
   ev('e12', 'm3', 'sir', 'sir-p1', 'goal', 5),
   ev('e13', 'm7', 'las', 'las-p1', 'goal', 7),
 ];
+
+/**
+ * Dopuni golove odigranih utakmica do upisanog rezultata.
+ *
+ * U pravoj bazi rezultat podiže okidač iz `match_event`, pa se to dvoje ne
+ * može razići. U demou su rezultati bili upisani ručno, a događaja je bilo
+ * tek nekoliko — pa je ekran pokazivao "22:18" uz jednog strijelca. Ovime se
+ * razlika popunjava, a ne prepisuje: već upisani golovi ostaju.
+ */
+function fillGoals(base: MatchEvent[]): MatchEvent[] {
+  const out: MatchEvent[] = [];
+  let n = 0;
+  for (const m of demoMatches) {
+    if (m.status !== 'finished' || !m.home_team_id || !m.away_team_id) continue;
+    for (const [teamId, target] of [
+      [m.home_team_id, m.home_score],
+      [m.away_team_id, m.away_score],
+    ] as const) {
+      const already = base.filter(
+        (e) => e.match_id === m.id && e.team_id === teamId && e.type === 'goal'
+      ).length;
+      const roster = demoPlayers.filter((p) => p.team_id === teamId);
+      if (roster.length === 0) continue;
+      for (let i = already; i < target; i += 1) {
+        n += 1;
+        // Strijelci se izmjenjuju po sastavu da statistika ne padne na jednog.
+        const p = roster[i % roster.length]!;
+        out.push(ev(`f${n}`, m.id, teamId, p.id, 'goal', 1 + ((i * 3) % 29)));
+      }
+    }
+  }
+  return out;
+}
+
+export const demoEvents: MatchEvent[] = [...baseEvents, ...fillGoals(baseEvents)];
 
 export const demoSponsors: Sponsor[] = [
   { id: 's1', tournament_id: 'T', name: 'Elektroprivreda HZHB', tier: 'gold', logo_url: null, is_active: true, sort_order: 0 },

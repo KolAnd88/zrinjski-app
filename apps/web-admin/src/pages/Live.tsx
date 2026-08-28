@@ -131,6 +131,12 @@ function MatchPicker({ tournamentId }: { tournamentId: string | null }) {
 function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: string | null }) {
   const { t } = useT();
   const navigate = useNavigate();
+  // Uloga se dohvaća ODMAH, uz ostale kuke. Ranije je stajala ispod ranih
+  // izlaza (učitavanje, greška, nema utakmice), pa se u tim prolazima nije ni
+  // pozvala — React je vidio 41 pa 42 kuke i javljao promjenu redoslijeda.
+  // To je pravilo React-a, ne stilska sitnica: nesklad veže stanje jedne kuke
+  // na drugu i ruši upravo ovaj ekran, na kojem se vodi utakmica.
+  const { role } = useAuth();
   const live = useLiveMatch(matchId);
   const enterable = useEnterableMatches(tournamentId);
   const clock = useLiveClock(live.match);
@@ -173,7 +179,6 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
   }
 
   const m = live.match;
-  const { role } = useAuth();
   const isLive = m.status === 'live';
   // Unos traje dok i utakmica. Prije pocetka ne moze nitko; nakon zavrsetka
   // samo admin, da se rezultat moze ispraviti.

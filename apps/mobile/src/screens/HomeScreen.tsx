@@ -163,13 +163,15 @@ export function HomeScreen() {
           </Card>
         )}
 
-        {/* ── GLAVNI POKROVITELJ ───────────────────────────────────────── */}
+        {/* ── ZLATNI SPONZOR ───────────────────────────────────────────── */}
         {/* Zlatni sponzor plaća najviše i zato dobiva mjesto odmah ispod
             rezultata — vlastitu sekciju, punu širinu i zlatni okvir. Zlatna
-            se u cijeloj app koristi samo ovdje i za finale. */}
+            se u cijeloj app koristi samo ovdje i za finale.
+            Jedan naziv, ne dva: kartica je ranije nosila i "Glavni pokrovitelj"
+            iznad i značku "Zlatni sponzor" unutra, za istu stvar. */}
         {gold && (
           <>
-            <SectionLabel>{t('home.mainPartner')}</SectionLabel>
+            <SectionLabel>{t('home.goldSponsor')}</SectionLabel>
             <LinearGradient
               colors={['rgba(217,178,74,.16)', 'rgba(217,178,74,.05)', 'rgba(217,178,74,.02)']}
               locations={[0, 0.55, 1]}
@@ -190,15 +192,13 @@ export function HomeScreen() {
                 )}
               </View>
 
-              <Txt style={styles.goldName} numberOfLines={2}>
-                {gold.name}
-              </Txt>
-              <View style={styles.goldBadge}>
-                <Ionicons name="star" size={11} color={C.gold} />
-                <Txt style={styles.goldBadgeTxt}>
-                  {t('home.goldSponsor').toUpperCase()}
+              {/* Ime ispod pločice ima smisla samo uz logotip. Bez logotipa
+                  pločica VEĆ pokazuje ime, pa bi ovdje pisalo dvaput. */}
+              {!!gold.logo_url && (
+                <Txt style={styles.goldName} numberOfLines={2}>
+                  {gold.name}
                 </Txt>
-              </View>
+              )}
             </LinearGradient>
           </>
         )}

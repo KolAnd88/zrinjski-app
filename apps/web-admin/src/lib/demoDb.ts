@@ -166,6 +166,9 @@ function ev(matchId: string, teamId: string, playerId: string | null, type: Matc
 }
 const pZri = players.filter((p) => p.team_id === 'zri');
 const pGru = players.filter((p) => p.team_id === 'gru');
+const pIzv = players.filter((p) => p.team_id === 'izv');
+const pPos = players.filter((p) => p.team_id === 'pos');
+const pLas = players.filter((p) => p.team_id === 'las');
 const events: MatchEvent[] = [
   // m3 live ZRI 4:2 GRU
   ev('m3', 'zri', pZri[0]!.id, 'goal', 2),
@@ -175,10 +178,24 @@ const events: MatchEvent[] = [
   ev('m3', 'zri', pZri[3]!.id, 'suspension_2min', 9),
   ev('m3', 'gru', pGru[3]!.id, 'goal', 10),
   ev('m3', 'zri', pZri[0]!.id, 'goal', 12),
-  // m1 finished ZRI 5:2 POS — par golova za strijelce
+  ev('m3', 'zri', pZri[4]!.id, 'goal', 14),
+  // m1 finished ZRI 5:2 POS
   ev('m1', 'zri', pZri[0]!.id, 'goal', 4),
   ev('m1', 'zri', pZri[1]!.id, 'goal', 8),
   ev('m1', 'zri', pZri[0]!.id, 'goal', 11),
+  ev('m1', 'zri', pZri[2]!.id, 'goal', 14),
+  ev('m1', 'zri', pZri[3]!.id, 'goal', 19),
+  ev('m1', 'pos', pPos[0]!.id, 'goal', 6),
+  ev('m1', 'pos', pPos[1]!.id, 'goal', 17),
+  // m2 finished IZV 3:3 GRU
+  ev('m2', 'izv', pIzv[0]!.id, 'goal', 3),
+  ev('m2', 'izv', pIzv[1]!.id, 'goal', 9),
+  ev('m2', 'izv', pIzv[2]!.id, 'goal', 21),
+  ev('m2', 'gru', pGru[1]!.id, 'goal', 6),
+  ev('m2', 'gru', pGru[4]!.id, 'goal', 15),
+  ev('m2', 'gru', pGru[1]!.id, 'goal', 24),
+  // w1 finished LAS 1:0 MOS
+  ev('w1', 'las', pLas[0]!.id, 'goal', 12),
 ];
 
 const sponsors: Sponsor[] = [
