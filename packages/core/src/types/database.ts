@@ -558,6 +558,13 @@ export type Database = {
        * Vraća broj promijenjenih ekipa.
        */
       /** Postavi ekipe u zavrsnicu u jednoj transakciji. */
+      /** Promijeni termin i/ili redoslijed vise utakmica u jednoj transakciji. */
+      set_match_slots: {
+        Args: {
+          p_changes: { id: string; scheduled_time: string | null; sort_order?: number | null }[];
+        };
+        Returns: number;
+      };
       set_knockout_teams: {
         Args: {
           p_changes: { id: string; home_team_id: string | null; away_team_id: string | null }[];

@@ -159,14 +159,35 @@ export async function applySlotSwap(patches: SlotPatch[]): Promise<void> {
     }
     return;
   }
-  const c = client();
-  const results = await Promise.all(
-    patches.map((p) =>
-      c.from('match').update({ sort_order: p.sort_order, scheduled_time: p.scheduled_time }).eq('id', p.id)
-    )
+  await applyMatchSlots(
+    patches.map((p) => ({
+      id: p.id,
+      scheduled_time: p.scheduled_time,
+      sort_order: p.sort_order,
+    }))
   );
-  const firstErr = results.find((r) => r.error)?.error;
-  if (firstErr) throw firstErr;
+}
+
+/**
+ * Promijeni termin i/ili mjesto u redu više utakmica ODJEDNOM.
+ *
+ * Ide kroz RPC, ne kroz niz nezavisnih UPDATE-ova. Pomak zbog kašnjenja dira
+ * sve kasnije utakmice tog dana; prekine li se na pola, dio ima novo vrijeme a
+ * dio staro. Kod zamjene termina je gore: prođe li samo jedan red, dvije
+ * utakmice završe u istom terminu.
+ *
+ * Broj promijenjenih se provjerava jer `update` bez `select` ne javlja grešku
+ * kad RLS ne da nijedan red — sučelje bi inače reklo da je prošlo.
+ */
+async function applyMatchSlots(
+  changes: { id: string; scheduled_time: string | null; sort_order?: number | null }[]
+): Promise<void> {
+  if (changes.length === 0) return;
+  const { data, error } = await client().rpc('set_match_slots', { p_changes: changes });
+  if (error) throw error;
+  if (typeof data === 'number' && data < changes.length) {
+    throw new Error(`Satnica: promijenjeno ${data} od ${changes.length} utakmica.`);
+  }
 }
 
 export async function applyScheduledTimes(updates: { id: string; scheduledTime: string }[]): Promise<void> {
@@ -174,12 +195,7 @@ export async function applyScheduledTimes(updates: { id: string; scheduledTime: 
     for (const u of updates) patch(db.matches, u.id, { scheduled_time: u.scheduledTime });
     return;
   }
-  const c = client();
-  const results = await Promise.all(
-    updates.map((u) => c.from('match').update({ scheduled_time: u.scheduledTime }).eq('id', u.id))
-  );
-  const firstErr = results.find((r) => r.error)?.error;
-  if (firstErr) throw firstErr;
+  await applyMatchSlots(updates.map((u) => ({ id: u.id, scheduled_time: u.scheduledTime })));
 }
 
 /**
