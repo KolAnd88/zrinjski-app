@@ -29,8 +29,18 @@ async function send(op: PendingOp): Promise<SendResult> {
   }
 
   if (op.kind === 'event.delete') {
-    const { error } = await sb.from('match_event').delete().eq('id', op.id);
-    return error ? 'retry' : 'ok';
+    const { error, data } = await sb.from('match_event').delete().eq('id', op.id).select('id');
+    if (error) return 'retry';
+    if (data && data.length > 0) return 'ok';
+
+    // Nula obrisanih redova znači jedno od dvoga, a razlika je bitna:
+    //  • red je već obrisan → posao je gotov;
+    //  • RLS ga nije dao obrisati → posao NIJE gotov, a bez ove provjere bismo
+    //    javili uspjeh, izbacili nalog iz reda i ostavili gol zauvijek u bazi
+    //    dok uređaj misli da ga je poništio.
+    // Čitanje `match_event` je javno, pa ovaj upit prolazi i kad brisanje ne.
+    const { data: still } = await sb.from('match_event').select('id').eq('id', op.id).maybeSingle();
+    return still ? 'retry' : 'ok';
   }
 
   const { error, data } = await sb

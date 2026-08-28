@@ -80,6 +80,12 @@ export function AdminLiveScreen() {
   // zavrsetka samo admin, da se rezultat moze ispraviti ali ne i mijenjati
   // usput od strane delegata.
   const canEnter = isLive || (m.status === 'finished' && isAdmin);
+  /**
+   * Sat se smije dirati samo u dva smjera: najavljena → uživo, uživo → gotova.
+   * Završena utakmica nema treći smjer — ispravak rezultata ide preko igrača,
+   * a ne ponovnim pokretanjem, koje bi obrisalo poluvrijeme i minutu.
+   */
+  const clockActive = isLive || m.status === 'scheduled';
   const matchEvents = d.eventsOf(m.id);
 
   // Tijek: najnovije na vrhu, s tekućim rezultatom uz golove.
@@ -201,14 +207,21 @@ export function AdminLiveScreen() {
         <View style={styles.center}>
           <Txt style={styles.scoreNum}>{m.home_score}</Txt>
           <View style={styles.clockCol}>
+            {/* Sat pokreće SAMO najavljenu i zaustavlja SAMO tekuću utakmicu.
+                Bez ovoga je dodir na završenoj zvao `startMatch`, koji je vraćao
+                status na "uživo" i brisao zabilježeno poluvrijeme i minutu —
+                jednim dodirom, bez pitanja, na rezultatu koji je već objavljen. */}
             <Pressable
-              style={styles.clockBtn}
+              style={[styles.clockBtn, !clockActive && styles.clockBtnOff]}
+              disabled={!clockActive}
               onPress={() => (isLive ? d.finishMatch(m.id) : d.startMatch(m.id))}
             >
               <Txt style={[styles.clockTxt, isLive && { color: C.redLt }]}>
                 {pad(minute)}:{pad(sec % 60)}
               </Txt>
-              <Ionicons name={isLive ? 'stop' : 'play'} size={17} color={isLive ? C.redLt : C.green} />
+              {clockActive && (
+                <Ionicons name={isLive ? 'stop' : 'play'} size={17} color={isLive ? C.redLt : C.green} />
+              )}
             </Pressable>
             <Txt style={styles.halfTxt}>
               {isLive ? t('home.halfN', { n: m.current_half ?? 1 }).toUpperCase() : t('admin.scheduledBadge')}
@@ -395,6 +408,8 @@ const styles = StyleSheet.create({
   scoreNum: { fontFamily: F.head, fontSize: 64, lineHeight: 66, letterSpacing: 1, color: C.txt },
 
   clockCol: { alignItems: 'center', gap: 6 },
+  // Završena utakmica: sat je samo prikaz, bez ruba i bez ikone.
+  clockBtnOff: { borderColor: 'transparent', backgroundColor: 'transparent' },
   clockBtn: {
     flexDirection: 'row',
     alignItems: 'center',
