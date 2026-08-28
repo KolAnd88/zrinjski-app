@@ -22,7 +22,6 @@ const team = (id: string, name: string, group: string | null, order: number): Te
   gender: 'm',
   group_id: group,
   coach_name: null,
-  rep_email: null,
   logo_url: null,
   sort_order: order,
   created_at: '2026-01-01T00:00:00Z',

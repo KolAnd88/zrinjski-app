@@ -79,7 +79,7 @@ let zIdx = 0;
 function team(id: string, name: string, code: string, color: string, gender: 'm' | 'z', group: string | null, coach: string): Team {
   return {
     id, tournament_id: T, name, short_code: code, color, gender, group_id: group,
-    coach_name: coach, rep_email: `${code.toLowerCase()}@klub.ba`, logo_url: null,
+    coach_name: coach, logo_url: null,
     sort_order: gender === 'm' ? mIdx++ : zIdx++,
     created_at: '2026-01-01T00:00:00Z',
   };
@@ -267,6 +267,13 @@ const contacts: Contact[] = [
   { id: 'c2', tournament_id: T, name: 'Marko Marić', role: 'Delegat', phone: '+387 63 333 444', sort_order: 1, created_at: '2026-01-01T00:00:00Z' },
 ];
 
+// Kontakti predstavnika — odvojeno od ekipa, kao i u pravoj bazi.
+const teamContacts: { team_id: string; rep_email: string | null; updated_at: string }[] = teams.map((t) => ({
+  team_id: t.id,
+  rep_email: `${(t.short_code ?? t.id).toLowerCase()}@klub.ba`,
+  updated_at: '2026-01-01T00:00:00Z',
+}));
+
 export const db = {
   tournament,
   days,
@@ -284,4 +291,5 @@ export const db = {
   gallery,
   mvpVotes,
   contacts,
+  teamContacts,
 };

@@ -157,7 +157,6 @@ export type Database = {
           gender: Gender;
           group_id: string | null;
           coach_name: string | null;
-          rep_email: string | null;
           logo_url: string | null;
           /** Redoslijed ekipe — određuje i boju grba: crestColorFor(sort_order). */
           sort_order: number;
@@ -172,12 +171,21 @@ export type Database = {
           gender: Gender;
           group_id?: string | null;
           coach_name?: string | null;
-          rep_email?: string | null;
           logo_url?: string | null;
           sort_order?: number;
           created_at?: string;
         };
         Update: Partial<Database['public']['Tables']['team']['Insert']>;
+        Relationships: [];
+      };
+      /**
+       * Kontakt predstavnika — ODVOJENO od `team`, koji je javno čitljiv.
+       * Cita i pise samo organizacija.
+       */
+      team_contact: {
+        Row: { team_id: string; rep_email: string | null; updated_at: string };
+        Insert: { team_id: string; rep_email?: string | null; updated_at?: string };
+        Update: Partial<Database['public']['Tables']['team_contact']['Insert']>;
         Relationships: [];
       };
       player: {

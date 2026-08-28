@@ -2,7 +2,13 @@ import { useEffect, useState } from 'react';
 import type { Grp, Player, Team, TablesUpdate } from '@zrinjski/core';
 import { useT } from '../../i18n/I18nProvider';
 import { Crest } from '../../components/ui';
-import { deleteTeamLogo, LogoValidationError, uploadTeamLogo } from '../../lib/data';
+import {
+  deleteTeamLogo,
+  fetchTeamContact,
+  LogoValidationError,
+  setTeamContact,
+  uploadTeamLogo,
+} from '../../lib/data';
 import { ImageEditor } from '../../components/ImageEditor';
 import type { TeamsData } from './useTeamsData';
 
@@ -202,6 +208,51 @@ function LogoField({ team, onChanged }: { team: Team; onChanged: () => void }) {
   );
 }
 
+/**
+ * E-mail predstavnika — čita se i piše u `team_contact`.
+ *
+ * Zasebna komponenta jer podatak ne stiže uz ekipu: `team` je javno čitljiv,
+ * pa kontakt ondje ne smije stajati. Učitava se kad se ekipa odabere.
+ */
+function RepEmailField({ teamId }: { teamId: string }) {
+  const { t } = useT();
+  const [email, setEmail] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    setEmail(null);
+    setErr(null);
+    fetchTeamContact(teamId)
+      .then((v) => alive && setEmail(v ?? ''))
+      .catch((e) => alive && setErr(e instanceof Error ? e.message : String(e)));
+    return () => {
+      alive = false;
+    };
+  }, [teamId]);
+
+  if (err) return <div className="banner banner--error">{err}</div>;
+  // Dok se ne učita, polje se ne prikazuje — prazan okvir bi izgledao kao da
+  // kontakt ne postoji, pa bi ga netko iznova upisao.
+  if (email === null) return null;
+
+  return (
+    <Field
+      label={t('teams.repEmail')}
+      type="email"
+      value={email}
+      placeholder="predstavnik@klub.ba"
+      onSave={(v) => {
+        const next = v.trim() || null;
+        setEmail(next ?? '');
+        void setTeamContact(teamId, next).catch((e) =>
+          setErr(e instanceof Error ? e.message : String(e))
+        );
+      }}
+    />
+  );
+}
+
 export function TeamEditor({
   team,
   players,
@@ -266,13 +317,9 @@ export function TeamEditor({
         />
       </div>
 
-      <Field
-        label={t('teams.repEmail')}
-        type="email"
-        value={team.rep_email ?? ''}
-        placeholder="predstavnik@klub.ba"
-        onSave={(v) => data.editTeam(team.id, { rep_email: v.trim() || null })}
-      />
+      {/* Kontakt živi u `team_contact`, ne na `team`: `team` je javno čitljiv,
+          pa je adresa ondje bila dohvatljiva svakome s anonimnim ključem. */}
+      <RepEmailField teamId={team.id} />
 
       <div>
         <h3 className="section-label" style={{ margin: 'var(--sp-md) 0 var(--sp-sm)' }}>

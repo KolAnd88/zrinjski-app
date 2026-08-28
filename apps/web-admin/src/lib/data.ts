@@ -308,7 +308,6 @@ export async function createTeam(row: TablesInsert<'team'>): Promise<Team> {
       gender: row.gender,
       group_id: row.group_id ?? null,
       coach_name: row.coach_name ?? null,
-      rep_email: row.rep_email ?? null,
       logo_url: row.logo_url ?? null,
       // Nova ekipa ide na kraj → dobiva sljedeću boju iz palete.
       sort_order:
@@ -395,6 +394,37 @@ export async function setKnockoutTeams(
     return;
   }
   const { error } = await client().rpc('set_knockout_teams', { p_changes: changes });
+  if (error) throw error;
+}
+
+/**
+ * Kontakt predstavnika živi u `team_contact`, ne na `team`.
+ *
+ * `team` je javno čitljiv jer aplikacija gledateljima prikazuje ekipe, pa je
+ * adresa ondje bila dohvatljiva svakome s anonimnim ključem — a taj je ključ
+ * ugrađen u objavljenu aplikaciju.
+ */
+export async function fetchTeamContact(teamId: string): Promise<string | null> {
+  if (DEMO) return db.teamContacts.find((c) => c.team_id === teamId)?.rep_email ?? null;
+  const { data, error } = await client()
+    .from('team_contact')
+    .select('rep_email')
+    .eq('team_id', teamId)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.rep_email ?? null;
+}
+
+export async function setTeamContact(teamId: string, email: string | null): Promise<void> {
+  if (DEMO) {
+    const found = db.teamContacts.find((c) => c.team_id === teamId);
+    if (found) found.rep_email = email;
+    else db.teamContacts.push({ team_id: teamId, rep_email: email, updated_at: new Date().toISOString() });
+    return;
+  }
+  const { error } = await client()
+    .from('team_contact')
+    .upsert({ team_id: teamId, rep_email: email, updated_at: new Date().toISOString() });
   if (error) throw error;
 }
 
@@ -1084,14 +1114,13 @@ export async function approveRegistration(id: string, shortCode: string): Promis
         tournament_id: reg.tournament_id,
         name: reg.team_name.trim(),
         gender: reg.gender,
-        rep_email: reg.rep_email.trim().toLocaleLowerCase(),
         short_code: shortCode,
       });
     } else {
-      // Ako je ekipa već ručno napravljena, odobrena prijava je mjerodavna za
-      // kontakt predstavnika. Bez ovoga bi u ekipi ostao stari ili prazan mail.
-      await updateTeam(team.id, { rep_email: reg.rep_email.trim().toLocaleLowerCase() });
     }
+    // Odobrena prijava je mjerodavna za kontakt predstavnika — i za novu i za
+    // vec postojecu ekipu. Kontakt ide u zasebnu, nejavnu tablicu.
+    await setTeamContact(team.id, reg.rep_email.trim().toLocaleLowerCase());
 
     const existingPlayers = db.players.filter((p) => p.team_id === team!.id);
     for (const player of reg.players ?? []) {
