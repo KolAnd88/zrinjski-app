@@ -121,16 +121,56 @@ describe('shareCardSvg — strijelci', () => {
     expect(svg).toMatch(/x="830"[^>]*>—</);
   });
 
-  it('najviše troje po ekipi — četvrti bi gurnuo sponzore izvan slike', () => {
+  it('navodi SVE strijelce, ne samo prve', () => {
     const svg = shareCardSvg({
       ...sa,
       scorers: {
-        home: [1, 2, 3, 4, 5].map((n) => ({ name: `Igrac ${n}`, goals: 1 })),
+        home: [1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({ name: `Igrac ${n}`, goals: 1 })),
         away: [],
       },
     });
-    expect(svg).toContain('Igrac 3');
-    expect(svg).not.toContain('Igrac 4');
+    for (const n of [1, 2, 3, 4, 5, 6, 7, 8]) expect(svg).toContain(`Igrac ${n}`);
+  });
+
+  // Sponzori počinju na 1139 (srebrni red, visina 62, sredina 1170). Popis
+  // strijelaca se skuplja da stane iznad — inače bi im pisao preko logotipa.
+  const lastScorerY = (svg: string) => {
+    const ys = [...svg.matchAll(/<text x="250" y="(\d+)"[^>]*>Igrac /g)].map((m) => Number(m[1]));
+    return Math.max(...ys);
+  };
+
+  it.each([4, 6, 8, 10, 14])('popis od %i strijelaca ne ulazi u sponzore', (n) => {
+    const svg = shareCardSvg({
+      ...sa,
+      scorers: {
+        home: Array.from({ length: n }, (_, i) => ({ name: `Igrac ${i + 1}`, goals: 1 })),
+        away: [],
+      },
+    });
+    expect(lastScorerY(svg)).toBeLessThan(1139);
+  });
+
+  it('kod uobičajena tri strijelca raspored ostaje nepromijenjen', () => {
+    const svg = shareCardSvg(sa);
+    // Prvi redak na 972 uz slova 26 — vrijednosti od prije prilagodljivog popisa.
+    expect(svg).toMatch(/y="972"[^>]*font-size="26"/);
+  });
+
+  // Jedan stupac s deset imena pao bi na 13 px i ne bi se pročitao na telefonu.
+  it('dug popis se lomi u dva pod-stupca umjesto da slova postanu sitna', () => {
+    const many = (n: number) =>
+      Array.from({ length: n }, (_, i) => ({ name: `Igrac ${i + 1}`, goals: 1 }));
+    const scorerFonts = (svg: string) =>
+      [...svg.matchAll(/<text x="(-?\d+)" y="(\d+)"[^>]*?font-size="(\d+)"[^>]*>[^<]*<tspan/gs)]
+        .map((m) => ({ x: Number(m[1]), y: Number(m[2]), fs: Number(m[3]) }))
+        .filter((r) => r.y > 880);
+
+    const rows = scorerFonts(shareCardSvg({ ...sa, scorers: { home: many(10), away: [] } }));
+    expect(rows).toHaveLength(10);
+    // Dva različita x-a za istu ekipu = dva pod-stupca.
+    expect(new Set(rows.map((r) => r.x)).size).toBe(2);
+    // I dalje čitko: slova ne smiju pasti ispod 18 px.
+    expect(Math.min(...rows.map((r) => r.fs))).toBeGreaterThanOrEqual(18);
   });
 
   it('igrači bez golova se ne navode', () => {

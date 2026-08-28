@@ -139,30 +139,69 @@ export function shareCardSvg(o: ShareCardOpts): string {
         >${esc(clip(s.name, 16).toUpperCase())}</text>`;
 
   // ── Strijelci u dva stupca, ispod svoje ekipe ────────────────────────────
-  // Najviše troje po ekipi: četvrti redak bi gurnuo sponzore izvan slike.
-  const homeScorers = (o.scorers?.home ?? []).filter((s) => s.goals > 0).slice(0, 3);
-  const awayScorers = (o.scorers?.away ?? []).filter((s) => s.goals > 0).slice(0, 3);
+  // SVI strijelci, ne samo prvih par: tko je zabio jest cijeli smisao ovakve
+  // objave, a igraču koji je ispao pod crtu slika ne znači ništa.
+  const homeScorers = (o.scorers?.home ?? []).filter((s) => s.goals > 0);
+  const awayScorers = (o.scorers?.away ?? []).filter((s) => s.goals > 0);
+  const longest = Math.max(homeScorers.length, awayScorers.length, 1);
+
+  /**
+   * Dug popis se lomi u DVA pod-stupca po ekipi, umjesto da se slova smanjuju.
+   *
+   * Jedan stupac s deset strijelaca pao bi na 13 px, a s četrnaest na 12 px —
+   * stane, ali se na telefonu ne pročita. Lomljenjem u dva stupca ostaje
+   * dvadesetak piksela, što je i dalje čitko.
+   */
+  const split = longest > 6;
+  const scorerRows = split ? Math.ceil(longest / 2) : longest;
+
+  // Popis mora stati između rezultata i prvog reda sponzora (vrh mu je na
+  // 1139). Kod uobičajena tri do četiri strijelca ostaje točno kako je i bilo.
+  const BAND_BOTTOM = 1128;
+  // Kod dugog popisa blok kreće više — ispod rezultata ionako stoji prazan
+  // prostor koji se drukčije ne koristi.
+  const tight = scorerRows > 5;
+  const HEAD_Y = tight ? 890 : 928;
+  const START_Y = tight ? 928 : 972;
+  const step = Math.min(34, Math.floor((BAND_BOTTOM - START_Y) / scorerRows));
+  const fs = Math.max(12, Math.min(26, step - 7));
+  /** Razmak pod-stupaca; u dva stupca ime mora biti kraće da ne naliježu. */
+  const SUB = 115;
+  const nameChars = split ? 16 : fs >= 24 ? 20 : fs >= 18 ? 24 : 28;
+
+  const scorerLine = (s: ShareScorer, x: number, y: number) =>
+    `<text x="${x}" y="${y}" fill="${colors.txt2}"
+        font-family="Inter, sans-serif" font-size="${fs}" text-anchor="middle"
+        >${esc(clip(s.name, nameChars))} <tspan fill="${accent}" font-weight="700">${s.goals}</tspan></text>`;
 
   // Stupac stoji točno ispod grba svoje ekipe, pa kratica iznad njega ne bi
   // rekla ništa novo — samo bi dodala redak.
-  const scorerColumn = (list: ShareScorer[], cx: number) =>
-    list.length === 0
-      ? `<text x="${cx}" y="972" fill="${colors.mut}" font-family="Inter, sans-serif"
-        font-size="26" text-anchor="middle">—</text>`
-      : list
-          .map(
-            (s, i) => `<text x="${cx}" y="${972 + i * 34}" fill="${colors.txt2}"
-        font-family="Inter, sans-serif" font-size="26" text-anchor="middle"
-        >${esc(clip(s.name, 20))} <tspan fill="${accent}" font-weight="700">${s.goals}</tspan></text>`
-          )
-          .join('\n  ');
+  const scorerColumn = (list: ShareScorer[], cx: number) => {
+    if (list.length === 0) {
+      return `<text x="${cx}" y="${START_Y}" fill="${colors.mut}" font-family="Inter, sans-serif"
+        font-size="${fs}" text-anchor="middle">—</text>`;
+    }
+    if (!split) {
+      return list.map((s, i) => scorerLine(s, cx, START_Y + i * step)).join('\n  ');
+    }
+    // Prvi pod-stupac nosi bolje strijelce (popis je već složen po golovima),
+    // pa se najvažnija imena čitaju lijevo-desno kao i inače.
+    const half = Math.ceil(list.length / 2);
+    return list
+      .map((s, i) =>
+        i < half
+          ? scorerLine(s, cx - SUB, START_Y + i * step)
+          : scorerLine(s, cx + SUB, START_Y + (i - half) * step)
+      )
+      .join('\n  ');
+  };
 
   const anyScorers = homeScorers.length + awayScorers.length > 0;
   const scorerBlock = anyScorers
     ? `
-  <text x="${CX}" y="928" fill="${colors.mut}" font-family="Oswald, sans-serif" font-weight="600"
+  <text x="${CX}" y="${HEAD_Y}" fill="${colors.mut}" font-family="Oswald, sans-serif" font-weight="600"
         font-size="22" letter-spacing="5" text-anchor="middle">${esc(L.scorers)}</text>
-  <rect x="${CX - 1}" y="950" width="2" height="${Math.max(homeScorers.length, awayScorers.length, 1) * 34 + 12}"
+  <rect x="${CX - 1}" y="${START_Y - 22}" width="2" height="${scorerRows * step + 12}"
         fill="${colors.line}"/>
   ${scorerColumn(homeScorers, COL_L)}
   ${scorerColumn(awayScorers, COL_R)}`
