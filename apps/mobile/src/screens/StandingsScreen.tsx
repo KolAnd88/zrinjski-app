@@ -47,12 +47,21 @@ export function StandingsScreen() {
    * pa je ispod prekidača ostajala praznina. Tada prikazujemo popis prijavljenih,
    * jer je to jedino što se u toj fazi zna i jedino što ljude zanima.
    */
-  const drawn = groups.some((g) => d.teams.some((tm) => tm.group_id === g.id));
   // Abecedno, ne po `sort_order`: taj redoslijed nosi boju grba i nema veze s
   // imenom, pa bi čovjek koji traži svoj klub morao čitati cijeli popis.
   const registered = d.teams
     .filter((tm) => tm.gender === gender)
     .sort((a, b) => a.name.localeCompare(b.name, 'hr'));
+
+  /**
+   * Ždrijeb vrijedi tek kad je SVAKA prijavljena ekipa dobila grupu.
+   *
+   * Ranije je bilo dovoljno da jedna ekipa ima grupu, pa bi već usred
+   * raspoređivanja popis nestao, a umjesto njega se pojavila tablica s jednom
+   * ekipom — gledatelj bi vidio "poredak" koji ne znači ništa.
+   */
+  const drawn =
+    groups.length > 0 && registered.length > 0 && registered.every((tm) => !!tm.group_id);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>

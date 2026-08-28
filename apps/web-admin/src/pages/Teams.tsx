@@ -15,6 +15,8 @@ export function Teams() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [addingName, setAddingName] = useState('');
   const [genMsg, setGenMsg] = useState<string | null>(null);
+  // Nespremljen ždrijeb → generiranje bi radilo po starom rasporedu iz baze.
+  const [drawDirty, setDrawDirty] = useState(false);
 
   // Promjena spola → očisti selekciju.
   useEffect(() => {
@@ -145,19 +147,26 @@ export function Teams() {
         <Button
           size="lg"
           block
-          disabled={data.groups.length === 0 || data.teams.length < 2}
+          disabled={data.groups.length === 0 || data.teams.length < 2 || drawDirty}
           onClick={() => void handleGenerate()}
         >
           {t('teams.genMatches')}
         </Button>
         {genMsg && <div className="banner banner--ok">{genMsg}</div>}
-        <p className="teams__hint">{t('draw.thenSchedule')}</p>
+        <p className="teams__hint">
+          {drawDirty ? t('draw.saveFirst') : t('draw.thenSchedule')}
+        </p>
       </div>
 
       {/* Desno: ždrijeb pa uređivanje odabrane ekipe */}
       <div className="teams__right">
         <Card>
-          <GroupDraw teams={data.teams} groups={data.groups} onSave={data.assignGroups} />
+          <GroupDraw
+            teams={data.teams}
+            groups={data.groups}
+            onSave={data.assignGroups}
+            onDirtyChange={setDrawDirty}
+          />
         </Card>
 
         {selectedTeam ? (

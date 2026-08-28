@@ -538,6 +538,14 @@ export type Database = {
         Args: { p_player_id: string };
         Returns: undefined;
       };
+      /**
+       * Spremi ždrijeb u jednoj transakciji — sve ekipe ili nijedna.
+       * Vraća broj promijenjenih ekipa.
+       */
+      set_team_groups: {
+        Args: { p_changes: { id: string; group_id: string | null }[] };
+        Returns: number;
+      };
       /** Prazno dok je glasanje otvoreno i pozivatelj nije admin. */
       mvp_results: {
         Args: Record<string, never>;

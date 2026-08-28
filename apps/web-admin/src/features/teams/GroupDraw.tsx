@@ -19,10 +19,14 @@ export function GroupDraw({
   teams,
   groups,
   onSave,
+  onDirtyChange,
 }: {
   teams: Team[];
   groups: Grp[];
   onSave: (changes: { id: string; group_id: string | null }[]) => Promise<void>;
+  /** Javlja stranici ima li nespremljenih izmjena — generiranje utakmica tada
+   *  mora mirovati, jer bi radilo po starom, još spremljenom rasporedu. */
+  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const { t } = useT();
 
@@ -56,6 +60,10 @@ export function GroupDraw({
     // provjera prljavosti se radi u trenutku dolaska.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseKey]);
+
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
 
   const assign = useCallback((teamId: string, groupId: string | null) => {
     setDraft((d) => ({ ...d, [teamId]: groupId }));

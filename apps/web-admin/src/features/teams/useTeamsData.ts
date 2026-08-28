@@ -15,6 +15,7 @@ import {
   fetchTeams,
   insertMatches,
   maxMatchSortOrder,
+  setTeamGroups,
   updatePlayer,
   updateTeam,
 } from '../../lib/data';
@@ -144,15 +145,15 @@ export function useTeamsData(tournamentId: string | null): TeamsData {
   }, []);
 
   /**
-   * Spremi cijeli ždrijeb odjednom.
+   * Spremi cijeli ždrijeb u jednoj transakciji.
    *
-   * Ide red po red jer `team` nema skupni upis kroz postojeći sloj, ali se u
-   * stanje upisuje tek nakon što svi redovi prođu — djelomično spremljen
-   * ždrijeb u sučelju izgledao bi kao da je sve prošlo.
+   * Ide kroz RPC, ne red po red: da treći upis pukne, prva bi dva ostala
+   * promijenjena u bazi iako korisnik vidi grešku — ždrijeb bi tiho ostao
+   * napola. Ovako prođu sve ekipe ili nijedna.
    */
   const assignGroups = useCallback(
     async (changes: { id: string; group_id: string | null }[]) => {
-      for (const c of changes) await updateTeam(c.id, { group_id: c.group_id });
+      await setTeamGroups(changes);
       setTeams((x) =>
         x.map((t) => {
           const c = changes.find((ch) => ch.id === t.id);

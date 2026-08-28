@@ -356,6 +356,25 @@ export async function updateTeam(id: string, p: TablesUpdate<'team'>): Promise<v
   if (error) throw error;
 }
 
+/**
+ * Spremi cijeli ždrijeb u jednoj transakciji.
+ *
+ * Red-po-red bi kod pucanja na trećoj ekipi ostavio prve dvije promijenjene, a
+ * korisniku javio grešku — turnir bi tiho ostao s polovičnim ždrijebom. RPC
+ * `set_team_groups` mijenja sve ekipe jednim UPDATE-om ili nijednu.
+ */
+export async function setTeamGroups(
+  changes: { id: string; group_id: string | null }[]
+): Promise<void> {
+  if (changes.length === 0) return;
+  if (DEMO) {
+    for (const c of changes) patch(db.teams, c.id, { group_id: c.group_id } as Partial<Team>);
+    return;
+  }
+  const { error } = await client().rpc('set_team_groups', { p_changes: changes });
+  if (error) throw error;
+}
+
 export async function deleteTeam(id: string): Promise<void> {
   if (DEMO) {
     db.teams = db.teams.filter((t) => t.id !== id);

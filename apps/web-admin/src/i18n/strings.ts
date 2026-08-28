@@ -297,6 +297,7 @@ export const strings = {
     // "2 izmjene", "5 izmjena"), pa se jedan zajednički oblik ne može složiti.
     'draw.pending': 'Nespremljeno izmjena: {n}',
     'draw.noGroups': 'Prvo dodaj barem jednu grupu iznad, pa rasporedi ekipe.',
+    'draw.saveFirst': 'Prvo spremi ždrijeb — inače bi se utakmice napravile po starom rasporedu grupa.',
     'draw.thenSchedule': 'Kad je ždrijeb spremljen, generiraj grupne utakmice pa posloži satnicu pod Raspored.',
     'draw.lockedByMatches': 'Grupne utakmice već postoje. Ždrijeb se više ne mijenja jer bi rezultati ostali na krivim ekipama.',
 
@@ -859,6 +860,7 @@ export const strings = {
     'draw.save': 'Save draw',
     'draw.pending': '{n} unsaved changes',
     'draw.noGroups': 'Add at least one group above first, then assign the teams.',
+    'draw.saveFirst': 'Save the draw first — otherwise the matches would be built from the previous group assignment.',
     'draw.thenSchedule': 'Once the draw is saved, generate the group matches and then arrange the schedule under Schedule.',
     'draw.lockedByMatches': 'Group matches already exist. The draw is locked, otherwise results would stay with the wrong teams.',
 
