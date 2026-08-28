@@ -338,6 +338,15 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
         </div>
       )}
 
+      {/* Admin smije ispravljati odigranu utakmicu, ali dosad nije bilo nikakve
+          naznake da mijenja objavljen rezultat — sastavi su izgledali isto kao
+          uživo. Rezultat je vec na korisnickim uredajima i na slici za mreze. */}
+      {canEnter && m.status === 'finished' && (
+        <div className="banner banner--info" style={{ marginBottom: 'var(--sp-md)' }}>
+          {t('live.finishedEditing')}
+        </div>
+      )}
+
       {/* Sastavi */}
       <div className="live__rosters">
         <Roster team={live.home} canEnter={canEnter} onPlus={(p) => live.home && handlePlus(live.home.id, p)} />

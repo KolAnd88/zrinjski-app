@@ -353,6 +353,8 @@ export const strings = {
     'live.bestPlayerHint': 'Prikazuje se u detalju utakmice i na zapisniku. Nije obavezno.',
     'live.notStarted': 'Unos je zaključan dok utakmica ne počne — klikni „Počni”.',
     'live.finishedLocked': 'Utakmica je završena i unos je zaključan. Ispravak može napraviti samo admin.',
+    'live.finishedEditing':
+      'Utakmica je završena — ispravljaš objavljen rezultat. Promjena se odmah vidi u aplikaciji i na slici za mreže.',
     'live.eventType': 'Događaj',
     'live.ev.goal': 'Gol',
     'live.ev.save': 'Obrana',
@@ -915,6 +917,8 @@ export const strings = {
     'live.bestPlayerHint': 'Shown in the match detail and on the report. Optional.',
     'live.notStarted': 'Entry is locked until the match starts — click “Start”.',
     'live.finishedLocked': 'The match is finished and entry is locked. Only an admin can correct it.',
+    'live.finishedEditing':
+      'This match is finished — you are correcting a published result. Changes appear immediately in the app and on the shared image.',
     'live.eventType': 'Event',
     'live.ev.goal': 'Goal',
     'live.ev.save': 'Save',

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -28,11 +28,18 @@ export function OnboardingScreen() {
     <SafeAreaView style={styles.safe}>
       <View style={styles.lenta} />
 
+      {/* Grb i pravi naziv turnira, isto kao na početnoj. Ovdje je dosad
+          stajao crveni kvadrat sa slovom "Z" i zakucano ime aplikacije — a
+          ovo je prvi ekran koji korisnik uopće vidi. */}
       <View style={styles.brand}>
-        <View style={styles.logo}>
-          <Txt style={{ fontFamily: F.head, color: '#fff', fontSize: 22 }}>Z</Txt>
-        </View>
-        <Txt variant="h1">{t('appName')}</Txt>
+        <Image
+          source={require('../../assets/crest.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Txt variant="h1" style={styles.brandName} numberOfLines={2}>
+          {(d.tournament?.name ?? t('appName')).toUpperCase()}
+        </Txt>
       </View>
 
       {/* Koraci (3 točke) */}
@@ -146,7 +153,8 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '-12deg' }],
   },
   brand: { alignItems: 'center', gap: S.sm, marginTop: S.xl },
-  logo: { width: 64, height: 64, borderRadius: 16, backgroundColor: C.red, alignItems: 'center', justifyContent: 'center' },
+  logo: { width: 64, height: 64 },
+  brandName: { textAlign: 'center' },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: S.sm, marginTop: S.lg },
   dot: { width: 8, height: 8, borderRadius: 999, backgroundColor: C.line },
   dotOn: { backgroundColor: C.red, width: 22 },
