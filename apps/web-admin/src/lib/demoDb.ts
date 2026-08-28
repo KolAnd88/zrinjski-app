@@ -154,6 +154,7 @@ const matches: Match[] = [
   // Završnica (placeholderi)
   match({ id: 'sf1', gender: 'm', stage: 'semifinal', home_placeholder: 'A1', away_placeholder: 'B2', day_id: D3, scheduled_time: '2026-06-07T17:00:00+02:00', sort_order: 20 }),
   match({ id: 'sf2', gender: 'm', stage: 'semifinal', home_placeholder: 'A2', away_placeholder: 'B1', day_id: D3, scheduled_time: '2026-06-07T17:30:00+02:00', sort_order: 21 }),
+  match({ id: 'third', gender: 'm', stage: 'third_place', home_placeholder: 'Poraženi PF1', away_placeholder: 'Poraženi PF2', day_id: D3, scheduled_time: '2026-06-07T18:00:00+02:00', sort_order: 22 }),
   match({ id: 'fin', gender: 'm', stage: 'final', home_placeholder: 'Pobjednik PF1', away_placeholder: 'Pobjednik PF2', day_id: D3, scheduled_time: '2026-06-07T19:00:00+02:00', sort_order: 23 }),
   // Žene — Grupa A
   match({ id: 'w1', gender: 'z', stage: 'group', grp_id: gZA, home_team_id: 'las', away_team_id: 'nmo', home_score: 1, away_score: 0, status: 'finished', scheduled_time: '2026-06-06T13:00:00+02:00', sort_order: 8 }),

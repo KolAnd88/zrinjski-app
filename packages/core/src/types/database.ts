@@ -549,6 +549,13 @@ export type Database = {
        * Spremi ždrijeb u jednoj transakciji — sve ekipe ili nijedna.
        * Vraća broj promijenjenih ekipa.
        */
+      /** Postavi ekipe u zavrsnicu u jednoj transakciji. */
+      set_knockout_teams: {
+        Args: {
+          p_changes: { id: string; home_team_id: string | null; away_team_id: string | null }[];
+        };
+        Returns: number;
+      };
       set_team_groups: {
         Args: { p_changes: { id: string; group_id: string | null }[] };
         Returns: number;

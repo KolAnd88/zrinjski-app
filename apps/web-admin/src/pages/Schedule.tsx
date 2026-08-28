@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { Match, Stage } from '@zrinjski/core';
+import type { Gender, Match, Stage } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import { formatDayLabel } from '../i18n/dateLabels';
 import { Button, Card, Crest } from '../components/ui';
@@ -7,6 +7,8 @@ import { useTournamentData } from '../features/tournament/useTournamentData';
 import { DaysEditor } from '../features/tournament/DaysEditor';
 import { swappableNeighbour } from '@zrinjski/core';
 import { useScheduleMatches, type TeamLite } from '../features/schedule/useScheduleMatches';
+import { KnockoutPanel } from '../features/schedule/KnockoutPanel';
+import { setKnockoutTeams } from '../lib/data';
 import { MatchDetailModal } from '../features/schedule/MatchDetailModal';
 import { toInputTime, isoToLocalHHMM } from '../lib/timeFormat';
 import './Schedule.css';
@@ -114,6 +116,7 @@ export function Schedule() {
   const { t, locale } = useT();
   const data = useTournamentData();
   const sched = useScheduleMatches(data.tournament?.id ?? null);
+  const [koGender, setKoGender] = useState<Gender>('m');
   const [duration, setDuration] = useState('');
   const [gap, setGap] = useState('');
   const [doneMsg, setDoneMsg] = useState<string | null>(null);
@@ -263,6 +266,38 @@ export function Schedule() {
           );
         })}
         {data.days.length === 0 && <Card>{t('tournament.noDays')}</Card>}
+
+        {/* Završnica: bez ovoga polufinale zauvijek ostaje "A1 vs B2" i
+            zapisničar ga ne može voditi. */}
+        <Card>
+          <div className="gender-toggle" style={{ marginBottom: 'var(--sp-md)' }}>
+            {(['m', 'z'] as const).map((g) => (
+              <button
+                key={g}
+                className={`gender-toggle__btn ${koGender === g ? 'is-active' : ''}`}
+                onClick={() => setKoGender(g)}
+              >
+                {t(g === 'm' ? 'teams.men' : 'teams.women')}
+              </button>
+            ))}
+          </div>
+          <KnockoutPanel
+            gender={koGender}
+            matches={sched.matches}
+            teams={sched.teams}
+            groups={sched.groups}
+            cfg={{
+              pointsWin: tr.points_win,
+              pointsDraw: tr.points_draw,
+              pointsLoss: tr.points_loss,
+              advancePerGroup: tr.advance_per_group,
+            }}
+            onApply={async (changes) => {
+              await setKnockoutTeams(changes);
+              await sched.reload();
+            }}
+          />
+        </Card>
       </div>
 
       {openMatch && (

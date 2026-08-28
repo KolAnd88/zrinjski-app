@@ -375,6 +375,29 @@ export async function setTeamGroups(
   if (error) throw error;
 }
 
+/**
+ * Postavi ekipe u završnicu u jednoj transakciji.
+ *
+ * Ide kroz RPC iz istog razloga kao ždrijeb: postavlja se dvije do četiri
+ * utakmice odjednom, pa bi djelomičan upis ostavio bracket nedosljedan usred
+ * turnira. Baza uz to sama odbija dirati utakmicu koja je počela.
+ */
+export async function setKnockoutTeams(
+  changes: { id: string; home_team_id: string | null; away_team_id: string | null }[]
+): Promise<void> {
+  if (changes.length === 0) return;
+  if (DEMO) {
+    for (const c of changes)
+      patch(db.matches, c.id, {
+        home_team_id: c.home_team_id,
+        away_team_id: c.away_team_id,
+      } as Partial<Match>);
+    return;
+  }
+  const { error } = await client().rpc('set_knockout_teams', { p_changes: changes });
+  if (error) throw error;
+}
+
 export async function deleteTeam(id: string): Promise<void> {
   if (DEMO) {
     db.teams = db.teams.filter((t) => t.id !== id);

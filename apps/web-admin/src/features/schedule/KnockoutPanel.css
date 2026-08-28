@@ -1,0 +1,82 @@
+/* Postavljanje ekipa u završnicu — prikaz "što će se promijeniti", pa gumb. */
+
+.ko__hint {
+  margin: var(--sp-sm) 0 var(--sp-md);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--sub);
+}
+
+.ko__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-chip);
+  overflow: hidden;
+}
+.ko__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  padding: var(--sp-sm) var(--sp-md);
+  min-height: 44px;
+}
+.ko__row + .ko__row {
+  border-top: 1px solid var(--line-row, var(--line));
+}
+
+.ko__stage {
+  flex: none;
+  width: 96px;
+  font-size: 10px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+
+.ko__pair {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  flex: 1;
+  min-width: 0;
+}
+.ko__side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.ko__team {
+  font-size: 13px;
+  color: var(--txt);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Ekipa koja se tek postavlja umjesto oznake "A1" — prigušena. */
+.ko__ph {
+  font-size: 13px;
+  color: var(--mut);
+}
+.ko__vs {
+  flex: none;
+  font-size: 11px;
+  color: var(--mut);
+}
+
+.ko__none {
+  font-size: 13px;
+  color: var(--sub);
+}
+
+/* Razlozi zbog kojih dio završnice još ne može biti popunjen. */
+.ko__blockers {
+  margin: var(--sp-md) 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--gold);
+}

@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { Day, Match, Tournament } from '@zrinjski/core';
+import type { Day, Grp, Match, Team, Tournament } from '@zrinjski/core';
 import { generateSchedule, swapSlots, swappableNeighbour, type DayInput } from '@zrinjski/core';
 import { HAS_DATA } from '../../lib/supabase';
-import { applyScheduledTimes, applySlotSwap, fetchAllTeams, fetchMatchesForSchedule } from '../../lib/data';
+import {
+  applyScheduledTimes,
+  applySlotSwap,
+  fetchAllTeams,
+  fetchGroups,
+  fetchMatchesForSchedule,
+} from '../../lib/data';
 import { toInputTime } from '../../lib/timeFormat';
 
 export type TeamLite = {
@@ -20,6 +26,9 @@ export type ScheduleMatchesState = {
   loading: boolean;
   matches: Match[];
   teamsById: Map<string, TeamLite>;
+  /** Pune ekipe i grupe — treba ih postavljanje zavrsnice. */
+  teams: Team[];
+  groups: Grp[];
   generating: boolean;
   reload: () => Promise<void>;
   /** Zamijeni termin sa susjednom utakmicom istog dana; odbija zaključane. */
@@ -32,6 +41,8 @@ export function useScheduleMatches(tournamentId: string | null): ScheduleMatches
   const [loading, setLoading] = useState(HAS_DATA && !!tournamentId);
   const [matches, setMatches] = useState<Match[]>([]);
   const [teamsById, setTeamsById] = useState<Map<string, TeamLite>>(new Map());
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [groups, setGroups] = useState<Grp[]>([]);
   const [generating, setGenerating] = useState(false);
 
   const reload = useCallback(async () => {
@@ -40,8 +51,16 @@ export function useScheduleMatches(tournamentId: string | null): ScheduleMatches
       return;
     }
     setLoading(true);
-    const [ms, teams] = await Promise.all([fetchMatchesForSchedule(tournamentId), fetchAllTeams(tournamentId)]);
+    const [ms, allTeams, gm, gz] = await Promise.all([
+      fetchMatchesForSchedule(tournamentId),
+      fetchAllTeams(tournamentId),
+      fetchGroups(tournamentId, 'm'),
+      fetchGroups(tournamentId, 'z'),
+    ]);
     setMatches(ms);
+    setTeams(allTeams);
+    setGroups([...gm, ...gz]);
+    const teams = allTeams;
     const map = new Map<string, TeamLite>();
     for (const tm of teams) map.set(tm.id, tm);
     setTeamsById(map);
@@ -126,5 +145,5 @@ export function useScheduleMatches(tournamentId: string | null): ScheduleMatches
     [matches]
   );
 
-  return { loading, matches, teamsById, generating, reload, generate, swap };
+  return { loading, matches, teamsById, teams, groups, generating, reload, generate, swap };
 }
