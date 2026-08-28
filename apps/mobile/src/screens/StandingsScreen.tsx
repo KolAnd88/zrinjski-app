@@ -54,14 +54,16 @@ export function StandingsScreen() {
     .sort((a, b) => a.name.localeCompare(b.name, 'hr'));
 
   /**
-   * Ždrijeb vrijedi tek kad je SVAKA prijavljena ekipa dobila grupu.
+   * Ždrijeb se smatra objavljenim kad POSTOJE GRUPNE UTAKMICE.
    *
-   * Ranije je bilo dovoljno da jedna ekipa ima grupu, pa bi već usred
-   * raspoređivanja popis nestao, a umjesto njega se pojavila tablica s jednom
-   * ekipom — gledatelj bi vidio "poredak" koji ne znači ništa.
+   * To je jedini pouzdan znak: utakmice se generiraju tek nakon spremljenog
+   * ždrijeba, pa ih prije njega nema. Dva ranija pravila nisu valjala —
+   * "barem jedna ekipa ima grupu" pokazivalo je tablicu s jednom ekipom već
+   * usred raspoređivanja, a "sve ekipe imaju grupu" je bilo prekruto: jedna
+   * probna ili naknadno prijavljena ekipa bez grupe sakrila bi cijeli poredak
+   * iako je turnir odavno u tijeku.
    */
-  const drawn =
-    groups.length > 0 && registered.length > 0 && registered.every((tm) => !!tm.group_id);
+  const drawn = d.matches.some((m) => m.gender === gender && m.stage === 'group');
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>

@@ -869,3 +869,98 @@ alter table public.day replica identity full;
 insert into public.tournament (name, season_year, match_duration_min, gap_min)
 select 'VHMRK Zrinjski Cup', 2026, 15, 5
 where not exists (select 1 from public.tournament);
+
+-- ── 0018_tournament_texts.sql ─────────────────────────────────────────────
+-- 0018_tournament_texts.sql
+--
+-- Pravila natjecanja, format i tekst o klubu.
+--
+-- Dosad su ta tri teksta postojala samo u glavi organizatora: aplikacija ih
+-- nije imala gdje pokazati, a admin ih nije imao gdje unijeti. Drže se na
+-- `tournament` jer vrijede za cijeli turnir i uvijek postoji točno jedan skup.
+--
+-- Sve je idempotentno — migracija se smije pokrenuti više puta.
+
+alter table public.tournament
+  add column if not exists rules text,
+  add column if not exists format text,
+  add column if not exists about_club text;
+
+comment on column public.tournament.rules is 'Pravila natjecanja, slobodan tekst u vise redaka.';
+comment on column public.tournament.format is 'Format natjecanja (grupe, zavrsnica, trajanje) — slobodan tekst.';
+comment on column public.tournament.about_club is 'Tekst o klubu domacinu.';
+
+-- Citanje je vec javno kroz postojecu politiku na `tournament`, a pisanje ide
+-- kroz istu admin politiku kao i ostale postavke turnira — nova polja ne
+-- traze vlastita pravila.
+
+-- ── 0019_set_team_groups.sql ─────────────────────────────────────────────
+-- 0019_set_team_groups.sql — ždrijeb se sprema u jednom komadu.
+--
+-- Admin je ždrijeb spremao red po red, jednim PATCH-om po ekipi. Ako bi treći
+-- upis pukao, prva dva bi ostala promijenjena u bazi iako sučelje javi grešku
+-- — turnir bi tiho ostao s polovičnim ždrijebom. Jedna funkcija znači jednu
+-- transakciju: ili prođu sve ekipe ili nijedna.
+--
+-- Idempotentno: `create or replace`, smije se pokrenuti više puta.
+
+create or replace function public.set_team_groups(p_changes jsonb)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_count integer;
+begin
+  -- Ovlasti se provjeravaju ovdje jer `security definer` zaobilazi RLS.
+  if not public.is_admin() then
+    raise exception 'not_authorized' using errcode = '42501';
+  end if;
+
+  -- Jedan UPDATE za sve ekipe. `from jsonb_to_recordset` je jedini nacin da
+  -- se vise redaka promijeni odjednom, a da ostane u istoj transakciji.
+  with changes as (
+    select * from jsonb_to_recordset(p_changes) as x(id uuid, group_id uuid)
+  )
+  update public.team t
+     set group_id = c.group_id
+    from changes c
+   where t.id = c.id;
+
+  get diagnostics v_count = row_count;
+  return v_count;
+end;
+$$;
+
+comment on function public.set_team_groups(jsonb) is
+  'Spremi zdrijeb u jednoj transakciji. Ulaz: [{"id":uuid,"group_id":uuid|null}, ...]. Vraca broj promijenjenih ekipa.';
+
+-- Samo prijavljeni; sama funkcija zatim trazi ulogu admin/delegate.
+grant execute on function public.set_team_groups(jsonb) to authenticated;
+
+-- ── 0020_tournament_texts_en.sql ─────────────────────────────────────────────
+-- 0020_tournament_texts_en.sql — engleska inačica tekstova turnira.
+--
+-- Migracija 0018 dala je jedno polje po tekstu, pa je korisnik s engleskim
+-- sučeljem svejedno dobivao hrvatski tekst. Aplikacija je dvojezična po
+-- pravilu projekta (CLAUDE.md), a ovo su jedini tekstovi koji su to prekršili.
+--
+-- Zašto zasebni stupci, a ne jsonb {hr,en}: jezika je točno dva i unaprijed
+-- poznata, pa stupci ostaju tipizirani kroz generirane TS tipove i ne traže
+-- provjeru oblika pri svakom čitanju.
+--
+-- Prazno englesko polje NIJE greška: organizator ga smije ostaviti prazno, a
+-- aplikacija tada pokazuje hrvatski tekst. Bolje razumljiv hrvatski nego
+-- prazan ekran.
+--
+-- Idempotentno — smije se pokrenuti više puta.
+
+alter table public.tournament
+  add column if not exists rules_en text,
+  add column if not exists format_en text,
+  add column if not exists about_club_en text;
+
+comment on column public.tournament.rules_en is 'Pravila na engleskom; prazno → prikazuje se hrvatski.';
+comment on column public.tournament.format_en is 'Format na engleskom; prazno → prikazuje se hrvatski.';
+comment on column public.tournament.about_club_en is 'O klubu na engleskom; prazno → prikazuje se hrvatski.';
