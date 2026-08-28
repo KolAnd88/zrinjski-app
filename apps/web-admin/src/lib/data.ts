@@ -230,7 +230,10 @@ export async function shiftScheduleFrom(
     }))
   );
 
-  await insertNotification({
+  // Dosad se promjena satnice samo BILJEŽILA. Zapis u dnevniku nikoga ne
+  // obavijesti — a upravo je pomak zbog kašnjenja ono zbog čega ljudi dolaze
+  // uzalud.
+  notifyQuietly({
     tournament_id: cur.tournament_id,
     type: 'schedule_change',
     audience: 'all',
@@ -1008,6 +1011,30 @@ export async function sendPush(input: {
   if (error) throw new Error(error.message);
   if (data && data.error) throw new Error(data.error);
   return Number(data?.sent ?? 0);
+}
+
+/**
+ * Zabilježi obavijest i pošalji je — ali NIKAD ne prekini posao koji je zvao.
+ *
+ * Zove se usred vođenja utakmice. Pad mreže, spora Edge funkcija ili greška
+ * pusha ne smiju spriječiti da se gol upiše ili utakmica završi. Zato se ne
+ * čeka rezultat i ne baca se iznimka — najgori ishod je obavijest koja nije
+ * stigla, a ne rezultat koji nije zabilježen.
+ */
+export function notifyQuietly(row: TablesInsert<'notification_log'>): void {
+  void (async () => {
+    try {
+      await insertNotification(row);
+      await sendPush({
+        audience: row.audience ?? 'all',
+        title: row.title,
+        body: row.body ?? null,
+        type: row.type,
+      });
+    } catch (e) {
+      console.warn('[obavijest]', e);
+    }
+  })();
 }
 
 export async function insertNotification(row: TablesInsert<'notification_log'>): Promise<NotificationLog> {

@@ -9,6 +9,7 @@ import {
   fetchTeam,
   insertEvent,
   updateMatch,
+  notifyQuietly,
 } from '../../lib/data';
 
 export type LiveTeam = {
@@ -154,7 +155,20 @@ export function useLiveMatch(matchId: string | null): LiveMatchState {
     if (!match) return;
     await updateMatch(match.id, { status: 'finished' });
     setMatch((m) => (m ? { ...m, status: 'finished' } : m));
-  }, [match]);
+
+    // Obavijest ide TEK nakon što je završetak zapisan, i to bez čekanja:
+    // zapisničar ne smije stajati zbog pusha. Naslov nosi konačan rezultat,
+    // jer se obavijest često pročita bez otvaranja aplikacije.
+    if (home && away) {
+      notifyQuietly({
+        tournament_id: match.tournament_id,
+        type: 'match_end',
+        audience: 'all',
+        title: `${home.name} ${match.home_score}:${match.away_score} ${away.name}`,
+        body: null,
+      });
+    }
+  }, [match, home, away]);
 
   const addEvent = useCallback(
     async (teamId: string, playerId: string | null, type: EventType, minute: number) => {
