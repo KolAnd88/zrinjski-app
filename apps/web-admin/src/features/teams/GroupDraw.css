@@ -9,10 +9,7 @@
   margin-bottom: var(--sp-md);
 }
 
-.draw__counts {
-  font-size: 12px;
-  color: var(--sub);
-}
+
 
 .draw__list {
   display: flex;
@@ -56,4 +53,83 @@
   font-size: 13px;
   color: var(--sub);
   line-height: 1.5;
+}
+
+/* ── Sastav grupa ─────────────────────────────────────────────────────────── */
+/* Puni se dok se ekipe raspoređuju ispod, po NACRTU a ne po bazi. */
+.draw__groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--sp-md);
+  margin-bottom: var(--sp-lg);
+}
+
+.gcard {
+  border: 1px solid var(--line);
+  border-radius: var(--r-chip);
+  padding: var(--sp-md);
+  background: var(--card2);
+}
+/* Neraspoređene nisu grupa — prigušene su i isprekidanog ruba. */
+.gcard--none {
+  background: transparent;
+  border-style: dashed;
+}
+
+.gcard__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-sm);
+  margin-bottom: var(--sp-sm);
+}
+.gcard__name {
+  font-family: var(--font-head);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--txt);
+}
+.gcard__count {
+  font-size: 12px;
+  color: var(--sub);
+}
+
+.gcard__empty {
+  font-size: 12px;
+  color: var(--mut);
+}
+
+.gcard__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.gcard__team {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* Ista zlatna oznaka kao u popisu ispod — nespremljena promjena. */
+.gcard__team.is-changed .gcard__teamname {
+  color: var(--gold);
+}
+.gcard__teamname {
+  font-size: 13px;
+  color: var(--txt2, var(--sub));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.draw__sub {
+  margin: 0 0 var(--sp-sm);
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--mut);
 }

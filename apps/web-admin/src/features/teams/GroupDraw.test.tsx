@@ -74,13 +74,43 @@ describe('GroupDraw — ždrijeb', () => {
     expect(selects()[3]!.value).toBe('');
   });
 
-  it('brojači po grupi prate nacrt, ne bazu', async () => {
+  /** Sastav grupe onako kako je trenutno prikazan: naziv → popis ekipa. */
+  const sastav = () => {
+    const out: Record<string, string[]> = {};
+    for (const c of document.querySelectorAll('.gcard')) {
+      const naziv = c.querySelector('.gcard__name')?.textContent ?? '?';
+      out[naziv] = [...c.querySelectorAll('.gcard__teamname')].map((x) => x.textContent ?? '');
+    }
+    return out;
+  };
+
+  it('sastav grupa prati NACRT, ne bazu', async () => {
     const user = userEvent.setup();
     const { selects } = setup();
-    expect(screen.getByText(/Grupa A: 2 · Grupa B: 1/)).toBeTruthy();
+    expect(sastav()).toEqual({
+      'Grupa A': ['Grude', 'Zrinjski'],
+      'Grupa B': ['Posušje'],
+      'bez grupe': ['Čapljina'],
+    });
 
     await user.selectOptions(selects()[3]!, 'gb');
-    await waitFor(() => expect(screen.getByText(/Grupa A: 2 · Grupa B: 2/)).toBeTruthy());
+    await waitFor(() =>
+      expect(sastav()).toEqual({
+        'Grupa A': ['Grude', 'Zrinjski'],
+        'Grupa B': ['Čapljina', 'Posušje'],
+      })
+    );
+  });
+
+  // Kartica "bez grupe" postoji samo dok ima neraspoređenih — inače bi na
+  // gotovom ždrijebu stajala prazna i izgledala kao još jedna grupa.
+  it('kartica „bez grupe" nestaje kad su sve ekipe raspoređene', async () => {
+    const user = userEvent.setup();
+    const { selects } = setup();
+    expect(sastav()['bez grupe']).toEqual(['Čapljina']);
+
+    await user.selectOptions(selects()[3]!, 'ga');
+    await waitFor(() => expect(sastav()['bez grupe']).toBeUndefined());
   });
 
   it('gumbi miruju dok nema izmjena', () => {

@@ -293,6 +293,8 @@ export const strings = {
     // Ždrijeb
     'draw.title': 'Ždrijeb — raspored po grupama',
     'draw.none': '— bez grupe —',
+    'draw.assign': 'Rasporedi ekipe',
+    'draw.emptyGroup': 'Još nema ekipa.',
     'draw.unassigned': 'bez grupe',
     'draw.save': 'Spremi ždrijeb',
     // Broj ide na kraj: hrvatski mijenja oblik uz 1, 2 i 5 ("1 izmjena",
@@ -861,6 +863,8 @@ export const strings = {
     'teams.teamNamePrompt': 'New team name:',
     'draw.title': 'Draw — group assignment',
     'draw.none': '— no group —',
+    'draw.assign': 'Assign teams',
+    'draw.emptyGroup': 'No teams yet.',
     'draw.unassigned': 'no group',
     'draw.save': 'Save draw',
     'draw.pending': '{n} unsaved changes',

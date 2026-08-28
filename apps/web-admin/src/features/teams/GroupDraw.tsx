@@ -86,22 +86,59 @@ export function GroupDraw({
   }
 
   const unassigned = teams.filter((tm) => !draft[tm.id]);
-  const countIn = (gid: string) => teams.filter((tm) => draft[tm.id] === gid).length;
+  const teamsIn = (gid: string | null) =>
+    teams
+      .filter((tm) => (draft[tm.id] ?? null) === gid)
+      .sort((a, b) => a.name.localeCompare(b.name, 'hr'));
 
   if (groups.length === 0) {
     return <div className="draw__hint">{t('draw.noGroups')}</div>;
   }
 
+  /**
+   * Sastav grupe. Prati NACRT, ne bazu — tako se vidi kako će grupe izgledati
+   * prije spremanja, umjesto da se broji po padajućim izbornicima.
+   */
+  const groupCard = (id: string | null, name: string, extra = '') => {
+    const list = teamsIn(id);
+    return (
+      <div key={id ?? 'none'} className={`gcard ${id === null ? 'gcard--none' : ''} ${extra}`}>
+        <div className="gcard__head">
+          <span className="gcard__name">{name}</span>
+          <span className="gcard__count">{list.length}</span>
+        </div>
+        {list.length === 0 ? (
+          <div className="gcard__empty">{t('draw.emptyGroup')}</div>
+        ) : (
+          <ul className="gcard__list">
+            {list.map((tm) => (
+              <li
+                key={tm.id}
+                className={`gcard__team ${draft[tm.id] !== base[tm.id] ? 'is-changed' : ''}`}
+              >
+                <Crest code={tm.short_code} index={tm.sort_order} logoUrl={tm.logo_url} size={22} />
+                <span className="gcard__teamname">{tm.name}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="draw">
       <div className="draw__head">
         <h2 className="section-label">{t('draw.title')}</h2>
-        <span className="draw__counts">
-          {groups.map((g) => `${g.name}: ${countIn(g.id)}`).join(' · ')}
-          {unassigned.length > 0 && ` · ${t('draw.unassigned')}: ${unassigned.length}`}
-        </span>
       </div>
 
+      {/* Sastav grupa — puni se dok se ekipe raspoređuju ispod. */}
+      <div className="draw__groups">
+        {groups.map((g) => groupCard(g.id, g.name))}
+        {unassigned.length > 0 && groupCard(null, t('draw.unassigned'))}
+      </div>
+
+      <h3 className="draw__sub">{t('draw.assign')}</h3>
       <div className="draw__list">
         {teams.map((tm) => (
           <div key={tm.id} className={`draw__row ${draft[tm.id] !== base[tm.id] ? 'is-changed' : ''}`}>
