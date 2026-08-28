@@ -19,19 +19,32 @@ const EXPORT_TIMEOUT_MS = 12000;
  * u base64 obliku.
  */
 export function useShareCardExport() {
-  const [xml, setXml] = useState<string | null>(null);
+  // Posao nosi redni broj: dvije uzastopne podjele iste utakmice daju isti
+  // XML, a bez broja se učinak ne bi ponovno pokrenuo.
+  const [job, setJob] = useState<{ xml: string; n: number } | null>(null);
   const svgRef = useRef<SvgRef | null>(null);
   const waiting = useRef<{ resolve: (b64: string) => void; reject: (e: Error) => void } | null>(null);
+  /** Traje li nativni izvoz — dok traje, drugi se ne smije pokrenuti. */
+  const exporting = useRef(false);
+  const counter = useRef(0);
 
   useEffect(() => {
-    if (!xml || !waiting.current) return;
+    if (!job || !waiting.current) return;
 
-    /** Zatvori posao jednom — drugi poziv nakon isteka roka nema učinka. */
+    /**
+     * Zatvori posao jednom; kasniji poziv (npr. nakon isteka roka) ne radi ništa.
+     *
+     * Crtež se NAMJERNO ne uklanja iz stabla. Ranije se ovdje radio
+     * `setXml(null)`, čime se nativni pogled odspajao dok je izvoz još mogao
+     * trajati — a pristup oslobođenom pogledu ruši aplikaciju. Ovisilo je o
+     * milisekundama, pa je dijeljenje nekad prošlo, a nekad srušilo app.
+     * Crtež ostaje izvan ekrana; košta jedno SVG stablo i ubrza sljedeću
+     * podjelu.
+     */
     const finish = (fn: (p: NonNullable<typeof waiting.current>) => void) => {
       const pending = waiting.current;
       if (!pending) return;
       waiting.current = null;
-      setXml(null);
       fn(pending);
     };
 
@@ -53,11 +66,14 @@ export function useShareCardExport() {
         return;
       }
       try {
+        exporting.current = true;
         ref.toDataURL((base64) => {
+          exporting.current = false;
           if (!base64) finish((p) => p.reject(new Error('izvoz je vratio praznu sliku')));
           else finish((p) => p.resolve(base64));
         });
       } catch (e) {
+        exporting.current = false;
         finish((p) => p.reject(new Error(`izvoz: ${e instanceof Error ? e.message : String(e)}`)));
       }
     }, 350);
@@ -66,31 +82,38 @@ export function useShareCardExport() {
       clearTimeout(id);
       clearTimeout(bail);
     };
-  }, [xml]);
+  }, [job]);
 
   const toPngBase64 = useCallback((svg: string) => {
     return new Promise<string>((resolve, reject) => {
+      // Dok nativni izvoz traje, drugi se ne smije pokrenuti: dva istodobna
+      // izvoza nad istim pogledom su drugi nacin da se aplikacija sruši.
+      if (exporting.current) {
+        reject(new Error('izrada slike je već u tijeku'));
+        return;
+      }
       // Prethodni posao se odbija, inače bi njegovo obećanje ostalo neriješeno
       // i pozivatelj bi zauvijek čekao odgovor koji više nitko ne šalje.
       waiting.current?.reject(new Error('izrada slike je prekinuta novom'));
       waiting.current = { resolve, reject };
-      setXml(svg);
+      counter.current += 1;
+      setJob({ xml: svg, n: counter.current });
     });
   }, []);
 
   const Renderer = useCallback(
     () =>
-      xml ? (
+      job ? (
         <View style={styles.offscreen} pointerEvents="none" collapsable={false}>
           <SvgXml
-            xml={xml}
+            xml={job.xml}
             width={1080}
             height={1350}
             override={{ ref: svgRef, width: 1080, height: 1350 }}
           />
         </View>
       ) : null,
-    [xml]
+    [job]
   );
 
   return { Renderer, toPngBase64 };
