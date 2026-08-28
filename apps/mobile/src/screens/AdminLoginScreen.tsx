@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useT } from '../i18n/I18nProvider';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
@@ -12,6 +12,9 @@ import type { RootStackParamList } from '../navigation/types';
 export function AdminLoginScreen() {
   const { t } = useT();
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'AdminLogin'>>();
+  // Bez parametra ostaje organizacija — tako se stari ulazi ponašaju kao prije.
+  const club = route.params?.mode === 'club';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -72,7 +75,7 @@ export function AdminLoginScreen() {
           {t('appName')}
         </Txt>
         <Txt variant="label" color={C.red} style={{ textAlign: 'center', marginTop: 4 }}>
-          {t('admin.login')}
+          {club ? t('admin.loginClub') : t('admin.login')}
         </Txt>
       </View>
 
@@ -91,7 +94,7 @@ export function AdminLoginScreen() {
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
-        placeholder="delegat@zrinjski.ba"
+        placeholder={club ? 'predstavnik@klub.ba' : 'delegat@zrinjski.ba'}
         placeholderTextColor={C.mut}
       />
 
@@ -117,8 +120,18 @@ export function AdminLoginScreen() {
       </View>
 
       <Txt variant="caption" style={{ textAlign: 'center', marginTop: S.md }}>
-        {t('admin.note')}
+        {club ? t('admin.noteClub') : t('admin.note')}
       </Txt>
+
+      {/* Klub koji još nema račun dosad nije imao kamo — ekran `Signup` je
+          postojao u navigaciji, ali ga ništa nije otvaralo. */}
+      {club && (
+        <Pressable onPress={() => nav.navigate('Signup')} style={styles.link}>
+          <Txt variant="caption" color={C.redLt} style={{ textAlign: 'center' }}>
+            {t('admin.noAccount')}
+          </Txt>
+        </Pressable>
+      )}
       {!isSupabaseConfigured && (
         <Txt variant="caption" color={C.mut} style={{ textAlign: 'center', marginTop: 4 }}>
           {t('admin.demoNote')}
@@ -141,6 +154,7 @@ const styles = StyleSheet.create({
   },
   logoTxt: { fontFamily: F.head, color: '#fff', fontSize: 24 },
   lbl: { marginBottom: S.sm, marginTop: S.md },
+  link: { minHeight: 44, justifyContent: 'center', marginTop: 4 },
   errBox: {
     backgroundColor: 'rgba(225,29,42,0.12)',
     borderWidth: 1,

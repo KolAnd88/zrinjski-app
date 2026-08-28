@@ -59,7 +59,7 @@ export function SignupScreen() {
         <PrimaryButton
           label={t('signup.toLogin')}
           style={{ marginTop: SP.section }}
-          onPress={() => nav.replace('AdminLogin')}
+          onPress={() => nav.replace('AdminLogin', { mode: 'club' })}
         />
       </Screen>
     );
@@ -99,7 +99,7 @@ export function SignupScreen() {
       />
 
       <View style={{ alignItems: 'center', marginTop: SP.cardGap }}>
-        <Txt style={styles.hint} onPress={() => nav.replace('AdminLogin')}>
+        <Txt style={styles.hint} onPress={() => nav.replace('AdminLogin', { mode: 'club' })}>
           {t('signup.haveAccount')}
         </Txt>
       </View>

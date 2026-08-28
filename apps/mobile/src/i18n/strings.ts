@@ -272,6 +272,11 @@ export const strings = {
     'admin.password': 'Lozinka',
     'admin.enter': 'Prijava',
     'admin.note': 'Pristup samo za delegate i organizaciju.',
+    // Klub dolazi na isti ekran, ali mu "samo za delegate" govori da je
+    // pogriješio vrata — a nije.
+    'admin.loginClub': 'Prijava predstavnika kluba',
+    'admin.noteClub': 'Za klubove koji nastupaju na turniru — prijava ekipe i unos sastava.',
+    'admin.noAccount': 'Nemaš račun? Otvori ga ovdje',
     'admin.demoNote': 'Demo: prijavi se bilo kojim podacima.',
     'admin.dashboard': 'Nadzorna ploča',
     'admin.liveEntry': 'Unos uživo',
@@ -560,6 +565,9 @@ export const strings = {
     'admin.password': 'Password',
     'admin.enter': 'Sign in',
     'admin.note': 'Access for delegates and organization only.',
+    'admin.loginClub': 'Club representative login',
+    'admin.noteClub': 'For clubs playing in the tournament — register your team and add players.',
+    'admin.noAccount': 'No account? Create one here',
     'admin.demoNote': 'Demo: sign in with any credentials.',
     'admin.dashboard': 'Dashboard',
     'admin.liveEntry': 'Live entry',

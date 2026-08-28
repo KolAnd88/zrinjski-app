@@ -199,7 +199,10 @@ export function InfoScreen() {
         <Txt style={styles.org}>{t('info.organizer')}</Txt>
 
         {/* Predstavnik kluba — prijava ekipe i sastav */}
-        <Pressable onPress={() => nav.navigate('AdminLogin')} style={styles.repRow}>
+        <Pressable
+          onPress={() => nav.navigate('AdminLogin', { mode: 'club' })}
+          style={styles.repRow}
+        >
           <Ionicons name="people-circle-outline" size={19} color={C.redLt} />
           <View style={{ flex: 1 }}>
             <Txt style={styles.repTitle}>{t('info.repEntry')}</Txt>
@@ -209,7 +212,10 @@ export function InfoScreen() {
         </Pressable>
 
         {/* Skriveni ulaz za organizatore */}
-        <Pressable onPress={() => nav.navigate('AdminLogin')} style={styles.adminLink}>
+        <Pressable
+          onPress={() => nav.navigate('AdminLogin', { mode: 'staff' })}
+          style={styles.adminLink}
+        >
           <Txt style={styles.adminTxt}>{t('admin.organizer')} →</Txt>
         </Pressable>
       </ScrollView>
