@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { pickText, type TextLocale } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import { useData } from '../lib/useData';
 import { openMaps } from '../lib/maps';
@@ -29,10 +30,14 @@ export function InfoScreen() {
   const refreshControl = useRefreshControl();
 
   // Tekstovi iz admina imaju prednost; zadani ostaju samo dok organizator ne
-  // upiše svoje, da ekran nikad ne ostane s praznom karticom.
-  const formatTxt = d.tournament?.format?.trim() || '';
-  const rulesTxt = d.tournament?.rules?.trim() || t('info.rulesBody');
-  const aboutTxt = d.tournament?.about_club?.trim() || t('info.aboutBody');
+  // upiše svoje, da ekran nikad ne ostane s praznom karticom. Engleski je
+  // neobavezan — `pickText` tada vrati hrvatski, jer je razumljiv hrvatski
+  // bolji od praznine.
+  const tr = d.tournament;
+  const lang: TextLocale = locale === 'en' ? 'en' : 'hr';
+  const formatTxt = pickText(tr?.format, tr?.format_en, lang) ?? '';
+  const rulesTxt = pickText(tr?.rules, tr?.rules_en, lang) ?? t('info.rulesBody');
+  const aboutTxt = pickText(tr?.about_club, tr?.about_club_en, lang) ?? t('info.aboutBody');
 
   const hall = d.locations.find((l) => l.type === 'hall');
   const days = d.days;

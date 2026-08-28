@@ -222,8 +222,10 @@ export const strings = {
     'texts.formatPlaceholder': 'npr. Dvije grupe po šest ekipa, prve dvije idu u polufinale…',
     'texts.about': 'O klubu',
     'texts.aboutPlaceholder': 'npr. VHMRK Zrinjski Mostar osnovan je…',
+    'texts.enPlaceholder':
+      'Neobavezno — ako ostaviš prazno, korisnik s engleskim sučeljem vidi hrvatski tekst.',
     'texts.hint':
-      'Prikazuje se u aplikaciji pod Info. Dok su Pravila i O klubu prazni, stoji zadani tekst; Format se prazan ne prikazuje.',
+      'Prikazuje se u aplikaciji pod Info. Dok su Pravila i O klubu prazni, stoji zadani tekst; Format se prazan ne prikazuje. Engleski nije obavezan.',
 
     // Raspored / auto-satnica
     'schedule.autoTitle': 'Automatska satnica',
@@ -790,8 +792,9 @@ export const strings = {
     'texts.formatPlaceholder': 'e.g. Two groups of six, top two advance to the semifinals…',
     'texts.about': 'About the club',
     'texts.aboutPlaceholder': 'e.g. VHMRK Zrinjski Mostar was founded in…',
+    'texts.enPlaceholder': 'Optional — if left empty, English users see the Croatian text.',
     'texts.hint':
-      'Shown in the app under Info. While Rules and About are empty the default text stands; Format is hidden when empty.',
+      'Shown in the app under Info. While Rules and About are empty the default text stands; Format is hidden when empty. English is optional.',
 
     'schedule.autoTitle': 'Automatic schedule',
     'schedule.generate': 'Generate schedule',

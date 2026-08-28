@@ -75,6 +75,10 @@ export type Database = {
           format: string | null;
           /** Tekst o klubu domaćinu. */
           about_club: string | null;
+          /** Engleske inačice; prazno → prikazuje se hrvatski. */
+          rules_en: string | null;
+          format_en: string | null;
+          about_club_en: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -97,6 +101,9 @@ export type Database = {
           rules?: string | null;
           format?: string | null;
           about_club?: string | null;
+          rules_en?: string | null;
+          format_en?: string | null;
+          about_club_en?: string | null;
           created_at?: string;
           updated_at?: string;
         };

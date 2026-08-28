@@ -35,6 +35,9 @@ export const demoTournament: Tournament = {
   rules: null,
   format: null,
   about_club: null,
+  rules_en: null,
+  format_en: null,
+  about_club_en: null,
   created_at: '2026-01-01T00:00:00+01:00',
   updated_at: '2026-01-01T00:00:00+01:00',
 };

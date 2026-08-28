@@ -49,6 +49,9 @@ const tournament: Tournament = {
   rules: null,
   format: null,
   about_club: null,
+  rules_en: null,
+  format_en: null,
+  about_club_en: null,
   created_at: '2026-01-01T00:00:00Z',
   updated_at: '2026-01-01T00:00:00Z',
 };

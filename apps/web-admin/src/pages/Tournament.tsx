@@ -21,7 +21,17 @@ type SettingsDraft = {
   rules: string;
   format: string;
   about_club: string;
+  rules_en: string;
+  format_en: string;
+  about_club_en: string;
 };
+
+/** Tri teksta, svaki u dvije inačice — parovi se drže zajedno. */
+const TEXT_FIELDS = [
+  { hr: 'format', en: 'format_en', label: 'texts.format', ph: 'texts.formatPlaceholder' },
+  { hr: 'rules', en: 'rules_en', label: 'texts.rules', ph: 'texts.rulesPlaceholder' },
+  { hr: 'about_club', en: 'about_club_en', label: 'texts.about', ph: 'texts.aboutPlaceholder' },
+] as const;
 
 function NumberField({
   label,
@@ -63,25 +73,60 @@ function NumberField({
   );
 }
 
-function TextArea({
+/**
+ * Jedan tekst u dvije inačice, s prekidačem HR/EN.
+ *
+ * Prekidač umjesto dva polja jedno ispod drugog: tekstovi su dugi, pa bi šest
+ * okvira na ekranu bilo teško pregledati. Engleski nije obavezan — kartica to
+ * i piše, da organizator ne misli da mora prevoditi.
+ */
+function BilingualText({
   label,
-  value,
   placeholder,
-  onChange,
+  hrValue,
+  enValue,
+  onChangeHr,
+  onChangeEn,
 }: {
   label: string;
-  value: string;
   placeholder?: string;
-  onChange: (v: string) => void;
+  hrValue: string;
+  enValue: string;
+  onChangeHr: (v: string) => void;
+  onChangeEn: (v: string) => void;
 }) {
+  const { t } = useT();
+  const [lang, setLang] = useState<'hr' | 'en'>('hr');
+  const value = lang === 'hr' ? hrValue : enValue;
+  const onChange = lang === 'hr' ? onChangeHr : onChangeEn;
+
   return (
     <div className="tour__text">
-      <label className="field-label">{label}</label>
+      <div className="tour__textHead">
+        <label className="field-label">{label}</label>
+        <div className="langtoggle">
+          {(['hr', 'en'] as const).map((l) => (
+            <button
+              key={l}
+              type="button"
+              className={`langtoggle__btn ${lang === l ? 'is-active' : ''}`}
+              onClick={() => setLang(l)}
+            >
+              {l.toUpperCase()}
+              {/* Točka označava da ta inačica ima sadržaj — inače se ne vidi
+                  je li engleski upisan bez prebacivanja na njega. */}
+              {(l === 'hr' ? hrValue : enValue).trim() !== '' && (
+                <span className="langtoggle__dot" />
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
       <textarea
         className="input tour__textarea"
         rows={5}
         value={value}
-        placeholder={placeholder}
+        placeholder={lang === 'hr' ? placeholder : t('texts.enPlaceholder')}
         onChange={(e) => onChange(e.target.value)}
       />
     </div>
@@ -154,6 +199,9 @@ function SettingsForm({
       rules: tr.rules ?? '',
       format: tr.format ?? '',
       about_club: tr.about_club ?? '',
+      rules_en: tr.rules_en ?? '',
+      format_en: tr.format_en ?? '',
+      about_club_en: tr.about_club_en ?? '',
     },
     useCallback(
       async (changed: Partial<SettingsDraft>) => {
@@ -161,7 +209,14 @@ function SettingsForm({
         // Prazan naziv bi ostavio aplikaciju bez natpisa, a prazan tekst je
         // valjan način da se odjeljak sakrije — zato se sprema kao NULL.
         if (typeof patch.name === 'string' && !patch.name.trim()) delete patch.name;
-        for (const k of ['rules', 'format', 'about_club'] as const) {
+        for (const k of [
+          'rules',
+          'format',
+          'about_club',
+          'rules_en',
+          'format_en',
+          'about_club_en',
+        ] as const) {
           if (typeof patch[k] === 'string' && !patch[k]!.trim()) patch[k] = null;
         }
         await onSave(patch);
@@ -261,24 +316,17 @@ function SettingsForm({
         <h2 className="section-label" style={{ marginBottom: 'var(--sp-md)' }}>
           {t('texts.title')}
         </h2>
-        <TextArea
-          label={t('texts.format')}
-          value={draft.value.format}
-          placeholder={t('texts.formatPlaceholder')}
-          onChange={(v) => draft.set('format', v)}
-        />
-        <TextArea
-          label={t('texts.rules')}
-          value={draft.value.rules}
-          placeholder={t('texts.rulesPlaceholder')}
-          onChange={(v) => draft.set('rules', v)}
-        />
-        <TextArea
-          label={t('texts.about')}
-          value={draft.value.about_club}
-          placeholder={t('texts.aboutPlaceholder')}
-          onChange={(v) => draft.set('about_club', v)}
-        />
+        {TEXT_FIELDS.map((f) => (
+          <BilingualText
+            key={f.hr}
+            label={t(f.label)}
+            placeholder={t(f.ph)}
+            hrValue={draft.value[f.hr]}
+            enValue={draft.value[f.en]}
+            onChangeHr={(v) => draft.set(f.hr, v)}
+            onChangeEn={(v) => draft.set(f.en, v)}
+          />
+        ))}
         <p className="tour__hint">{t('texts.hint')}</p>
       </Card>
 
