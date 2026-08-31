@@ -114,7 +114,11 @@ const players: Player[] = [
   ...roster('gru', ['Ante Babić', 'Mirko Pavić', 'Tomo Vidović', 'Ivan Lučić', 'Marko Soldo', 'Petar Galić', 'Ivan Soldo']),
   ...roster('izv', ['Goran Mršić', 'Damir Bago', 'Tihomir Zovko']),
   ...roster('pos', ['Slaven Boban', 'Mate Jelić']),
-  ...roster('cap', ['Dario Krešić', 'Boris Šarić']),
+  ...roster('cap', ['Dario Krešić', 'Boris Šarić', 'Ivan Zovko']),
+  ...roster('bos', ['Emir Hadžić', 'Adnan Selimović', 'Damir Kovač']),
+  ...roster('zen', ['Haris Delić', 'Muamer Begić', 'Senad Alić']),
+  ...roster('sir', ['Ivan Naletilić', 'Tin Krišto', 'Mario Šarić']),
+  ...roster('neu', ['Lucija Vukoja', 'Marija Raič']),
   ...roster('las', ['Maja Kovač', 'Iva Bošnjak', 'Petra Lulić']),
   ...roster('nmo', ['Ana Anić', 'Sara Marić']),
 ];
