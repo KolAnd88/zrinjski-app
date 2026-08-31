@@ -38,30 +38,42 @@ async function send(op: PendingOp): Promise<SendResult> {
       if (!m || m.status !== 'finished') return 'retry';
     }
 
-    // Zapis u dnevnik je i BRAVA protiv dvostrukog slanja: `id` je s uređaja,
-    // pa `.select()` vrati redak samo onome tko ga je stvarno stvorio. Ako je
-    // redak već ondje (23505 ili prazan rezultat), push je već poslan i drugi
-    // se NE šalje — radije propuštena obavijest nego ista dvaput.
-    const { data: created, error: logErr } = await sb
+    // "Zabilježeno" i "poslano" su DVA stanja, i moraju se razlikovati.
+    //
+    // Ranije je postojanje zapisa samo po sebi značilo "već poslano". Ali ako
+    // je prošli pokušaj zapisao red pa mu je SLANJE palo, sljedeći bi vidio
+    // zapis i zaključio da je gotovo — obavijest se ne bi poslala nikad.
+    // Zato o slanju govori `push_sent_at`, ne postojanje retka.
+    const { error: logErr } = await sb.from('notification_log').insert({
+      id: op.id,
+      tournament_id: op.tournament_id,
+      type: op.type,
+      audience: op.audience,
+      title: op.title,
+      body: op.body,
+    });
+    // 23505 = zapis je već ondje iz prošlog pokušaja; to nije greška.
+    if (logErr && (logErr as { code?: string }).code !== '23505') return 'retry';
+
+    const { data: row } = await sb
       .from('notification_log')
-      .insert({
-        id: op.id,
-        tournament_id: op.tournament_id,
-        type: op.type,
-        audience: op.audience,
-        title: op.title,
-        body: op.body,
-      })
-      .select('id');
-    if (logErr) {
-      return (logErr as { code?: string }).code === '23505' ? 'ok' : 'retry';
-    }
-    if (!created || created.length === 0) return 'ok';
+      .select('push_sent_at')
+      .eq('id', op.id)
+      .maybeSingle();
+    if (row?.push_sent_at) return 'ok'; // stvarno poslano — ne šalji drugi put
 
     const { error } = await sb.functions.invoke('send-push', {
       body: { audience: op.audience, title: op.title, body: op.body ?? undefined, type: op.type },
     });
-    return error ? 'retry' : 'ok';
+    if (error) return 'retry';
+
+    // Zabilježi da je poslano. Ako baš ovaj upis padne, sljedeći pokušaj bi
+    // poslao još jednom — to je manja šteta od obavijesti koja nikad ne stigne.
+    await sb
+      .from('notification_log')
+      .update({ push_sent_at: new Date().toISOString() })
+      .eq('id', op.id);
+    return 'ok';
   }
 
   if (op.kind === 'event.delete') {

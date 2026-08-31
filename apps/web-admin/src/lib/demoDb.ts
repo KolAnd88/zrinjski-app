@@ -251,8 +251,8 @@ const registrations: Registration[] = [
 ];
 
 const notifications: NotificationLog[] = [
-  { id: 'n1', tournament_id: T, type: 'custom', audience: 'all', title: 'Polufinale počinje', body: null, sent_at: '2026-06-06T17:40:00Z' },
-  { id: 'n2', tournament_id: T, type: 'team_playing_soon', audience: 'team:zri', title: 'Vaša utakmica za 30 min', body: null, sent_at: '2026-06-06T12:10:00Z' },
+  { id: 'n1', tournament_id: T, type: 'custom', audience: 'all', title: 'Polufinale počinje', body: null, push_sent_at: null, sent_at: '2026-06-06T17:40:00Z' },
+  { id: 'n2', tournament_id: T, type: 'team_playing_soon', audience: 'team:zri', title: 'Vaša utakmica za 30 min', body: null, push_sent_at: null, sent_at: '2026-06-06T12:10:00Z' },
 ];
 
 const appUsers: { id: string; email: string; role: string; team_id: string | null }[] = [

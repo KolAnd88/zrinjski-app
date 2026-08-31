@@ -421,6 +421,8 @@ export type Database = {
           audience: string;
           title: string;
           body: string | null;
+          /** Kada je push STVARNO poslan; NULL = zabilježeno, ali još neposlano. */
+          push_sent_at: string | null;
           sent_at: string;
         };
         Insert: {
@@ -430,6 +432,7 @@ export type Database = {
           audience: string;
           title: string;
           body?: string | null;
+          push_sent_at?: string | null;
           sent_at?: string;
         };
         Update: Partial<Database['public']['Tables']['notification_log']['Insert']>;
@@ -453,6 +456,7 @@ export type Database = {
           followed_team_ids?: string[];
           prefs?: NotificationPrefs;
           enabled?: boolean;
+          push_sent_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -560,6 +564,11 @@ export type Database = {
       /** Postavi ekipe u zavrsnicu u jednoj transakciji. */
       /** Promijeni termin i/ili redoslijed vise utakmica u jednoj transakciji. */
       /** Napravi utakmice zavrsnice koje nedostaju, bez duplikata. */
+      /** Promijeni sastav u prijavi koja ceka odobrenje (samo organizacija). */
+      set_registration_players: {
+        Args: { p_registration_id: string; p_players: RegistrationPlayer[] };
+        Returns: number;
+      };
       ensure_knockout_matches: {
         Args: { p_tournament_id: string; p_gender: Gender; p_day_id?: string | null };
         Returns: number;

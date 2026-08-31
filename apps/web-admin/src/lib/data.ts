@@ -509,15 +509,15 @@ export async function updateRegistrationPlayers(
     patch(db.registrations, id, { players, player_count: players.length } as Partial<Registration>);
     return;
   }
-  const { data, error } = await client()
-    .from('registration')
-    .update({ players, player_count: players.length })
-    .eq('id', id)
-    .eq('status', 'pending')
-    .select('id');
+  // Ide kroz funkciju, ne izravnim upisom: 0011 je oduzeo ovlast nad tablicom
+  // `registration` i prijavljenima i anonimnima, pa RLS pravilo za admina nema
+  // sto dopustiti — izravan `update` pada s "permission denied". Radilo bi u
+  // DEMO nacinu i palo na zivoj bazi.
+  const { error } = await client().rpc('set_registration_players', {
+    p_registration_id: id,
+    p_players: players,
+  });
   if (error) throw error;
-  // Prazan rezultat znaci da prijava vise nije na cekanju ili da je RLS odbio.
-  if (!data || data.length === 0) throw new Error('Prijava se vise ne moze mijenjati.');
 }
 
 export async function deleteTeam(id: string): Promise<void> {
@@ -1119,6 +1119,7 @@ export async function insertNotification(row: TablesInsert<'notification_log'>):
       audience: row.audience,
       title: row.title,
       body: row.body ?? null,
+      push_sent_at: null,
       sent_at: new Date().toISOString(),
     };
     db.notifications.unshift(n);
