@@ -17,6 +17,7 @@ import { AuthProvider } from './src/lib/useAuth';
 import { FollowProvider } from './src/lib/useFollow';
 import { GenderProvider } from './src/lib/useGender';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { WebFrame } from './src/components/WebFrame';
 import { C } from './src/theme';
 
 // Zadano se splash skriva čim se JS učita, a fontovi stižu tek nakon toga —
@@ -51,7 +52,11 @@ export default function App() {
           <FollowProvider>
             <GenderProvider>
               <StatusBar style="light" />
-              <RootNavigator />
+              {/* Na sirokom pregledniku drzi sadrzaj u stupcu sirine telefona.
+                  Na uredaju i uskom ekranu ne radi nista. */}
+              <WebFrame>
+                <RootNavigator />
+              </WebFrame>
             </GenderProvider>
           </FollowProvider>
         </DataProvider>
