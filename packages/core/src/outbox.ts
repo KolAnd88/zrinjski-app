@@ -1,3 +1,4 @@
+import type { NotificationType } from './types/database';
 // outbox.ts — red čekanja za unos bez mreže (čista logika, bez React Native-a).
 //
 // Zapisnik u dvorani bez signala ne smije stati: akcija se odmah primijeni
@@ -20,7 +21,22 @@ export type PendingOp =
       created_at: string;
     }
   | { kind: 'event.delete'; id: string }
-  | { kind: 'match.update'; id: string; patch: Record<string, unknown> };
+  | { kind: 'match.update'; id: string; patch: Record<string, unknown> }
+  /**
+   * Obavijest gledateljima. Ide kroz red cekanja kao i sve ostalo: delegat
+   * cesto radi bez mreze, a bez reda bi obavijest o zavrsetku utakmice tiho
+   * propala. Red uz to donosi ponovni pokusaj, koji izravno slanje nema.
+   */
+  | {
+      kind: 'notify';
+      /** ID s uredaja — ponovljeno slanje ne smije poslati dvije obavijesti. */
+      id: string;
+      tournament_id: string;
+      type: NotificationType;
+      audience: string;
+      title: string;
+      body: string | null;
+    };
 
 export type OutboxEntry = { op: PendingOp; tries: number };
 

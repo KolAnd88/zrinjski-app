@@ -306,7 +306,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
       },
       finishMatch: (id) => {
         patchMatchLocal(id, { status: 'finished' });
-        if (LIVE && sb) enqueue({ kind: 'match.update', id, patch: { status: 'finished' } });
+        if (!LIVE || !sb) return;
+        enqueue({ kind: 'match.update', id, patch: { status: 'finished' } });
+
+        // Obavijest je dosad slao samo web admin, pa utakmica zavrsena s
+        // mobilnog nikoga nije obavijestila. Ide kroz red cekanja, iza upisa
+        // statusa, da se posalje i kad je delegat u tom trenutku bez mreze.
+        const m = matches.find((x) => x.id === id);
+        const home = m?.home_team_id ? teamIndex.get(m.home_team_id) : null;
+        const away = m?.away_team_id ? teamIndex.get(m.away_team_id) : null;
+        if (m && home && away) {
+          enqueue({
+            kind: 'notify',
+            id: newId(),
+            tournament_id: m.tournament_id,
+            type: 'match_end',
+            audience: 'all',
+            title: `${home.name} ${m.home_score}:${m.away_score} ${away.name}`,
+            body: null,
+          });
+        }
       },
       setMinute: (id, minute) => {
         // Kozmetički tik (svake minute) — bez alarma da ne spamamo; greška se vidi na pravim akcijama.

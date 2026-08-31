@@ -3,7 +3,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Grp } from '@zrinjski/core';
-import { buildBracket, computeStandings, type StandingRow } from '@zrinjski/core';
+import { computeStandings, knockoutView, type StandingRow } from '@zrinjski/core';
 import { crestPair } from '@zrinjski/ui-tokens';
 import { useT } from '../i18n/I18nProvider';
 import { useData } from '../lib/useData';
@@ -37,10 +37,8 @@ export function StandingsScreen() {
     return computeStandings(teams, matches, cfg);
   };
 
-  const bracket =
-    groups.length >= 2
-      ? buildBracket({ gender, groupA: standingsOf(groups[0]!), groupB: standingsOf(groups[1]!) })
-      : [];
+  // Završnica dolazi iz baze — vidi komentar uz prikaz niže.
+  const bracket = knockoutView(d.matches, gender);
 
   /**
    * Do ždrijeba ovaj ekran nije imao što pokazati — ni jedna grupa nema ekipa,
@@ -188,36 +186,47 @@ export function StandingsScreen() {
         ))}
 
         {/* ── ZAVRŠNICA ────────────────────────────────────────────────── */}
-        {drawn && bracket.length > 0 && (
+        {/* Čita se iz BAZE, ne računa iz ljestvica. Izračun je bio samo
+            pretpostavka: razilazio se sa stvarnošću čim bi organizator nešto
+            promijenio ručno, a finale i 3. mjesto ostajali su zauvijek prazni
+            jer se izvode iz odigranih polufinala, a ne iz tablica. */}
+        {bracket.length > 0 && (
           <>
             <Txt style={[styles.groupLabel, { marginTop: SP.section }]}>{t('standings.bracket')}</Txt>
             {bracket.map((bm) => {
-              const isFinal = bm.key === 'final';
-              const home = bm.home.teamId ? d.teamById(bm.home.teamId) : undefined;
-              const away = bm.away.teamId ? d.teamById(bm.away.teamId) : undefined;
+              const isFinal = bm.stage === 'final';
+              const home = bm.homeTeamId ? d.teamById(bm.homeTeamId) : undefined;
+              const away = bm.awayTeamId ? d.teamById(bm.awayTeamId) : undefined;
               const crests = crestPair(home?.sort_order ?? 0, away?.sort_order ?? 1);
+              const played = bm.status !== 'scheduled';
               return (
-                <View key={bm.key} style={[styles.bcard, isFinal && styles.bcardFinal]}>
-                  <Txt style={[styles.bLabel, isFinal && { color: C.gold }]}>{bm.label}</Txt>
+                <View key={bm.id} style={[styles.bcard, isFinal && styles.bcardFinal]}>
+                  <Txt style={[styles.bLabel, isFinal && { color: C.gold }]}>
+                    {t(`standings.${bm.stage === 'third_place' ? 'thirdPlace' : bm.stage}`)}
+                  </Txt>
                   <View style={styles.brow}>
                     <View style={styles.bside}>
                       <Crest
-                        code={home?.short_code ?? bm.home.placeholder}
+                        code={home?.short_code ?? bm.homePlaceholder}
                         index={crests[0]}
                         logoUrl={home?.logo_url}
                         size={24}
                       />
                       <Txt numberOfLines={1} style={styles.bname}>
-                        {home?.name ?? bm.home.placeholder}
+                        {home?.name ?? bm.homePlaceholder}
                       </Txt>
                     </View>
-                    <Txt style={[styles.bvs, isFinal && { color: C.gold }]}>{t('common.vs')}</Txt>
+                    {/* Odigrana ili tekuća utakmica pokazuje REZULTAT umjesto
+                        "vs" — bez toga bi gledatelj morao tražiti drugdje. */}
+                    <Txt style={[styles.bvs, isFinal && { color: C.gold }]}>
+                      {played ? `${bm.homeScore}:${bm.awayScore}` : t('common.vs')}
+                    </Txt>
                     <View style={[styles.bside, styles.bsideRight]}>
                       <Txt numberOfLines={1} style={[styles.bname, { textAlign: 'right' }]}>
-                        {away?.name ?? bm.away.placeholder}
+                        {away?.name ?? bm.awayPlaceholder}
                       </Txt>
                       <Crest
-                        code={away?.short_code ?? bm.away.placeholder}
+                        code={away?.short_code ?? bm.awayPlaceholder}
                         index={crests[1]}
                         logoUrl={away?.logo_url}
                         size={24}

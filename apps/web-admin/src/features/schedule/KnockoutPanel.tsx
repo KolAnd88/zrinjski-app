@@ -1,6 +1,12 @@
 import { useMemo, useState } from 'react';
 import type { Gender, Grp, Match, Team } from '@zrinjski/core';
-import { computeStandings, planKnockout, type KnockoutBlocker } from '@zrinjski/core';
+import {
+  computeStandings,
+  missingKnockoutMatches,
+  planKnockout,
+  type KnockoutBlocker,
+  type KnockoutSeed,
+} from '@zrinjski/core';
 import { useT } from '../../i18n/I18nProvider';
 import { Button, Crest } from '../../components/ui';
 import './KnockoutPanel.css';
@@ -22,6 +28,7 @@ export function KnockoutPanel({
   groups,
   cfg,
   onApply,
+  onCreate,
 }: {
   gender: Gender;
   matches: Match[];
@@ -31,6 +38,8 @@ export function KnockoutPanel({
   onApply: (
     changes: { id: string; home_team_id: string | null; away_team_id: string | null }[]
   ) => Promise<void>;
+  /** Napravi utakmice zavrsnice kojih jos nema. */
+  onCreate: (seeds: KnockoutSeed[]) => Promise<void>;
 }) {
   const { t } = useT();
   const [busy, setBusy] = useState(false);
@@ -114,10 +123,39 @@ export function KnockoutPanel({
     );
   };
 
+  const missing = missingKnockoutMatches(
+    matches.map((m) => ({ gender: m.gender, stage: m.stage })),
+    gender
+  );
+
+  async function create() {
+    if (missing.length === 0 || busy) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      await onCreate(missing);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="ko">
       <h2 className="section-label">{t('ko.title')}</h2>
       <p className="ko__hint">{t('ko.hint')}</p>
+
+      {/* Na novom turniru utakmica završnice uopće nema — generiranje pravi
+          samo grupne. Bez ovoga se nema što ni popuniti. */}
+      {missing.length > 0 && (
+        <div className="ko__create">
+          <p className="ko__hint">{t('ko.createHint', { n: missing.length })}</p>
+          <Button variant="secondary" disabled={busy} onClick={() => void create()}>
+            {busy ? t('form.saving') : t('ko.create')}
+          </Button>
+        </div>
+      )}
 
       {plan.patches.length > 0 ? (
         <ul className="ko__list">

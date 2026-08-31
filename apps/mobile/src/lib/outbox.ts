@@ -28,6 +28,26 @@ async function send(op: PendingOp): Promise<SendResult> {
     return 'ok';
   }
 
+  if (op.kind === 'notify') {
+    // Prvo zapis u dnevnik, pa slanje. Zapis nosi ID s uređaja, pa ponovljeni
+    // pokušaj ne može napraviti drugu obavijest — 23505 znači da je prošli
+    // pokušaj stigao, a odgovor se izgubio.
+    const { error: logErr } = await sb.from('notification_log').insert({
+      id: op.id,
+      tournament_id: op.tournament_id,
+      type: op.type,
+      audience: op.audience,
+      title: op.title,
+      body: op.body,
+    });
+    if (logErr && (logErr as { code?: string }).code !== '23505') return 'retry';
+
+    const { error } = await sb.functions.invoke('send-push', {
+      body: { audience: op.audience, title: op.title, body: op.body ?? undefined, type: op.type },
+    });
+    return error ? 'retry' : 'ok';
+  }
+
   if (op.kind === 'event.delete') {
     const { error, data } = await sb.from('match_event').delete().eq('id', op.id).select('id');
     if (error) return 'retry';

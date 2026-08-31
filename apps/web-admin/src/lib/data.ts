@@ -183,11 +183,11 @@ async function applyMatchSlots(
   changes: { id: string; scheduled_time: string | null; sort_order?: number | null }[]
 ): Promise<void> {
   if (changes.length === 0) return;
-  const { data, error } = await client().rpc('set_match_slots', { p_changes: changes });
+  // Provjeru potpunosti radi BAZA (0025) i ondje ponisti transakciju. Ranija
+  // provjera ovdje stizala je prekasno: upis je vec bio potvrden, a greska je
+  // lazno sugerirala da se nista nije promijenilo.
+  const { error } = await client().rpc('set_match_slots', { p_changes: changes });
   if (error) throw error;
-  if (typeof data === 'number' && data < changes.length) {
-    throw new Error(`Satnica: promijenjeno ${data} od ${changes.length} utakmica.`);
-  }
 }
 
 export async function applyScheduledTimes(updates: { id: string; scheduledTime: string }[]): Promise<void> {

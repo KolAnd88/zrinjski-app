@@ -80,3 +80,14 @@
   line-height: 1.6;
   color: var(--gold);
 }
+
+/* Poziv da se naprave utakmice završnice — vidi se samo dok ih nema. */
+.ko__create {
+  border: 1px dashed var(--line);
+  border-radius: var(--r-chip);
+  padding: var(--sp-md);
+  margin-bottom: var(--sp-md);
+}
+.ko__create .ko__hint {
+  margin-top: 0;
+}

@@ -297,6 +297,8 @@ export const strings = {
     'ko.title': 'Završnica — postavi ekipe',
     'ko.hint': 'Iz ljestvica se izvodi tko ide u polufinale, a iz odigranih polufinala tko u finale i za 3. mjesto. Utakmica koja je počela ili je odigrana se ne dira.',
     'ko.apply': 'Postavi ekipe',
+    'ko.create': 'Napravi utakmice završnice',
+    'ko.createHint': 'Završnica još nema utakmice u satnici — nedostaje ih {n}. Generiranje pravi samo grupne, pa ih ovdje dodaj prije nego se u njih upišu ekipe.',
     'ko.applied': 'Postavljeno utakmica: {n}.',
     'ko.nothing': 'Nema što postaviti — sve je već na svom mjestu.',
     // Broj na kraju: hrvatski mijenja oblik uz 1, 2 i 5 pa jedan oblik ne postoji.
@@ -881,6 +883,8 @@ export const strings = {
     'ko.title': 'Knockout — set teams',
     'ko.hint': 'Semifinalists come from the group tables, finalists from the played semifinals. A match that has started or finished is left alone.',
     'ko.apply': 'Set teams',
+    'ko.create': 'Create knockout matches',
+    'ko.createHint': 'The knockout has no matches in the schedule yet — {n} missing. Generating creates group matches only, so add them here before teams can be set.',
     'ko.applied': 'Matches set: {n}.',
     'ko.nothing': 'Nothing to set — everything is already in place.',
     'ko.blockGroups': 'Group stage is not over — matches still to play: {n}. Until then the table is provisional.',

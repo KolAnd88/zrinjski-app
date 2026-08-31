@@ -153,3 +153,94 @@ export function planKnockout(input: PlanKnockoutInput): KnockoutPlan {
 
   return { patches, blockers };
 }
+
+/** Utakmica završnice koju treba tek napraviti. */
+export type KnockoutSeed = {
+  stage: Extract<Stage, 'semifinal' | 'third_place' | 'final'>;
+  home_placeholder: string;
+  away_placeholder: string;
+};
+
+/**
+ * Koje utakmice završnice nedostaju.
+ *
+ * Turnir se sastoji od dvije grupe pa završnice; utakmice završnice moraju
+ * postojati PRIJE nego se u njih upišu ekipe, a generiranje grupnih ih nikad
+ * nije stvaralo. Na novom turniru ih zato nije imao tko napraviti.
+ *
+ * Oznake su iste one koje bracket već koristi, da se prije ždrijeba vidi
+ * smislen raspored umjesto praznih redaka.
+ */
+export function missingKnockoutMatches(
+  matches: Pick<KnockoutMatch, 'gender' | 'stage'>[],
+  gender: Gender
+): KnockoutSeed[] {
+  const have = (s: Stage) => matches.filter((m) => m.gender === gender && m.stage === s).length;
+  const out: KnockoutSeed[] = [];
+
+  // Polufinala su dva; ako postoji samo jedno, dodaje se ono koje fali.
+  const semis = have('semifinal');
+  if (semis < 1) out.push({ stage: 'semifinal', home_placeholder: 'A1', away_placeholder: 'B2' });
+  if (semis < 2) out.push({ stage: 'semifinal', home_placeholder: 'A2', away_placeholder: 'B1' });
+  if (have('third_place') < 1)
+    out.push({ stage: 'third_place', home_placeholder: 'Poraženi PF1', away_placeholder: 'Poraženi PF2' });
+  if (have('final') < 1)
+    out.push({ stage: 'final', home_placeholder: 'Pobjednik PF1', away_placeholder: 'Pobjednik PF2' });
+
+  return out;
+}
+
+/** Utakmica završnice za prikaz — spojene stvarne ekipe i oznake. */
+export type KnockoutView = {
+  id: string;
+  stage: Extract<Stage, 'semifinal' | 'third_place' | 'final'>;
+  homeTeamId: string | null;
+  awayTeamId: string | null;
+  /** Tekst kad ekipa još nije poznata ("A1", "Pobjednik PF1"). */
+  homePlaceholder: string;
+  awayPlaceholder: string;
+  homeScore: number;
+  awayScore: number;
+  status: 'scheduled' | 'live' | 'finished';
+};
+
+type RowForView = KnockoutMatch & {
+  home_placeholder?: string | null;
+  away_placeholder?: string | null;
+};
+
+/**
+ * Završnica ONAKO KAKO STOJI U BAZI, za prikaz gledateljima.
+ *
+ * Aplikacija je bracket dosad računala iz ljestvica i pokazivala pretpostavku.
+ * Ta pretpostavka se razilazi sa stvarnošću čim organizator nešto promijeni
+ * ručno, a finale i 3. mjesto ostajali su zauvijek prazni jer se izvode iz
+ * odigranih polufinala, a ne iz tablica. Ovdje se čitaju stvarni redovi, s
+ * rezultatom i statusom.
+ *
+ * Redoslijed je onaj u kojem se igra: polufinala, pa 3. mjesto, pa finale.
+ */
+const STAGE_ORDER: Record<string, number> = { semifinal: 0, third_place: 1, final: 2 };
+
+export function knockoutView(matches: RowForView[], gender: Gender): KnockoutView[] {
+  return matches
+    .filter(
+      (m): m is RowForView & { stage: KnockoutView['stage'] } =>
+        m.gender === gender && m.stage !== 'group'
+    )
+    .sort(
+      (a, b) =>
+        (STAGE_ORDER[a.stage] ?? 9) - (STAGE_ORDER[b.stage] ?? 9) || a.sort_order - b.sort_order
+    )
+    .map((m) => ({
+      id: m.id,
+      stage: m.stage,
+      homeTeamId: m.home_team_id,
+      awayTeamId: m.away_team_id,
+      homePlaceholder: m.home_placeholder ?? '?',
+      awayPlaceholder: m.away_placeholder ?? '?',
+      homeScore: m.home_score,
+      awayScore: m.away_score,
+      status: m.status,
+    }));
+}

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { planKnockout, semifinalOutcome, type KnockoutMatch } from './knockout';
+import {
+  knockoutView,
+  missingKnockoutMatches,
+  planKnockout,
+  semifinalOutcome,
+  type KnockoutMatch,
+} from './knockout';
 import type { StandingRow } from './standings';
 
 const row = (teamId: string, rank: number): StandingRow =>
@@ -173,5 +179,63 @@ describe('planKnockout — zaštita odigranog', () => {
     const zenske = semis().map((x) => ({ ...x, id: `z-${x.id}`, gender: 'z' as const }));
     const { patches } = plan([...groupMatches(), ...semis(), ...endGames(), ...zenske]);
     expect(patches.every((p) => !p.id.startsWith('z-'))).toBe(true);
+  });
+});
+
+describe('missingKnockoutMatches — novi turnir', () => {
+  it('prazan turnir treba sve četiri utakmice završnice', () => {
+    const out = missingKnockoutMatches([], 'm');
+    expect(out.map((x) => x.stage)).toEqual(['semifinal', 'semifinal', 'third_place', 'final']);
+    expect(out[0]).toMatchObject({ home_placeholder: 'A1', away_placeholder: 'B2' });
+    expect(out[1]).toMatchObject({ home_placeholder: 'A2', away_placeholder: 'B1' });
+  });
+
+  it('ne duplicira ono što već postoji', () => {
+    const have = [...semis(), ...endGames()];
+    expect(missingKnockoutMatches(have, 'm')).toEqual([]);
+  });
+
+  // Pola napravljene završnice je stvarno stanje ako je netko rucno brisao.
+  it('dodaje samo ono što fali', () => {
+    const out = missingKnockoutMatches([m({ id: 'pf1', stage: 'semifinal' })], 'm');
+    expect(out.map((x) => x.stage)).toEqual(['semifinal', 'third_place', 'final']);
+    // Preostalo polufinale je DRUGO — oznake moraju ostati A2/B1.
+    expect(out[0]).toMatchObject({ home_placeholder: 'A2', away_placeholder: 'B1' });
+  });
+
+  it('gleda samo svoju konkurenciju', () => {
+    const zenske = [...semis(), ...endGames()].map((x) => ({ ...x, gender: 'z' as const }));
+    expect(missingKnockoutMatches(zenske, 'm')).toHaveLength(4);
+  });
+});
+
+describe('knockoutView — završnica iz baze', () => {
+  const rows = [
+    m({ id: 'g1', stage: 'group', sort_order: 0 }),
+    m({ id: 'fin', stage: 'final', sort_order: 13, home_placeholder: 'Pobjednik PF1' }),
+    m({ id: 'pf1', stage: 'semifinal', sort_order: 10, home_team_id: 'a1', away_team_id: 'b2', status: 'finished', home_score: 3, away_score: 1 }),
+    m({ id: 'third', stage: 'third_place', sort_order: 12 }),
+    m({ id: 'pf2', stage: 'semifinal', sort_order: 11 }),
+  ] as (KnockoutMatch & { home_placeholder?: string | null })[];
+
+  it('izbacuje grupne i slaže redom kojim se igra', () => {
+    expect(knockoutView(rows, 'm').map((x) => x.id)).toEqual(['pf1', 'pf2', 'third', 'fin']);
+  });
+
+  it('nosi stvarne ekipe, rezultat i status iz baze', () => {
+    const pf1 = knockoutView(rows, 'm')[0]!;
+    expect(pf1).toMatchObject({
+      homeTeamId: 'a1',
+      awayTeamId: 'b2',
+      homeScore: 3,
+      awayScore: 1,
+      status: 'finished',
+    });
+  });
+
+  it('bez ekipe ostaje oznaka', () => {
+    const fin = knockoutView(rows, 'm').find((x) => x.id === 'fin')!;
+    expect(fin.homeTeamId).toBeNull();
+    expect(fin.homePlaceholder).toBe('Pobjednik PF1');
   });
 });

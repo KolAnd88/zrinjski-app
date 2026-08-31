@@ -8,7 +8,7 @@ import { DaysEditor } from '../features/tournament/DaysEditor';
 import { swappableNeighbour } from '@zrinjski/core';
 import { useScheduleMatches, type TeamLite } from '../features/schedule/useScheduleMatches';
 import { KnockoutPanel } from '../features/schedule/KnockoutPanel';
-import { setKnockoutTeams } from '../lib/data';
+import { insertMatches, maxMatchSortOrder, setKnockoutTeams } from '../lib/data';
 import { MatchDetailModal } from '../features/schedule/MatchDetailModal';
 import { toInputTime, isoToLocalHHMM } from '../lib/timeFormat';
 import './Schedule.css';
@@ -294,6 +294,24 @@ export function Schedule() {
             }}
             onApply={async (changes) => {
               await setKnockoutTeams(changes);
+              await sched.reload();
+            }}
+            onCreate={async (seeds) => {
+              // Zadnji dan turnira je onaj na kojem se igra završnica; ako ga
+              // nema, utakmice ostaju bez dana i organizator ih rasporedi ručno.
+              const lastDay = [...data.days].reverse().find((d) => !!d.first_match_time);
+              let order = (await maxMatchSortOrder(tr.id)) + 1;
+              await insertMatches(
+                seeds.map((s) => ({
+                  tournament_id: tr.id,
+                  gender: koGender,
+                  stage: s.stage,
+                  home_placeholder: s.home_placeholder,
+                  away_placeholder: s.away_placeholder,
+                  day_id: lastDay?.id ?? null,
+                  sort_order: order++,
+                }))
+              );
               await sched.reload();
             }}
           />
