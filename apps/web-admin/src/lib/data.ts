@@ -1097,13 +1097,23 @@ export async function sendPush(input: {
 export function notifyQuietly(row: TablesInsert<'notification_log'>): void {
   void (async () => {
     try {
-      await insertNotification(row);
+      const created = await insertNotification(row);
       await sendPush({
         audience: row.audience ?? 'all',
         title: row.title,
         body: row.body ?? null,
         type: row.type,
       });
+      // Oznaka se upisuje TEK nakon uspješnog slanja. Zapis bez nje znači
+      // "zabilježeno, ali nije otišlo" — a to je stanje koje se mora vidjeti,
+      // ne pretpostaviti. Web nema red čekanja, pa ovdje nema ponavljanja:
+      // neposlana obavijest ostaje vidljiva u dnevniku.
+      if (!DEMO) {
+        await client()
+          .from('notification_log')
+          .update({ push_sent_at: new Date().toISOString() })
+          .eq('id', created.id);
+      }
     } catch (e) {
       console.warn('[obavijest]', e);
     }

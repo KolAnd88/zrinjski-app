@@ -18,6 +18,9 @@ const cors = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+/** Expove greške na koje ponavljanje ne pomaže. */
+const PERMANENT = new Set(['MessageTooBig', 'InvalidCredentials', 'DeveloperError']);
+
 /** Vrsta obavijesti → ključ u device.prefs. Uređaj koji ju je isključio se preskače. */
 const PREF_KEY: Record<string, string> = {
   team_playing_soon: 'team_playing_soon',
@@ -93,6 +96,10 @@ Deno.serve(async (req) => {
   // ── Pošalji Expou u komadima ──────────────────────────────────────────────
   const dead: string[] = [];
   let sent = 0;
+  /** Greske koje ponavljanje NE bi rijesilo — samo se broje. */
+  let permanent = 0;
+  /** Nedostavljeno zbog privremene greske — zbog ovoga se cijeli poziv ponavlja. */
+  let retryable = 0;
 
   for (let i = 0; i < tokens.length; i += CHUNK) {
     const slice = tokens.slice(i, i + CHUNK);
@@ -104,22 +111,49 @@ Deno.serve(async (req) => {
       channelId: 'default',
     }));
 
-    const res = await fetch(EXPO_PUSH_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify(messages),
-    });
+    let res: Response | null = null;
+    try {
+      res = await fetch(EXPO_PUSH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(messages),
+      });
+    } catch {
+      // Mreža je pukla — to je privremeno, pa se mora ponoviti.
+      retryable += slice.length;
+      continue;
+    }
 
-    if (!res.ok) continue;
+    // Expo zna vratiti 429/503 kad je pod opterećenjem. Ranije se takav komad
+    // TIHO preskakao, a funkcija je svejedno vraćala uspjeh — uređaj bi
+    // obavijest označio poslanom i nikad je ne bi ponovio.
+    if (!res.ok) {
+      retryable += slice.length;
+      continue;
+    }
+
     const out = await res.json().catch(() => null);
-    const tickets = out?.data ?? [];
+    if (!out) {
+      retryable += slice.length;
+      continue;
+    }
+    const tickets = out.data ?? [];
 
     tickets.forEach((ticket: { status?: string; details?: { error?: string } }, n: number) => {
       if (ticket?.status === 'ok') {
         sent++;
-      } else if (ticket?.details?.error === 'DeviceNotRegistered') {
+        return;
+      }
+      const err = ticket?.details?.error;
+      if (err === 'DeviceNotRegistered') {
         // App odinstaliran ili token istekao — očisti da popis ne trune.
         dead.push(slice[n]!);
+      } else if (PERMANENT.has(err ?? '')) {
+        // Ponavljanje ne bi pomoglo; broji se da se vidi u odgovoru.
+        permanent++;
+      } else {
+        // Sve ostalo (npr. MessageRateExceeded) prolazi kasnije.
+        retryable += 1;
       }
     });
   }
@@ -128,5 +162,15 @@ Deno.serve(async (req) => {
     await admin.from('device').delete().in('expo_push_token', dead);
   }
 
-  return json({ sent, invalidated: dead.length });
+  // Nedostavljeno zbog PRIVREMENE greške → pozivatelj mora znati da nije gotovo.
+  // Vraća se 502 da `functions.invoke` prijavi grešku i red čekanja ponovi.
+  //
+  // Kod djelomičnog uspjeha ponavljanje šalje drugi put onima kojima je već
+  // stiglo. To je svjesno: obavijest koja NIKAD ne stigne gora je od one koja
+  // dođe dvaput, a komad je 100 uređaja pa je slučaj rijedak.
+  if (retryable > 0) {
+    return json({ sent, invalidated: dead.length, permanent, retryable, error: 'push_partial' }, 502);
+  }
+
+  return json({ sent, invalidated: dead.length, permanent, retryable: 0 });
 });
