@@ -95,6 +95,16 @@
   border: 1px dashed var(--line);
   background: transparent;
 }
+/* Kriva adresa: crveni rub i poruka, jer kriv QR izgleda kao ispravan. */
+.promo__bad {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--red);
+}
+.input--bad {
+  border-color: var(--red);
+}
 .promo__warn {
   margin: var(--sp-sm) 0 0;
   font-size: 11px;

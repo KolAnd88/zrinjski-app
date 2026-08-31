@@ -5,6 +5,7 @@ import { useT } from '../i18n/I18nProvider';
 import { Button, Card } from '../components/ui';
 import { useTournamentData } from '../features/tournament/useTournamentData';
 import { usePromo } from '../features/promo/usePromo';
+import { checkPromoUrl, looksLikeApk } from '../features/promo/url';
 import { autoShortCode, crestColorFor } from '../lib/crest';
 import {
   downloadSvg,
@@ -22,6 +23,43 @@ const STAGE_LABEL: Record<Stage, string> = {
   final: 'Finale',
 };
 
+/**
+ * Napravi QR kod za već provjerenu adresu. `null` → nema koda.
+ *
+ * Dvije zaštite koje su prije nedostajale: `otkazano` sprječava da stariji
+ * izračun stigne poslije novijeg, a `catch` da pri grešci na ekranu ostane
+ * PRETHODNI kod. Oboje je vodilo do plakata s krivim kodom, bez ijedne poruke.
+ */
+function useQrCode(url: string | null): { dataUrl: string; failed: boolean } {
+  const [dataUrl, setDataUrl] = useState('');
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (!url) {
+      setDataUrl('');
+      setFailed(false);
+      return;
+    }
+    let otkazano = false;
+    QRCode.toDataURL(url, { margin: 1, width: 420 })
+      .then((v) => {
+        if (otkazano) return;
+        setDataUrl(v);
+        setFailed(false);
+      })
+      .catch(() => {
+        if (otkazano) return;
+        setDataUrl('');
+        setFailed(true);
+      });
+    return () => {
+      otkazano = true;
+    };
+  }, [url]);
+
+  return { dataUrl, failed };
+}
+
 export function Promo() {
   const { t } = useT();
   const tournament = useTournamentData();
@@ -30,20 +68,21 @@ export function Promo() {
   // ispisuje više puta kroz turnir.
   const [url, setUrl] = useState(() => localStorage.getItem('promo.url.ios') ?? '');
   const [apkUrl, setApkUrl] = useState(() => localStorage.getItem('promo.url.apk') ?? '');
-  const [qr, setQr] = useState<string>('');
-  const [qrApk, setQrApk] = useState<string>('');
   const [matchId, setMatchId] = useState<string>('');
+
+  const iosState = checkPromoUrl(url);
+  const apkState = checkPromoUrl(apkUrl);
+  const iosQr = useQrCode(iosState.key === 'ok' ? iosState.url : null);
+  const apkQr = useQrCode(apkState.key === 'ok' ? apkState.url : null);
+  const qr = iosQr.dataUrl;
+  const qrApk = apkQr.dataUrl;
 
   useEffect(() => {
     localStorage.setItem('promo.url.ios', url);
-    if (!url.trim()) return setQr('');
-    void QRCode.toDataURL(url, { margin: 1, width: 420 }).then(setQr);
   }, [url]);
 
   useEffect(() => {
     localStorage.setItem('promo.url.apk', apkUrl);
-    if (!apkUrl.trim()) return setQrApk('');
-    void QRCode.toDataURL(apkUrl, { margin: 1, width: 420 }).then(setQrApk);
   }, [apkUrl]);
 
   useEffect(() => {
@@ -98,6 +137,20 @@ export function Promo() {
     ? posterSvg({ codes, headline: t('promo.qrHeadline'), sub: t('promo.qrSub'), tournamentName })
     : '';
 
+  /** Poruka ispod polja: greška adrese ili greška izrade koda. */
+  const problem = (state: ReturnType<typeof checkPromoUrl>, failed: boolean): string | null => {
+    if (state.key === 'invalid') return t('promo.urlInvalid');
+    if (state.key === 'notHttp') return t('promo.urlNotHttp');
+    if (state.key === 'noHost') return t('promo.urlNoHost');
+    if (state.key === 'tooLong') return t('promo.urlTooLong');
+    if (failed) return t('promo.urlQrFailed');
+    return null;
+  };
+  const iosProblem = problem(iosState, iosQr.failed);
+  const apkProblem = problem(apkState, apkQr.failed);
+  // Nevaljana adresa ne smije proći na papir — plakat se ne može ni preuzeti.
+  const blocked = !!iosProblem || !!apkProblem;
+
   return (
     <div className="promo">
       {/* QR plakat */}
@@ -122,27 +175,34 @@ export function Promo() {
               {t('promo.qrUrlIos')}
             </label>
             <input
-              className="input"
+              className={`input${iosProblem ? ' input--bad' : ''}`}
               value={url}
               placeholder="https://…netlify.app"
+              aria-invalid={!!iosProblem}
               onChange={(e) => setUrl(e.target.value)}
             />
+            {iosProblem && <p className="promo__bad">{iosProblem}</p>}
 
             <label className="field-label" style={{ marginTop: 'var(--sp-md)' }}>
               {t('promo.qrUrlApk')}
             </label>
             <input
-              className="input"
+              className={`input${apkProblem ? ' input--bad' : ''}`}
               value={apkUrl}
               placeholder="https://…/app.apk"
+              aria-invalid={!!apkProblem}
               onChange={(e) => setApkUrl(e.target.value)}
             />
+            {apkProblem && <p className="promo__bad">{apkProblem}</p>}
+            {!apkProblem && !looksLikeApk(apkUrl) && (
+              <p className="promo__warn">{t('promo.apkNotFile')}</p>
+            )}
             <p className="promo__warn">{t('promo.qrApkWarn')}</p>
 
             <Button
               variant="primary"
               style={{ marginTop: 'var(--sp-md)' }}
-              disabled={!poster}
+              disabled={!poster || blocked}
               onClick={() => downloadSvg(poster, 'ponos-hercegovine-plakat.svg')}
             >
               {t('promo.download')}
