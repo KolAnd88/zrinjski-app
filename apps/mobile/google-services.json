@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "633528127194",
+    "project_id": "ponos-hercegovine-572af",
+    "storage_bucket": "ponos-hercegovine-572af.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:633528127194:android:71a84f670cc32d1b951fe3",
+        "android_client_info": {
+          "package_name": "ba.vhmrkzrinjski.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtTg2SRztFd8rNMM_Lu5k9JetukxaQlVM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
