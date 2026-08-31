@@ -66,17 +66,53 @@ export function resultCardSvg(o: ResultCardOpts): string {
 </svg>`;
 }
 
-export type PosterOpts = {
+/** Jedan kod na plakatu — svoj naslov i svoje objašnjenje. */
+export type PosterCode = {
   qrDataUrl: string;
+  /** Kome je namijenjen: "iPhone", "Android". */
+  label: string;
+  /** Što se dogodi kad ga skenira. */
+  hint: string;
+};
+
+export type PosterOpts = {
+  /** Jedan kod → velik i centriran. Dva → jedan uz drugi. */
+  codes: PosterCode[];
   headline: string;
   sub: string;
   tournamentName: string;
 };
 
-/** QR plakat za ispis (800×1130, blizu A4). */
+/**
+ * QR plakat za ispis (800×1130, blizu A4).
+ *
+ * Dva koda jer put nije isti za sve: iPhone nema aplikaciju u trgovini pa ide
+ * na web, Android skida APK. Jedan plakat s oba je bolji od dva plakata —
+ * ljudi u dvorani gledaju jedno mjesto i biraju svoj.
+ */
 export function posterSvg(o: PosterOpts): string {
   const W = 800;
   const H = 1130;
+  const codes = o.codes.filter((c) => !!c.qrDataUrl);
+  const dvostruko = codes.length > 1;
+
+  // Jedan kod ostaje velik kao i prije; dva se dijele u dva stupca.
+  const CARD = dvostruko ? 330 : 460;
+  // Bijeli rub oko koda: čitači ga trebaju da razaznaju rubove.
+  const QR = CARD - 40;
+  const TOP = dvostruko ? 360 : 320;
+  const centri = dvostruko ? [W / 2 - 180, W / 2 + 180] : [W / 2];
+
+  const blok = (c: PosterCode, cx: number) => `
+  <text x="${cx}" y="${TOP - 28}" fill="#fff" font-family="Oswald, sans-serif" font-weight="700"
+        font-size="${dvostruko ? 30 : 34}" text-anchor="middle">${esc(c.label)}</text>
+  <rect x="${cx - CARD / 2}" y="${TOP}" width="${CARD}" height="${CARD}" rx="24" fill="#fff"/>
+  <image x="${cx - QR / 2}" y="${TOP + (CARD - QR) / 2}" width="${QR}" height="${QR}" href="${c.qrDataUrl}"/>
+  <text x="${cx}" y="${TOP + CARD + 42}" fill="${colors.sub}" font-family="Inter, sans-serif"
+        font-size="${dvostruko ? 22 : 26}" text-anchor="middle">${esc(c.hint)}</text>`;
+
+  const dno = TOP + CARD + (dvostruko ? 110 : 100);
+
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
     <linearGradient id="plenta" x1="0" y1="0" x2="1" y2="0">
@@ -90,13 +126,10 @@ export function posterSvg(o: PosterOpts): string {
   </g>
   <text x="${W / 2}" y="150" fill="#fff" font-family="Oswald, sans-serif" font-weight="700"
         font-size="48" text-anchor="middle">${esc(o.tournamentName)}</text>
-
-  <rect x="${(W - 460) / 2}" y="320" width="460" height="460" rx="24" fill="#fff"/>
-  <image x="${(W - 420) / 2}" y="340" width="420" height="420" href="${o.qrDataUrl}"/>
-
-  <text x="${W / 2}" y="880" fill="#fff" font-family="Oswald, sans-serif" font-weight="700"
-        font-size="46" text-anchor="middle">${esc(o.headline)}</text>
-  <text x="${W / 2}" y="940" fill="${colors.sub}" font-family="Inter, sans-serif"
+${codes.map((c, i) => blok(c, centri[i] ?? W / 2)).join('\n')}
+  <text x="${W / 2}" y="${dno}" fill="#fff" font-family="Oswald, sans-serif" font-weight="700"
+        font-size="${dvostruko ? 40 : 46}" text-anchor="middle">${esc(o.headline)}</text>
+  <text x="${W / 2}" y="${dno + 56}" fill="${colors.sub}" font-family="Inter, sans-serif"
         font-size="28" text-anchor="middle">${esc(o.sub)}</text>
 </svg>`;
 }

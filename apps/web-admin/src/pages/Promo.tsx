@@ -26,13 +26,25 @@ export function Promo() {
   const { t } = useT();
   const tournament = useTournamentData();
   const data = usePromo(tournament.tournament?.id ?? null);
-  const [url, setUrl] = useState('https://vhmrkzrinjski.app');
+  // Adrese se pamte u pregledniku: organizator ih upiše jednom, a plakat se
+  // ispisuje više puta kroz turnir.
+  const [url, setUrl] = useState(() => localStorage.getItem('promo.url.ios') ?? '');
+  const [apkUrl, setApkUrl] = useState(() => localStorage.getItem('promo.url.apk') ?? '');
   const [qr, setQr] = useState<string>('');
+  const [qrApk, setQrApk] = useState<string>('');
   const [matchId, setMatchId] = useState<string>('');
 
   useEffect(() => {
-    void QRCode.toDataURL(url || ' ', { margin: 1, width: 420 }).then(setQr);
+    localStorage.setItem('promo.url.ios', url);
+    if (!url.trim()) return setQr('');
+    void QRCode.toDataURL(url, { margin: 1, width: 420 }).then(setQr);
   }, [url]);
+
+  useEffect(() => {
+    localStorage.setItem('promo.url.apk', apkUrl);
+    if (!apkUrl.trim()) return setQrApk('');
+    void QRCode.toDataURL(apkUrl, { margin: 1, width: 420 }).then(setQrApk);
+  }, [apkUrl]);
 
   useEffect(() => {
     if (!matchId && data.matches.length > 0) setMatchId(data.matches[0]!.id);
@@ -74,8 +86,16 @@ export function Promo() {
   if (!data.configured) return <Card style={{ maxWidth: 560 }}>{t('common.notConfigured')}</Card>;
   if (tournament.loading || data.loading) return <Card style={{ maxWidth: 560 }}>{t('common.loading')}</Card>;
 
-  const poster = qr
-    ? posterSvg({ qrDataUrl: qr, headline: t('promo.qrHeadline'), sub: t('promo.qrSub'), tournamentName })
+  // Dva koda jer put nije isti: iPhone nema aplikaciju u trgovini pa ide na
+  // web, Android skida APK. Ako je jedna adresa prazna, plakat ima samo drugi
+  // kod i on je onda velik i centriran.
+  const codes = [
+    qr ? { qrDataUrl: qr, label: t('promo.qrIos'), hint: t('promo.qrIosHint') } : null,
+    qrApk ? { qrDataUrl: qrApk, label: t('promo.qrAndroid'), hint: t('promo.qrAndroidHint') } : null,
+  ].filter((x): x is NonNullable<typeof x> => !!x);
+
+  const poster = codes.length
+    ? posterSvg({ codes, headline: t('promo.qrHeadline'), sub: t('promo.qrSub'), tournamentName })
     : '';
 
   return (
@@ -84,19 +104,46 @@ export function Promo() {
       <h2 className="section-label">{t('promo.qrTitle')}</h2>
       <Card>
         <div className="promo__qr">
-          <div className="promo__qrbox">{qr && <img src={qr} alt="QR" />}</div>
+          <div className="promo__codes">
+            <div className="promo__code">
+              <div className="promo__qrbox">{qr ? <img src={qr} alt="QR iPhone" /> : null}</div>
+              <div className="promo__codelabel">{t('promo.qrIos')}</div>
+            </div>
+            <div className="promo__code">
+              <div className="promo__qrbox">{qrApk ? <img src={qrApk} alt="QR Android" /> : null}</div>
+              <div className="promo__codelabel">{t('promo.qrAndroid')}</div>
+            </div>
+          </div>
           <div className="promo__qrmain">
             <div className="promo__qrhead">{t('promo.qrHeadline')}</div>
             <div className="promo__qrsub">{t('promo.qrSub')}</div>
+
             <label className="field-label" style={{ marginTop: 'var(--sp-md)' }}>
-              {t('promo.qrUrl')}
+              {t('promo.qrUrlIos')}
             </label>
-            <input className="input" value={url} onChange={(e) => setUrl(e.target.value)} />
+            <input
+              className="input"
+              value={url}
+              placeholder="https://…netlify.app"
+              onChange={(e) => setUrl(e.target.value)}
+            />
+
+            <label className="field-label" style={{ marginTop: 'var(--sp-md)' }}>
+              {t('promo.qrUrlApk')}
+            </label>
+            <input
+              className="input"
+              value={apkUrl}
+              placeholder="https://…/app.apk"
+              onChange={(e) => setApkUrl(e.target.value)}
+            />
+            <p className="promo__warn">{t('promo.qrApkWarn')}</p>
+
             <Button
               variant="primary"
               style={{ marginTop: 'var(--sp-md)' }}
               disabled={!poster}
-              onClick={() => downloadSvg(poster, 'vhmrk-zrinjski-plakat.svg')}
+              onClick={() => downloadSvg(poster, 'ponos-hercegovine-plakat.svg')}
             >
               {t('promo.download')}
             </Button>

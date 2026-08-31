@@ -70,3 +70,34 @@
   color: var(--sub);
   padding: var(--sp-md) 0;
 }
+
+/* Dva QR koda: iPhone ide na web, Android skida aplikaciju. */
+.promo__codes {
+  display: flex;
+  gap: var(--sp-md);
+  flex: none;
+}
+.promo__code {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.promo__codelabel {
+  font-family: var(--font-head);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--sub);
+}
+/* Prazan okvir dok adresa nije upisana — da se vidi da kod tek dolazi. */
+.promo__code .promo__qrbox:empty {
+  border: 1px dashed var(--line);
+  background: transparent;
+}
+.promo__warn {
+  margin: var(--sp-sm) 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--gold);
+}
