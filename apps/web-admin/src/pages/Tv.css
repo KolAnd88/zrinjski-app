@@ -15,21 +15,14 @@
 }
 
 /* Dijagonalna lenta — brend potpis, ispod sadržaja. */
+/* Oblik, kut i boje dolaze iz packages/ui-tokens/src/lenta.ts — ovdje se
+   samo razapinje preko kadra. Ranije je ovdje stajao vlastiti gradijent pod
+   -28°, pa se TV razlikovao od svih ostalih mjesta. */
 .tv__lenta {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 146vw;
-  height: 22vw;
-  transform: translate(-50%, -50%) rotate(-28deg);
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(156, 12, 24, 0.5) 40%,
-    rgba(225, 29, 42, 0.58) 62%,
-    transparent
-  );
-  opacity: 0.12;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   z-index: -1;
   pointer-events: none;
 }

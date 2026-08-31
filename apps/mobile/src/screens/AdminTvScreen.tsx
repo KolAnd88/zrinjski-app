@@ -5,6 +5,7 @@ import { useT } from '../i18n/I18nProvider';
 import { useData } from '../lib/useData';
 import { C, F, S } from '../theme';
 import { Crest, LiveDot, Txt } from '../components/base';
+import { Lenta } from '../components/lenta';
 import type { RootStackParamList } from '../navigation/types';
 
 const STAGE: Record<Stage, string> = {
@@ -29,8 +30,7 @@ export function AdminTvScreen() {
 
   return (
     <View style={styles.tv}>
-      {/* lenta */}
-      <View style={styles.lenta} pointerEvents="none" />
+      <Lenta />
 
       <View style={styles.top}>
         <Txt style={styles.cup}>VHMRK ZRINJSKI CUP</Txt>
@@ -84,16 +84,6 @@ export function AdminTvScreen() {
 
 const styles = StyleSheet.create({
   tv: { flex: 1, backgroundColor: C.bg, overflow: 'hidden' },
-  lenta: {
-    position: 'absolute',
-    left: -80,
-    right: -80,
-    top: '44%',
-    height: 120,
-    backgroundColor: C.redDk,
-    opacity: 0.45,
-    transform: [{ rotate: '-10deg' }],
-  },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: S.lg },
   cup: { fontFamily: F.head, fontSize: 14, letterSpacing: 1, color: C.txt },
   state: { flexDirection: 'row', alignItems: 'center', gap: 8 },

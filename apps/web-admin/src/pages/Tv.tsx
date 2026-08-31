@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Match, Stage } from '@zrinjski/core';
-import { crestPair } from '@zrinjski/ui-tokens';
+import { crestPair, LENTA, lentaSvg } from '@zrinjski/ui-tokens';
 import { useT } from '../i18n/I18nProvider';
 import { supabase } from '../lib/supabase';
 import { fetchEnterableMatches } from '../lib/data';
@@ -9,6 +9,18 @@ import { useLiveMatch } from '../features/live/useLiveMatch';
 import { Crest } from '../components/ui';
 import { isoToLocalHHMM } from '../lib/timeFormat';
 import './Tv.css';
+
+/** Lenta preko cijelog TV kadra. Jačina `soft` jer iza nje stoji semafor. */
+function tvLenta(isFinal: boolean): string {
+  const { defs, body } = lentaSvg({
+    w: 1600,
+    h: 900,
+    strength: LENTA.strength.soft,
+    gold: isFinal,
+    id: 'tv',
+  });
+  return `<defs>${defs}</defs>${body}`;
+}
 
 const STAGE_LABEL: Record<Stage, string> = {
   group: 'GRUPA',
@@ -72,7 +84,15 @@ export function Tv() {
 
   return (
     <div className="tv">
-      <div className="tv__lenta" />
+      {/* Lenta iz zajedničke definicije — ista kao na slici rezultata i plakatu.
+          Zlatna nit kad je finale. */}
+      <svg
+        className="tv__lenta"
+        viewBox="0 0 1600 900"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+        dangerouslySetInnerHTML={{ __html: tvLenta(isFinal) }}
+      />
 
       {/* Zaglavlje */}
       <header className="tv__top">

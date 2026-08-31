@@ -2,26 +2,20 @@
 // dekorativna lenta, rotirajuća traka sponzora i odbrojavanje.
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Image, Platform, StyleSheet, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LENTA } from '@zrinjski/ui-tokens';
 import { C, F, R, SP } from '../theme';
 import { Txt } from './base';
+import { Lenta } from './lenta';
 
 /**
- * Dijagonalna crvena lenta — brend element iz makete (rotacija -62°, opacity .15).
- * Čisto dekorativno, ispod sadržaja.
+ * Dijagonalna crvena lenta iza početnog zaslona.
+ *
+ * Prije je stajala pod -62° na jačini .15 — jedva vidljiva i pod kutom
+ * koji nije imao veze ni s dresom ni s ostatkom aplikacije. Sada crta iz
+ * zajedničke definicije; jačina je `quiet` jer iza nje ide gust tekst.
  */
 export function BrandStripe() {
-  return (
-    <View pointerEvents="none" style={styles.stripeWrap}>
-      <LinearGradient
-        colors={['transparent', 'rgba(156,12,24,.55)', 'rgba(225,29,42,.62)', 'transparent']}
-        locations={[0, 0.38, 0.62, 1]}
-        start={{ x: 0, y: 0.5 }}
-        end={{ x: 1, y: 0.5 }}
-        style={styles.stripe}
-      />
-    </View>
-  );
+  return <Lenta cy={0.42} strength={LENTA.strength.quiet} />;
 }
 
 /** Sekunde → "1:12:03" (s satima) ili "12:03". */
@@ -153,17 +147,6 @@ export function SponsorMarquee({
 }
 
 const styles = StyleSheet.create({
-  stripeWrap: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, overflow: 'hidden' },
-  stripe: {
-    position: 'absolute',
-    top: '42%',
-    left: '-120%',
-    right: '-120%',
-    height: 178,
-    opacity: 0.15,
-    transform: [{ rotate: '-62deg' }],
-  },
-
   mqMask: { overflow: 'hidden' },
   mqTrack: { flexDirection: 'row', gap: TILE_GAP },
   mqTile: {

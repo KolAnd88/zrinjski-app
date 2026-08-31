@@ -10,6 +10,7 @@ import { useFollow } from '../lib/useFollow';
 import { setOnboarded } from '../lib/onboarding';
 import { C, F, R, S } from '../theme';
 import { Crest, Txt } from '../components/base';
+import { Lenta } from '../components/lenta';
 import type { RootStackParamList } from '../navigation/types';
 
 export function OnboardingScreen() {
@@ -26,7 +27,7 @@ export function OnboardingScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.lenta} />
+      <Lenta cy={0.2} />
 
       {/* Grb i pravi naziv turnira, isto kao na početnoj. Ovdje je dosad
           stajao crveni kvadrat sa slovom "Z" i zakucano ime aplikacije — a
@@ -142,16 +143,6 @@ export function OnboardingScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.bg, padding: S.lg },
-  lenta: {
-    position: 'absolute',
-    top: 120,
-    left: -40,
-    right: -40,
-    height: 90,
-    backgroundColor: C.redDk,
-    opacity: 0.4,
-    transform: [{ rotate: '-12deg' }],
-  },
   brand: { alignItems: 'center', gap: S.sm, marginTop: S.xl },
   logo: { width: 64, height: 64 },
   brandName: { textAlign: 'center' },

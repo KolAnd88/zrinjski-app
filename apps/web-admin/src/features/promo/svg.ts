@@ -1,6 +1,6 @@
 // svg.ts — generatori SVG slika za promo (rezultat za mreže + QR plakat).
 // Iste SVG nizove koristimo i za pregled (inline) i za preuzimanje (PNG/SVG).
-import { colors } from '@zrinjski/ui-tokens';
+import { colors, lentaSvg } from '@zrinjski/ui-tokens';
 
 function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -26,6 +26,8 @@ export function resultCardSvg(o: ResultCardOpts): string {
   const W = 1200;
   const H = 630;
   const accent = o.isFinal ? colors.gold : colors.red;
+  // Zlatna nit samo u finalu — isto pravilo kao za naslov iznad rezultata.
+  const lenta = lentaSvg({ w: W, h: H, gold: o.isFinal, id: 'rc' });
   const crest = (x: number, code: string, color: string) => `
     <g transform="translate(${x},250)">
       <rect width="160" height="160" rx="24" fill="${color}"/>
@@ -37,16 +39,9 @@ export function resultCardSvg(o: ResultCardOpts): string {
     : '';
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-  <defs>
-    <linearGradient id="lenta" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="${colors.redDk}"/>
-      <stop offset="1" stop-color="${colors.red}"/>
-    </linearGradient>
-  </defs>
+  <defs>${lenta.defs}</defs>
   <rect width="${W}" height="${H}" fill="${colors.bg}"/>
-  <g transform="rotate(-12 ${W / 2} ${H / 2})" opacity="0.5">
-    <rect x="-100" y="300" width="${W + 200}" height="150" fill="url(#lenta)"/>
-  </g>
+  ${lenta.body}
   <text x="${W / 2}" y="110" fill="${accent}" font-family="Oswald, sans-serif" font-weight="700"
         font-size="34" letter-spacing="3" text-anchor="middle">${esc(o.stageLabel.toUpperCase())}</text>
 
@@ -112,18 +107,13 @@ export function posterSvg(o: PosterOpts): string {
         font-size="${dvostruko ? 22 : 26}" text-anchor="middle">${esc(c.hint)}</text>`;
 
   const dno = TOP + CARD + (dvostruko ? 110 : 100);
+  // Lenta prolazi iza naziva turnira pri vrhu plakata.
+  const lenta = lentaSvg({ w: W, h: H, cy: 195 / H, id: 'pl' });
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-  <defs>
-    <linearGradient id="plenta" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="${colors.redDk}"/>
-      <stop offset="1" stop-color="${colors.red}"/>
-    </linearGradient>
-  </defs>
+  <defs>${lenta.defs}</defs>
   <rect width="${W}" height="${H}" fill="${colors.bg}"/>
-  <g transform="rotate(-12 ${W / 2} 220)" opacity="0.5">
-    <rect x="-100" y="180" width="${W + 200}" height="120" fill="url(#plenta)"/>
-  </g>
+  ${lenta.body}
   <text x="${W / 2}" y="150" fill="#fff" font-family="Oswald, sans-serif" font-weight="700"
         font-size="48" text-anchor="middle">${esc(o.tournamentName)}</text>
 ${codes.map((c, i) => blok(c, centri[i] ?? W / 2)).join('\n')}
