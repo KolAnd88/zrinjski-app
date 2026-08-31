@@ -7,6 +7,8 @@ import { Outbox, type OutboxStatus, type PendingOp, type SendResult } from '@zri
 import { supabase } from './supabase';
 
 const KEY = 'zrinjski.outbox.v1';
+// Zaseban kljuc: obavijesti ne smiju zavrsiti u istom redu kao golovi.
+const KEY_NOTIFY = 'zrinjski.outbox.notify.v1';
 const RETRY_MS = 8000;
 
 async function send(op: PendingOp): Promise<SendResult> {
@@ -29,18 +31,32 @@ async function send(op: PendingOp): Promise<SendResult> {
   }
 
   if (op.kind === 'notify') {
-    // Prvo zapis u dnevnik, pa slanje. Zapis nosi ID s uređaja, pa ponovljeni
-    // pokušaj ne može napraviti drugu obavijest — 23505 znači da je prošli
-    // pokušaj stigao, a odgovor se izgubio.
-    const { error: logErr } = await sb.from('notification_log').insert({
-      id: op.id,
-      tournament_id: op.tournament_id,
-      type: op.type,
-      audience: op.audience,
-      title: op.title,
-      body: op.body,
-    });
-    if (logErr && (logErr as { code?: string }).code !== '23505') return 'retry';
+    // Obavijest o rezultatu ne smije stići prije nego je rezultat u bazi —
+    // gledatelj bi otvorio aplikaciju i vidio utakmicu koja još traje.
+    if (op.match_id) {
+      const { data: m } = await sb.from('match').select('status').eq('id', op.match_id).maybeSingle();
+      if (!m || m.status !== 'finished') return 'retry';
+    }
+
+    // Zapis u dnevnik je i BRAVA protiv dvostrukog slanja: `id` je s uređaja,
+    // pa `.select()` vrati redak samo onome tko ga je stvarno stvorio. Ako je
+    // redak već ondje (23505 ili prazan rezultat), push je već poslan i drugi
+    // se NE šalje — radije propuštena obavijest nego ista dvaput.
+    const { data: created, error: logErr } = await sb
+      .from('notification_log')
+      .insert({
+        id: op.id,
+        tournament_id: op.tournament_id,
+        type: op.type,
+        audience: op.audience,
+        title: op.title,
+        body: op.body,
+      })
+      .select('id');
+    if (logErr) {
+      return (logErr as { code?: string }).code === '23505' ? 'ok' : 'retry';
+    }
+    if (!created || created.length === 0) return 'ok';
 
     const { error } = await sb.functions.invoke('send-push', {
       body: { audience: op.audience, title: op.title, body: op.body ?? undefined, type: op.type },
@@ -72,37 +88,60 @@ async function send(op: PendingOp): Promise<SendResult> {
   return !error && !!data && data.length > 0 ? 'ok' : 'retry';
 }
 
+/**
+ * DVA reda, ne jedan.
+ *
+ * Red se prazni redom i staje na prvom neuspjehu — to je nužno za zapisnik,
+ * jer gol mora biti upisan prije nego ga poništavanje briše. Ali dok su
+ * obavijesti bile u istom redu, jedna neuspjela obavijest zaustavila bi SVE
+ * golove iza sebe: zapisnik bi radio, a u bazu ne bi stizalo ništa.
+ *
+ * Zapisnik ima prednost i mora teći sam za sebe. Obavijest smije čekati.
+ */
 const outbox = new Outbox({
   load: () => AsyncStorage.getItem(KEY),
   save: (raw) => AsyncStorage.setItem(KEY, raw),
   send,
 });
 
+const notifyBox = new Outbox({
+  load: () => AsyncStorage.getItem(KEY_NOTIFY),
+  save: (raw) => AsyncStorage.setItem(KEY_NOTIFY, raw),
+  send,
+});
+
 let timer: ReturnType<typeof setTimeout> | null = null;
 
-/** Pokušaj poslati; ako nešto ostane, zakaži novi pokušaj. */
+/** Pokušaj poslati oba reda; ako nešto ostane, zakaži novi pokušaj. */
 export async function flushOutbox(): Promise<void> {
-  await outbox.flush();
+  // Neovisno: pad jednog ne smije zaustaviti drugi.
+  await Promise.allSettled([outbox.flush(), notifyBox.flush()]);
   if (timer) clearTimeout(timer);
-  if (outbox.size > 0) {
+  if (outbox.size > 0 || notifyBox.size > 0) {
     timer = setTimeout(() => void flushOutbox(), RETRY_MS);
   }
 }
 
 export async function loadOutbox(): Promise<void> {
-  await outbox.load();
-  if (outbox.size > 0) void flushOutbox();
+  await Promise.allSettled([outbox.load(), notifyBox.load()]);
+  if (outbox.size > 0 || notifyBox.size > 0) void flushOutbox();
 }
 
 export function enqueue(op: PendingOp): void {
-  outbox.enqueue(op);
+  (op.kind === 'notify' ? notifyBox : outbox).enqueue(op);
   void flushOutbox();
 }
 
+/** Broj neposlanih iz OBA reda — pokazatelj u sučelju prati ukupno stanje. */
 export function subscribeOutbox(fn: (s: OutboxStatus) => void): () => void {
-  return outbox.subscribe(fn);
+  const off1 = outbox.subscribe(fn);
+  const off2 = notifyBox.subscribe(fn);
+  return () => {
+    off1();
+    off2();
+  };
 }
 
 export function outboxSize(): number {
-  return outbox.size;
+  return outbox.size + notifyBox.size;
 }

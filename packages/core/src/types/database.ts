@@ -559,6 +559,11 @@ export type Database = {
        */
       /** Postavi ekipe u zavrsnicu u jednoj transakciji. */
       /** Promijeni termin i/ili redoslijed vise utakmica u jednoj transakciji. */
+      /** Napravi utakmice zavrsnice koje nedostaju, bez duplikata. */
+      ensure_knockout_matches: {
+        Args: { p_tournament_id: string; p_gender: Gender; p_day_id?: string | null };
+        Returns: number;
+      };
       set_match_slots: {
         Args: {
           p_changes: { id: string; scheduled_time: string | null; sort_order?: number | null }[];

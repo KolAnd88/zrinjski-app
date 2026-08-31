@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { Registration } from '@zrinjski/core';
+import type { Registration, RegistrationPlayer } from '@zrinjski/core';
 import { HAS_DATA } from '../../lib/supabase';
 import {
   approveRegistration,
   fetchRegistrations,
   rejectRegistration,
+  updateRegistrationPlayers,
 } from '../../lib/data';
 import { autoShortCode } from '../../lib/crest';
 
@@ -18,6 +19,8 @@ export type RegistrationsData = {
   /** Odobri prijavu atomski: ekipa + igrači + status u jednoj transakciji. */
   approve: (reg: Registration) => Promise<void>;
   reject: (id: string) => Promise<void>;
+  /** Promijeni sastav u prijavi koja jos ceka odobrenje. */
+  saveRoster: (id: string, players: RegistrationPlayer[]) => Promise<void>;
 };
 
 export function useRegistrations(tournamentId: string | null): RegistrationsData {
@@ -91,6 +94,13 @@ export function useRegistrations(tournamentId: string | null): RegistrationsData
     }
   }, []);
 
+  const saveRoster = useCallback(async (id: string, players: RegistrationPlayer[]) => {
+    await updateRegistrationPlayers(id, players);
+    setItems((xs) =>
+      xs.map((r) => (r.id === id ? { ...r, players, player_count: players.length } : r))
+    );
+  }, []);
+
   return {
     loading,
     configured: HAS_DATA,
@@ -100,5 +110,6 @@ export function useRegistrations(tournamentId: string | null): RegistrationsData
     processingId,
     approve,
     reject,
+    saveRoster,
   };
 }

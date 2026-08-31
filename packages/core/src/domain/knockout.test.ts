@@ -8,26 +8,27 @@ import {
 } from './knockout';
 import type { StandingRow } from './standings';
 
-const row = (teamId: string, rank: number): StandingRow =>
-  ({
-    teamId,
-    teamName: teamId.toUpperCase(),
-    rank,
-    played: 3,
-    won: 0,
-    drawn: 0,
-    lost: 0,
-    goalsFor: 0,
-    goalsAgainst: 0,
-    goalDiff: 0,
-    points: 0,
-    qualifies: rank <= 2,
-  }) as StandingRow;
+const row = (teamId: string, rank: number): StandingRow => ({
+  teamId,
+  teamName: teamId.toUpperCase(),
+  rank,
+  played: 3,
+  wins: 0,
+  draws: 0,
+  losses: 0,
+  goalsFor: 0,
+  goalsAgainst: 0,
+  goalDiff: 0,
+  points: 0,
+  qualifies: rank <= 2,
+});
 
 const A = [row('a1', 1), row('a2', 2), row('a3', 3)];
 const B = [row('b1', 1), row('b2', 2), row('b3', 3)];
 
-const m = (p: Partial<KnockoutMatch> & Pick<KnockoutMatch, 'id' | 'stage'>): KnockoutMatch => ({
+type TestRow = KnockoutMatch & { home_placeholder?: string | null; away_placeholder?: string | null };
+
+const m = (p: Partial<TestRow> & Pick<TestRow, 'id' | 'stage'>): TestRow => ({
   gender: 'm',
   sort_order: 0,
   home_team_id: null,

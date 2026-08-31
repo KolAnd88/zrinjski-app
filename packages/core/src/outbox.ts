@@ -36,6 +36,12 @@ export type PendingOp =
       audience: string;
       title: string;
       body: string | null;
+      /**
+       * Utakmica na koju se obavijest odnosi. Slanje ceka da njezin zavrsetak
+       * STVARNO bude u bazi — inace bi gledatelj dobio rezultat prije nego
+       * ga aplikacija moze pokazati.
+       */
+      match_id: string | null;
     };
 
 export type OutboxEntry = { op: PendingOp; tries: number };

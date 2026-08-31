@@ -447,6 +447,79 @@ export async function setTeamContact(teamId: string, email: string | null): Prom
   if (error) throw error;
 }
 
+/**
+ * Napravi utakmice zavrsnice koje nedostaju.
+ *
+ * Odluku donosi BAZA, ne preglednik: dva organizatora mogu istodobno vidjeti
+ * da utakmice nedostaju i obojica ih napraviti. Funkcija se zakljucava po
+ * turniru i spolu, pa drugi poziv zatekne posao gotovim.
+ */
+export async function ensureKnockoutMatches(
+  tournamentId: string,
+  gender: Gender,
+  dayId: string | null
+): Promise<number> {
+  if (DEMO) {
+    // U demou nema istodobnosti; dovoljno je ne duplicirati.
+    const have = (s: string) =>
+      db.matches.filter((m) => m.tournament_id === tournamentId && m.gender === gender && m.stage === s).length;
+    let order = db.matches.reduce((n, m) => Math.max(n, m.sort_order), -1) + 1;
+    let made = 0;
+    const add = (stage: Match['stage'], h: string, a: string) => {
+      db.matches.push({
+        id: genId('m'), tournament_id: tournamentId, day_id: dayId, gender, stage,
+        grp_id: null, home_team_id: null, away_team_id: null,
+        home_placeholder: h, away_placeholder: a, home_score: 0, away_score: 0,
+        scheduled_time: null, status: 'scheduled', sort_order: order++,
+        best_player_id: null, current_minute: null, current_half: null,
+      });
+      made += 1;
+    };
+    const semis = have('semifinal');
+    if (semis < 1) add('semifinal', 'A1', 'B2');
+    if (semis < 2) add('semifinal', 'A2', 'B1');
+    if (have('third_place') < 1) add('third_place', 'Poraženi PF1', 'Poraženi PF2');
+    if (have('final') < 1) add('final', 'Pobjednik PF1', 'Pobjednik PF2');
+    return made;
+  }
+  const { data, error } = await client().rpc('ensure_knockout_matches', {
+    p_tournament_id: tournamentId,
+    p_gender: gender,
+    p_day_id: dayId,
+  });
+  if (error) throw error;
+  return Number(data ?? 0);
+}
+
+/**
+ * Promijeni sastav u prijavi koja jos ceka odobrenje.
+ *
+ * Klubovi u prijavi cesto zaborave igraca ili upisu nekoga tko ne dolazi.
+ * Dosad se to moglo popraviti tek NAKON odobrenja, u ekipi — a odobrenje je
+ * vec napravilo igrace, pa se visak morao brisati zasebno.
+ *
+ *  se drzi u skladu sa sastavom: on je ono sto se vidi na
+ * kartici prijave.
+ */
+export async function updateRegistrationPlayers(
+  id: string,
+  players: RegistrationPlayer[]
+): Promise<void> {
+  if (DEMO) {
+    patch(db.registrations, id, { players, player_count: players.length } as Partial<Registration>);
+    return;
+  }
+  const { data, error } = await client()
+    .from('registration')
+    .update({ players, player_count: players.length })
+    .eq('id', id)
+    .eq('status', 'pending')
+    .select('id');
+  if (error) throw error;
+  // Prazan rezultat znaci da prijava vise nije na cekanju ili da je RLS odbio.
+  if (!data || data.length === 0) throw new Error('Prijava se vise ne moze mijenjati.');
+}
+
 export async function deleteTeam(id: string): Promise<void> {
   if (DEMO) {
     db.teams = db.teams.filter((t) => t.id !== id);

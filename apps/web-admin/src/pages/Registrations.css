@@ -234,3 +234,33 @@
     flex: 1 1 140px;
   }
 }
+
+/* Uređivanje sastava u prijavi koja čeka odobrenje. */
+.regcard__rosterEmpty {
+  font-size: 12px;
+  color: var(--mut);
+  margin-bottom: var(--sp-sm);
+}
+.regcard__del {
+  margin-left: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--mut);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.regcard__del:hover {
+  color: var(--red);
+}
+.regcard__add {
+  display: flex;
+  gap: var(--sp-sm);
+  align-items: center;
+  margin-top: var(--sp-sm);
+}
+.regcard__num {
+  width: 64px;
+  flex: none;
+}

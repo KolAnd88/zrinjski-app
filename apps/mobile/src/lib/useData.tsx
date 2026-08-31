@@ -324,6 +324,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             audience: 'all',
             title: `${home.name} ${m.home_score}:${m.away_score} ${away.name}`,
             body: null,
+            match_id: id,
           });
         }
       },

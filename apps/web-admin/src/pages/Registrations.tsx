@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Registration } from '@zrinjski/core';
+import type { Registration, RegistrationPlayer } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import { Button, Card, Crest } from '../components/ui';
 import { useTournamentData } from '../features/tournament/useTournamentData';
@@ -7,17 +7,135 @@ import { useRegistrations } from '../features/registrations/useRegistrations';
 import { autoShortCode, crestColorFor } from '../lib/crest';
 import './Registrations.css';
 
+/**
+ * Sastav u prijavi koja čeka odobrenje — uređiv.
+ *
+ * Klub u prijavi često zaboravi igrača ili upiše nekoga tko ne dolazi. Dosad
+ * se to moglo popraviti tek nakon odobrenja, a odobrenje je već napravilo
+ * igrače, pa se višak morao brisati zasebno u Ekipe.
+ *
+ * Sprema se tek na gumb, kao i drugdje u adminu.
+ */
+function RegRoster({
+  reg,
+  onSave,
+}: {
+  reg: Registration;
+  onSave: (players: RegistrationPlayer[]) => Promise<void>;
+}) {
+  const { t } = useT();
+  const base = reg.players ?? [];
+  const [draft, setDraft] = useState<RegistrationPlayer[]>(base);
+  const [name, setName] = useState('');
+  const [num, setNum] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const baseKey = JSON.stringify(base);
+  useEffect(() => {
+    setDraft(JSON.parse(baseKey) as RegistrationPlayer[]);
+  }, [baseKey]);
+
+  const dirty = JSON.stringify(draft) !== baseKey;
+
+  function add() {
+    const n = name.trim();
+    if (!n) return;
+    const parsed = Number(num);
+    setDraft((d) => [...d, { name: n, number: Number.isFinite(parsed) && num !== '' ? parsed : null }]);
+    setName('');
+    setNum('');
+  }
+
+  async function save() {
+    if (!dirty || saving) return;
+    setSaving(true);
+    setErr(null);
+    try {
+      await onSave(draft);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="regcard__roster">
+      <div className="regcard__roster-head">
+        {t('reg.roster')} · {draft.length}
+      </div>
+
+      {draft.length === 0 ? (
+        <div className="regcard__rosterEmpty">{t('reg.rosterEmpty')}</div>
+      ) : (
+        <div className="regcard__roster-list">
+          {draft.map((p, i) => (
+            <span key={`${p.name}-${i}`} className="regcard__player">
+              {p.number != null && <b>{p.number}</b>} {p.name}
+              <button
+                type="button"
+                className="regcard__del"
+                title={t('reg.removePlayer')}
+                aria-label={t('reg.removePlayer')}
+                onClick={() => setDraft((d) => d.filter((_, j) => j !== i))}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="regcard__add">
+        <input
+          className="input regcard__num"
+          value={num}
+          placeholder={t('reg.numShort')}
+          inputMode="numeric"
+          onChange={(e) => setNum(e.target.value)}
+        />
+        <input
+          className="input"
+          value={name}
+          placeholder={t('reg.playerName')}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && add()}
+        />
+        <Button variant="ghost" disabled={!name.trim()} onClick={add}>
+          {t('reg.addPlayer')}
+        </Button>
+      </div>
+
+      {dirty && (
+        <div className="savebar">
+          <Button variant="primary" disabled={saving} onClick={() => void save()}>
+            {saving ? t('form.saving') : t('form.save')}
+          </Button>
+          <Button variant="ghost" disabled={saving} onClick={() => setDraft(JSON.parse(baseKey))}>
+            {t('form.cancel')}
+          </Button>
+          <span className="savebar__dirty">{t('form.unsaved')}</span>
+        </div>
+      )}
+      {err && <div className="savebar__err">{err}</div>}
+    </div>
+  );
+}
+
 function PendingCard({
   reg,
   index,
   onApprove,
   onReject,
+  onSaveRoster,
   busy,
 }: {
   reg: Registration;
   index: number;
   onApprove: () => void;
   onReject: () => void;
+  onSaveRoster: (players: RegistrationPlayer[]) => Promise<void>;
   busy: boolean;
 }) {
   const { t } = useT();
@@ -44,21 +162,10 @@ function PendingCard({
         <span className="regcard__email">{reg.rep_email}</span>
       </div>
 
-      {/* Prijavljeni sastav — kreira se kao igrači kad se prijava odobri. */}
-      {(reg.players?.length ?? 0) > 0 && (
-        <div className="regcard__roster">
-          <div className="regcard__roster-head">
-            {t('reg.roster')} · {reg.players.length}
-          </div>
-          <div className="regcard__roster-list">
-            {reg.players.map((p, i) => (
-              <span key={i} className="regcard__player">
-                {p.number != null && <b>{p.number}</b>} {p.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Prijavljeni sastav — kreira se kao igrači kad se prijava odobri, pa
+          ga je bolje popraviti PRIJE odobrenja nego brisati višak poslije. */}
+      <RegRoster reg={reg} onSave={onSaveRoster} />
+
       <div className="regcard__actions">
         <button className="btn-approve" onClick={onApprove} disabled={busy}>
           {busy ? t('reg.processing') : t('reg.approve')}
@@ -200,6 +307,7 @@ export function Registrations() {
               reg={r}
               index={i}
               onApprove={() => void data.approve(r)}
+              onSaveRoster={(players) => data.saveRoster(r.id, players)}
               busy={data.processingId === r.id}
               onReject={() => {
                 if (confirm(t('reg.rejectConfirm'))) void data.reject(r.id);

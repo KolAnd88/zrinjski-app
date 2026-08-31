@@ -5,7 +5,6 @@ import {
   missingKnockoutMatches,
   planKnockout,
   type KnockoutBlocker,
-  type KnockoutSeed,
 } from '@zrinjski/core';
 import { useT } from '../../i18n/I18nProvider';
 import { Button, Crest } from '../../components/ui';
@@ -38,8 +37,8 @@ export function KnockoutPanel({
   onApply: (
     changes: { id: string; home_team_id: string | null; away_team_id: string | null }[]
   ) => Promise<void>;
-  /** Napravi utakmice zavrsnice kojih jos nema. */
-  onCreate: (seeds: KnockoutSeed[]) => Promise<void>;
+  /** Napravi utakmice zavrsnice kojih jos nema (odluku donosi baza). */
+  onCreate: () => Promise<void>;
 }) {
   const { t } = useT();
   const [busy, setBusy] = useState(false);
@@ -133,7 +132,7 @@ export function KnockoutPanel({
     setBusy(true);
     setErr(null);
     try {
-      await onCreate(missing);
+      await onCreate();
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
     } finally {
