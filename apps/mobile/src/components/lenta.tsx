@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
-import { LENTA, LENTA_RN } from '@zrinjski/ui-tokens';
+import { StyleSheet, View } from 'react-native';
+import { LENTA, LENTA_RN, lentaAngle, lentaLength } from '@zrinjski/ui-tokens';
+import { useAppFrame } from './WebFrame';
 
 /**
  * Dijagonalna lenta — isti znak kao na dresu Zrinjskog.
@@ -25,13 +26,21 @@ export function Lenta({
   /** Zlatna nit — samo finale i zlatni pokrovitelj. */
   gold?: boolean;
 }) {
-  const { width, height } = useWindowDimensions();
-  const debljina = thickness ?? Math.round(Math.min(width, height) * LENTA.band);
+  // Okvir, ne prozor: u web prikazu aplikacija stoji u stupcu širine telefona
+  // usred širokog ekrana (vidi WebFrame).
+  const { w: kadarW, h: kadarH } = useAppFrame();
+  const debljina = thickness ?? Math.round(Math.min(kadarW, kadarH) * LENTA.band);
   // Nit i razmak drže isti odnos prema lenti kao u SVG inačici.
   const nit = Math.max(2, Math.round((debljina * LENTA.hairline) / LENTA.band));
   const razmak = Math.round((debljina * LENTA.gap) / LENTA.band);
 
   const vodoravno = { start: { x: 0, y: 0.5 }, end: { x: 1, y: 0.5 } } as const;
+
+  // Kut i duljina računaju se iz oblika okvira: na uspravnom telefonu lenta je
+  // strma i mora biti osjetno duža od širine ekrana da joj krajevi ispadnu
+  // izvan kadra. Postotna širina to ne bi pokrila.
+  const kut = lentaAngle(kadarW, kadarH);
+  const duljina = Math.round(lentaLength(kadarW, kadarH, kut));
 
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.wrap]}>
@@ -42,6 +51,9 @@ export function Lenta({
             top: `${cy * 100}%`,
             marginTop: -(debljina / 2 + razmak + nit),
             opacity: strength,
+            width: duljina,
+            left: Math.round((kadarW - duljina) / 2),
+            transform: [{ rotate: `${kut}deg` }],
           },
         ]}
       >
@@ -66,11 +78,6 @@ export function Lenta({
 const styles = StyleSheet.create({
   // Kadar reže lentu, kao što šav reže lentu na dresu.
   wrap: { overflow: 'hidden' },
-  rot: {
-    position: 'absolute',
-    // Pod 30° lenta mora biti šira od ekrana da joj krajevi padnu izvan kadra.
-    left: '-60%',
-    right: '-60%',
-    transform: [{ rotate: `${LENTA.angleDeg}deg` }],
-  },
+  // Širina, položaj i kut dolaze iz izmjerenog okvira (vidi gore).
+  rot: { position: 'absolute' },
 });

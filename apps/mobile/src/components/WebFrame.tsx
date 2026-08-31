@@ -1,5 +1,24 @@
+import { createContext, useContext, useMemo } from 'react';
 import { Platform, StyleSheet, useWindowDimensions, View, type ViewStyle } from 'react-native';
 import { C } from '../theme';
+
+/**
+ * Stvarni okvir u kojem aplikacija živi.
+ *
+ * Na uređaju je to prozor, ali u web prikazu aplikacija stoji u stupcu širine
+ * telefona usred širokog ekrana — a `useWindowDimensions` ondje i dalje vraća
+ * cijeli ekran. Sve što se ravna po obliku kadra (npr. lenta) mora znati
+ * širinu STUPCA, inače na laptopu ispadne dvostruko predebelo i pod krivim
+ * kutom. `onLayout` se za to pokazao nepouzdanim (na webu ne okida), pa okvir
+ * javlja onaj tko ga jedini pouzdano zna — WebFrame.
+ */
+const FrameCtx = createContext<{ w: number; h: number } | null>(null);
+
+export function useAppFrame(): { w: number; h: number } {
+  const { width, height } = useWindowDimensions();
+  const okvir = useContext(FrameCtx);
+  return okvir ?? { w: width, h: height };
+}
 
 /** Iznad ove širine prozor sigurno nije telefon. */
 const PHONE_MAX = 560;
@@ -17,13 +36,16 @@ const COLUMN = 430;
  * djecu takva kakva jesu, bez ijednog dodatnog pogleda u stablu.
  */
 export function WebFrame({ children }: { children: React.ReactNode }) {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
+  const okvir = useMemo(() => ({ w: COLUMN, h: height }), [height]);
 
   if (Platform.OS !== 'web' || width <= PHONE_MAX) return <>{children}</>;
 
   return (
     <View style={styles.backdrop}>
-      <View style={[styles.column, shadow]}>{children}</View>
+      <View style={[styles.column, shadow]}>
+        <FrameCtx.Provider value={okvir}>{children}</FrameCtx.Provider>
+      </View>
     </View>
   );
 }

@@ -11,8 +11,14 @@
 import { colors } from './tokens';
 
 export const LENTA = {
-  /** Kut s dresa. Negativan = uzlazno slijeva nadesno. */
-  angleDeg: -30,
+  /**
+   * Kut ovisi o obliku kadra, jer isti broj stupnjeva ne izgleda isto na
+   * položenoj slici i na uspravnom zaslonu telefona. Lenta na dresu gleda se
+   * na uspravnom trupu; da bi na oboje IZGLEDALA isto, broj mora biti različit.
+   */
+  angle: { wide: -30, tall: -62 },
+  /** Iznad ovog omjera visine i širine kadar se smatra uspravnim. */
+  tallRatio: 1.6,
   /**
    * Debljina glavne lente, udio KRAĆE stranice kadra. Kraće, jer bi na
    * uspravnom plakatu udio visine dao lentu duplo predebelu nego na slici
@@ -28,10 +34,25 @@ export const LENTA = {
    * `soft` ondje gdje lenta stoji iza više sadržaja; `quiet` iza gustog
    * teksta, gdje smije samo naznačiti boju.
    */
-  strength: { full: 1, soft: 0.82, quiet: 0.3 },
+  strength: { full: 1, soft: 0.82, quiet: 0.45 },
 } as const;
 
 export type LentaStrength = keyof typeof LENTA.strength;
+
+/**
+ * Kut za zadani kadar. Telefon (375×812) je uspravan pa dobiva strmi zamah;
+ * slika rezultata, TV i plakat su položeni ili tek blago uspravni pa dobivaju
+ * kut s dresa.
+ */
+export function lentaAngle(w: number, h: number): number {
+  return h / w >= LENTA.tallRatio ? LENTA.angle.tall : LENTA.angle.wide;
+}
+
+/** Duljina koju lenta mora imati da joj krajevi padnu izvan kadra. */
+export function lentaLength(w: number, h: number, angleDeg: number): number {
+  const rad = (Math.abs(angleDeg) * Math.PI) / 180;
+  return w * Math.cos(rad) + h * Math.sin(rad) + 80;
+}
 
 export type LentaSvgOpts = {
   w: number;
@@ -55,9 +76,8 @@ export type LentaSvgOpts = {
 export function lentaSvg(o: LentaSvgOpts): { defs: string; body: string } {
   const { w, h, cy = 0.5, strength = LENTA.strength.full, gold = false } = o;
   const id = o.id ?? 'lenta';
-  const rad = (Math.abs(LENTA.angleDeg) * Math.PI) / 180;
-  // Dijagonalna traka mora prekriti kadar u oba smjera, plus rezerva.
-  const len = w * Math.cos(rad) + h * Math.sin(rad) + 80;
+  const kut = lentaAngle(w, h);
+  const len = lentaLength(w, h, kut);
   const x = w / 2 - len / 2;
 
   const base = Math.min(w, h);
@@ -83,7 +103,7 @@ export function lentaSvg(o: LentaSvgOpts): { defs: string; body: string } {
 
   // Rotira se oko SREDINE LENTE, ne oko sredine kadra: inače bi lenta
   // postavljena pri vrhu (plakat) pod kutom otklizala u stranu i dolje.
-  const body = `<g transform="rotate(${LENTA.angleDeg} ${w / 2} ${mid})" opacity="${strength}">
+  const body = `<g transform="rotate(${kut} ${w / 2} ${mid})" opacity="${strength}">
     <rect x="${x}" y="${top - gap - hair}" width="${len}" height="${hair}" fill="url(#${id}-n)"/>
     <rect x="${x}" y="${top}" width="${len}" height="${band}" fill="url(#${id}-b)"/>
   </g>`;
