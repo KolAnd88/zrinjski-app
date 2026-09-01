@@ -8,18 +8,18 @@
 // Vraća uvijek HTTP 200 s { ok: boolean, error?: string } radi jednostavne obrade u klijentu.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-const cors = {
+// Uzvraća točno ona zaglavlja koja je preglednik tražio. Zakucan popis je na
+// `send-push` tiho blokirao svaki POST jer klijent šalje i `x-region` — ista
+// zamka vrijedi i ovdje, pa se zatvara na isti način.
+const corsFor = (req: Request): Record<string, string> => ({
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    req.headers.get('Access-Control-Request-Headers') ??
+    'authorization, x-client-info, apikey, content-type, x-region',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+  'Access-Control-Max-Age': '86400',
+});
 
-function reply(body: Record<string, unknown>) {
-  return new Response(JSON.stringify(body), {
-    status: 200,
-    headers: { ...cors, 'Content-Type': 'application/json' },
-  });
-}
 
 const VALID_ROLES = ['admin', 'delegate', 'rep'] as const;
 
@@ -28,6 +28,13 @@ function validRole(value: unknown): value is (typeof VALID_ROLES)[number] {
 }
 
 Deno.serve(async (req) => {
+  const cors = corsFor(req);
+  const reply = (body: Record<string, unknown>) =>
+    new Response(JSON.stringify(body), {
+      status: 200,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
+
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
 
   const url = Deno.env.get('SUPABASE_URL')!;

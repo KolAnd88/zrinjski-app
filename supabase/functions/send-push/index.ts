@@ -10,16 +10,85 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
+const EXPO_RECEIPT_URL = 'https://exp.host/--/api/v2/push/getReceipts';
 // Expo prima najviše 100 poruka po zahtjevu.
 const CHUNK = 100;
+// Potvrda isporuke nije spremna odmah; starije od ovoga sigurno jest.
+const RECEIPT_MIN_AGE_MS = 90_000;
 
-const cors = {
+/**
+ * CORS zaglavlja za preflight.
+ *
+ * Ranije je popis dopuštenih zaglavlja bio zakucan na četiri imena. Klijent je
+ * uz njih slao i `x-region`, pa je preglednik odbijao preflight i POST NIKAD
+ * nije krenuo — u Supabaseu se vidio samo `OPTIONS 200`, bez ijednog POST-a.
+ * Obavijest se nije slala, a nigdje nije bilo greške jer zahtjev nije ni izašao
+ * iz preglednika.
+ *
+ * Zato se sada uzvraća točno ono što je preglednik tražio: novo zaglavlje u
+ * nekoj budućoj verziji klijenta ne može ponovno srušiti slanje.
+ */
+const corsFor = (req: Request): Record<string, string> => ({
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+  'Access-Control-Allow-Headers':
+    req.headers.get('Access-Control-Request-Headers') ??
+    'authorization, x-client-info, apikey, content-type, x-region',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
+});
 
 /** Expove greške na koje ponavljanje ne pomaže. */
 const PERMANENT = new Set(['MessageTooBig', 'InvalidCredentials', 'DeveloperError']);
+
+/**
+ * Obradi potvrde isporuke za ranije poslane obavijesti.
+ *
+ * Expovo "ok" pri slanju znači samo da je poruku PRIMIO. Stvarni ishod stiže
+ * tek u potvrdi, pa se bez ovoga greška poput isteklog FCM ključa nikad ne bi
+ * vidjela — slanje bi izgledalo uspješno, a obavijest ne bi stizala.
+ *
+ * Radi se pri sljedećem slanju, kad su karte dovoljno stare. Nikad ne baca:
+ * ovo je pospremanje, a ne posao zbog kojeg obavijest smije pasti.
+ */
+async function obradiPotvrde(admin: ReturnType<typeof createClient>): Promise<void> {
+  try {
+    const prag = new Date(Date.now() - RECEIPT_MIN_AGE_MS).toISOString();
+    const { data: karte } = await admin
+      .from('push_ticket')
+      .select('id, token')
+      .is('checked_at', null)
+      .lt('created_at', prag)
+      .limit(300);
+    if (!karte || karte.length === 0) return;
+
+    const res = await fetch(EXPO_RECEIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ ids: karte.map((k) => k.id as string) }),
+    });
+    if (!res.ok) return; // Pokušat ćemo opet sljedeći put.
+    const out = await res.json().catch(() => null);
+    const potvrde = out?.data ?? {};
+
+    const sad = new Date().toISOString();
+    const mrtvi: string[] = [];
+    for (const k of karte) {
+      const p = potvrde[k.id as string];
+      if (!p) continue; // Još nije spremna.
+      const greska = p.details?.error ?? null;
+      if (greska === 'DeviceNotRegistered') mrtvi.push(k.token as string);
+      await admin
+        .from('push_ticket')
+        .update({ checked_at: sad, status: p.status ?? null, error: greska })
+        .eq('id', k.id as string);
+    }
+    if (mrtvi.length > 0) {
+      await admin.from('device').delete().in('expo_push_token', mrtvi);
+    }
+  } catch {
+    // Pospremanje nikad ne smije oboriti slanje.
+  }
+}
 
 /** Vrsta obavijesti → ključ u device.prefs. Uređaj koji ju je isključio se preskače. */
 const PREF_KEY: Record<string, string> = {
@@ -31,6 +100,7 @@ const PREF_KEY: Record<string, string> = {
 };
 
 Deno.serve(async (req) => {
+  const cors = corsFor(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
 
   const json = (body: unknown, status = 200) =>
@@ -93,7 +163,12 @@ Deno.serve(async (req) => {
 
   if (tokens.length === 0) return json({ sent: 0, invalidated: 0 });
 
+  // Potvrde za PRIJAŠNJA slanja — sad su dovoljno stare da ih Expo ima.
+  await obradiPotvrde(admin);
+
   // ── Pošalji Expou u komadima ──────────────────────────────────────────────
+  /** Karte za kasniju provjeru isporuke. */
+  const karte: { id: string; token: string }[] = [];
   const dead: string[] = [];
   let sent = 0;
   /** Greske koje ponavljanje NE bi rijesilo — samo se broje. */
@@ -139,9 +214,11 @@ Deno.serve(async (req) => {
     }
     const tickets = out.data ?? [];
 
-    tickets.forEach((ticket: { status?: string; details?: { error?: string } }, n: number) => {
+    tickets.forEach((ticket: { id?: string; status?: string; details?: { error?: string } }, n: number) => {
       if (ticket?.status === 'ok') {
         sent++;
+        // Expo je poruku PRIMIO. Je li i isporučena, zna se tek iz potvrde.
+        if (ticket.id) karte.push({ id: ticket.id, token: slice[n]! });
         return;
       }
       const err = ticket?.details?.error;
@@ -160,6 +237,10 @@ Deno.serve(async (req) => {
 
   if (dead.length > 0) {
     await admin.from('device').delete().in('expo_push_token', dead);
+  }
+  if (karte.length > 0) {
+    // Neuspjeh upisa ne smije oboriti slanje — obavijest je već otišla.
+    await admin.from('push_ticket').upsert(karte, { onConflict: 'id' });
   }
 
   // Nedostavljeno zbog PRIVREMENE greške → pozivatelj mora znati da nije gotovo.

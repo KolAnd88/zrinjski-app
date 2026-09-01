@@ -4,6 +4,7 @@ import type { ReminderPrefs } from '@zrinjski/core';
 import { Button, Card } from '../components/ui';
 import { useTournamentData } from '../features/tournament/useTournamentData';
 import { useNotices } from '../features/notices/useNotices';
+import { SessionExpiredError } from '../lib/data';
 import './Notices.css';
 
 type AudienceKind = 'all' | 'team' | 'followers';
@@ -57,7 +58,13 @@ export function Notices() {
       setBody('');
     } catch (e) {
       // Obavijest je već u povijesti — pao je samo push. Reci točno to.
-      setSendErr(e instanceof Error ? e.message : String(e));
+      setSendErr(
+        e instanceof SessionExpiredError
+          ? t('notices.sessionExpired')
+          : e instanceof Error
+            ? e.message
+            : String(e)
+      );
     } finally {
       setBusy(false);
     }
@@ -118,11 +125,17 @@ export function Notices() {
             {t('notices.sendFailed', { e: sendErr })}
           </div>
         )}
-        {!sendErr && data.sentCount != null && (
-          <div className="banner banner--ok" style={{ marginTop: 'var(--sp-md)' }}>
-            {data.sentCount > 0
-              ? t('notices.delivered', { n: data.sentCount })
-              : t('notices.deliveredNone')}
+        {/* Trajno odbijanje je prije izgledalo kao mirna nula — sad se imenuje. */}
+        {!sendErr && data.sentResult != null && (
+          <div
+            className={`banner ${data.sentResult.permanent > 0 ? 'banner--error' : 'banner--ok'}`}
+            style={{ marginTop: 'var(--sp-md)' }}
+          >
+            {data.sentResult.permanent > 0
+              ? t('notices.deliveredRejected', { n: data.sentResult.permanent })
+              : data.sentResult.sent > 0
+                ? t('notices.delivered', { n: data.sentResult.sent })
+                : t('notices.deliveredNone')}
           </div>
         )}
         <p className="notices__pushnote">{t('notices.pushNote')}</p>

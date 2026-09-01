@@ -460,6 +460,9 @@ export const strings = {
     'notices.delivered': 'Isporučeno uređaja: {n}',
     'notices.deliveredNone': 'Nijedan uređaj nema uključene obavijesti ove vrste.',
     'notices.sendFailed': 'Obavijest je zabilježena, ali slanje nije uspjelo: {e}',
+    'notices.deliveredRejected':
+      'Obavijest je odbijena za uređaja: {n}. Provjeri FCM ključ na expo.dev — ponavljanje neće pomoći.',
+    'notices.sessionExpired': 'Prijava je istekla. Osvježi stranicu (F5) i pokušaj ponovno.',
     'notices.autoTitle': 'Automatski podsjetnici',
     'notices.autoHint': 'app ih šalje sama',
     'notices.auto.dayBefore': 'Dan prije, u 18:00',
@@ -1055,6 +1058,9 @@ export const strings = {
     'notices.delivered': 'Delivered to {n} device(s)',
     'notices.deliveredNone': 'No device has this notification type enabled.',
     'notices.sendFailed': 'Notice was recorded, but sending failed: {e}',
+    'notices.deliveredRejected':
+      'Rejected for {n} device(s). Check the FCM key on expo.dev — retrying will not help.',
+    'notices.sessionExpired': 'Your session expired. Refresh the page (F5) and try again.',
     'notices.autoTitle': 'Automatic reminders',
     'notices.autoHint': 'the app sends these automatically',
     'notices.auto.dayBefore': 'Day before, at 18:00',

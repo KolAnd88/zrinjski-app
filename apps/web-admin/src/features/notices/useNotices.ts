@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { NotificationLog, Team } from '@zrinjski/core';
 import { HAS_DATA } from '../../lib/supabase';
-import { fetchAllTeams, fetchNotifications, insertNotification, sendPush } from '../../lib/data';
+import { fetchAllTeams, fetchNotifications, insertNotification, sendPush, type PushResult } from '../../lib/data';
 
 export type NoticesData = {
   loading: boolean;
@@ -10,7 +10,7 @@ export type NoticesData = {
   notifications: NotificationLog[];
   teams: Team[];
   /** Broj uređaja kojima je zadnja obavijest stvarno isporučena; null prije slanja. */
-  sentCount: number | null;
+  sentResult: PushResult | null;
   send: (tournamentId: string, audience: string, title: string, body: string) => Promise<void>;
 };
 
@@ -19,7 +19,7 @@ export function useNotices(tournamentId: string | null): NoticesData {
   const [error, setError] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<NotificationLog[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
-  const [sentCount, setSentCount] = useState<number | null>(null);
+  const [sentResult, setSentResult] = useState<PushResult | null>(null);
 
   const reload = useCallback(async () => {
     if (!tournamentId) {
@@ -58,7 +58,7 @@ export function useNotices(tournamentId: string | null): NoticesData {
       setNotifications((xs) => [created, ...xs]);
       // Log je zapisan; sad stvarno slanje. Ako padne, obavijest ostaje u
       // povijesti i korisnik vidi grešku — ne gubimo trag da je pokušano.
-      setSentCount(await sendPush({ audience, title: title.trim(), body: body.trim() || null, type: 'custom' }));
+      setSentResult(await sendPush({ audience, title: title.trim(), body: body.trim() || null, type: 'custom' }));
     },
     []
   );
@@ -69,7 +69,7 @@ export function useNotices(tournamentId: string | null): NoticesData {
     error,
     notifications,
     teams,
-    sentCount,
+    sentResult,
     send,
   };
 }

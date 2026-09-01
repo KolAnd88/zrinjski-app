@@ -1066,24 +1066,58 @@ export async function fetchNotifications(tournamentId: string): Promise<Notifica
   return data ?? [];
 }
 
+/** Ishod slanja — ne samo broj, nego i ono što je pošlo po zlu. */
+export type PushResult = {
+  /** Expo je poruku primio za toliko uređaja. */
+  sent: number;
+  /** Odbijeno trajno (npr. neispravan FCM ključ). Ponavljanje ne pomaže. */
+  permanent: number;
+  /** Uklonjeni mrtvi tokeni (odinstalirana aplikacija). */
+  invalidated: number;
+};
+
+/** Sesija je istekla — poziv nema smisla ni pokušavati. */
+export class SessionExpiredError extends Error {
+  constructor() {
+    super('session_expired');
+    this.name = 'SessionExpiredError';
+  }
+}
+
 /**
- * Pošalji push obavijest uređajima. Vraća broj isporučenih.
+ * Pošalji push obavijest uređajima.
+ *
  * Zapis u notification_log je zaseban korak — obavijest ostaje zabilježena i
  * kad slanje padne (npr. nema uređaja ili je Expo nedostupan).
+ *
+ * Vraća cijeli ishod, ne samo `sent`. Ranije se čitao samo broj poslanih, pa je
+ * trajna greška (Expo vrati `sent: 0, permanent: 1` sa statusom 200) izgledala
+ * kao mirna nula bez ijedne riječi objašnjenja.
  */
 export async function sendPush(input: {
   audience: string;
   title: string;
   body?: string | null;
   type: string;
-}): Promise<number> {
-  if (DEMO) return 0;
+}): Promise<PushResult> {
+  if (DEMO) return { sent: 0, permanent: 0, invalidated: 0 };
+
+  // Kartica admina zna stajati otvorena satima. S istekloj sesijom poziv padne
+  // još u pregledniku i do poslužitelja nikad ne dođe — zato se to provjerava
+  // ovdje i kaže naglas, umjesto da izgleda kao da se ništa nije dogodilo.
+  const { data: sess } = await client().auth.getSession();
+  if (!sess.session) throw new SessionExpiredError();
+
   const { data, error } = await client().functions.invoke('send-push', {
     body: { audience: input.audience, title: input.title, body: input.body ?? undefined, type: input.type },
   });
   if (error) throw new Error(error.message);
   if (data && data.error) throw new Error(data.error);
-  return Number(data?.sent ?? 0);
+  return {
+    sent: Number(data?.sent ?? 0),
+    permanent: Number(data?.permanent ?? 0),
+    invalidated: Number(data?.invalidated ?? 0),
+  };
 }
 
 /**
