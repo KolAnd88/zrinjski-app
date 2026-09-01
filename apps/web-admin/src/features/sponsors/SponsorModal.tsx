@@ -122,7 +122,9 @@ export function SponsorModal({
           <ImageEditor
             file={editing}
             mode="fit"
-            size={800}
+            // 900 jer je okvir 3:2 — izlaz je onda točno 900×600, bez
+            // zaokruživanja koje bi sredinu pomaknulo za djelić piksela.
+            size={900}
             onCancel={() => setEditing(null)}
             onDone={(out) => {
               setEditing(null);
