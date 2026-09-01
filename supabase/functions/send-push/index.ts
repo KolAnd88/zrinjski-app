@@ -40,56 +40,6 @@ const corsFor = (req: Request): Record<string, string> => ({
 /** Expove greške na koje ponavljanje ne pomaže. */
 const PERMANENT = new Set(['MessageTooBig', 'InvalidCredentials', 'DeveloperError']);
 
-/**
- * Obradi potvrde isporuke za ranije poslane obavijesti.
- *
- * Expovo "ok" pri slanju znači samo da je poruku PRIMIO. Stvarni ishod stiže
- * tek u potvrdi, pa se bez ovoga greška poput isteklog FCM ključa nikad ne bi
- * vidjela — slanje bi izgledalo uspješno, a obavijest ne bi stizala.
- *
- * Radi se pri sljedećem slanju, kad su karte dovoljno stare. Nikad ne baca:
- * ovo je pospremanje, a ne posao zbog kojeg obavijest smije pasti.
- */
-async function obradiPotvrde(admin: ReturnType<typeof createClient>): Promise<void> {
-  try {
-    const prag = new Date(Date.now() - RECEIPT_MIN_AGE_MS).toISOString();
-    const { data: karte } = await admin
-      .from('push_ticket')
-      .select('id, token')
-      .is('checked_at', null)
-      .lt('created_at', prag)
-      .limit(300);
-    if (!karte || karte.length === 0) return;
-
-    const res = await fetch(EXPO_RECEIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ ids: karte.map((k) => k.id as string) }),
-    });
-    if (!res.ok) return; // Pokušat ćemo opet sljedeći put.
-    const out = await res.json().catch(() => null);
-    const potvrde = out?.data ?? {};
-
-    const sad = new Date().toISOString();
-    const mrtvi: string[] = [];
-    for (const k of karte) {
-      const p = potvrde[k.id as string];
-      if (!p) continue; // Još nije spremna.
-      const greska = p.details?.error ?? null;
-      if (greska === 'DeviceNotRegistered') mrtvi.push(k.token as string);
-      await admin
-        .from('push_ticket')
-        .update({ checked_at: sad, status: p.status ?? null, error: greska })
-        .eq('id', k.id as string);
-    }
-    if (mrtvi.length > 0) {
-      await admin.from('device').delete().in('expo_push_token', mrtvi);
-    }
-  } catch {
-    // Pospremanje nikad ne smije oboriti slanje.
-  }
-}
-
 /** Vrsta obavijesti → ključ u device.prefs. Uređaj koji ju je isključio se preskače. */
 const PREF_KEY: Record<string, string> = {
   team_playing_soon: 'team_playing_soon',
@@ -163,8 +113,57 @@ Deno.serve(async (req) => {
 
   if (tokens.length === 0) return json({ sent: 0, invalidated: 0 });
 
+  /**
+   * Obradi potvrde isporuke za RANIJA slanja.
+   *
+   * Expovo "ok" pri slanju znači samo da je poruku primio. Stvarni ishod stiže
+   * tek u potvrdi, pa se bez ovoga greška poput isteklog FCM ključa nikad ne bi
+   * vidjela — slanje bi izgledalo uspješno, a obavijest ne bi stizala.
+   *
+   * Nikad ne baca: ovo je pospremanje, a ne posao zbog kojeg obavijest smije pasti.
+   */
+  async function obradiPotvrde() {
+    try {
+      const prag = new Date(Date.now() - RECEIPT_MIN_AGE_MS).toISOString();
+      const { data: karte } = await admin
+        .from('push_ticket')
+        .select('id, token')
+        .is('checked_at', null)
+        .lt('created_at', prag)
+        .limit(300);
+      if (!karte || karte.length === 0) return;
+
+      const res = await fetch(EXPO_RECEIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ ids: karte.map((k) => k.id) }),
+      });
+      if (!res.ok) return; // Pokušat ćemo opet sljedeći put.
+      const out = await res.json().catch(() => null);
+      const potvrde = out?.data ?? {};
+
+      const sad = new Date().toISOString();
+      const mrtvi: string[] = [];
+      for (const k of karte) {
+        const p = potvrde[k.id];
+        if (!p) continue; // Još nije spremna.
+        const greska = p.details?.error ?? null;
+        if (greska === 'DeviceNotRegistered') mrtvi.push(k.token);
+        await admin
+          .from('push_ticket')
+          .update({ checked_at: sad, status: p.status ?? null, error: greska })
+          .eq('id', k.id);
+      }
+      if (mrtvi.length > 0) {
+        await admin.from('device').delete().in('expo_push_token', mrtvi);
+      }
+    } catch {
+      // Pospremanje nikad ne smije oboriti slanje.
+    }
+  }
+
   // Potvrde za PRIJAŠNJA slanja — sad su dovoljno stare da ih Expo ima.
-  await obradiPotvrde(admin);
+  await obradiPotvrde();
 
   // ── Pošalji Expou u komadima ──────────────────────────────────────────────
   /** Karte za kasniju provjeru isporuke. */
