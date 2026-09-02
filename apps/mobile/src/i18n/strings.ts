@@ -11,6 +11,15 @@ export const strings = {
     'nav.standings': 'Poredak',
     'nav.stats': 'Statistika',
     'nav.gallery': 'Galerija',
+    'nav.team': 'Ekipa',
+    'team.tabTitle': 'Moja ekipa',
+    'team.forClubs': 'Za predstavnike klubova',
+    'team.intro':
+      'Ovdje predstavnik kluba prijavljuje ekipu, unosi i mijenja sastav te glasa za najboljeg igrača turnira.',
+    'team.signIn': 'Prijava predstavnika',
+    'team.signUp': 'Otvori račun',
+    'team.spectatorNote':
+      'Ako si gledatelj, ovo ti ne treba — rezultati, raspored i poredak vide se bez prijave.',
     'nav.info': 'Info',
 
     // Općenito
@@ -320,6 +329,15 @@ export const strings = {
     'nav.standings': 'Standings',
     'nav.stats': 'Stats',
     'nav.gallery': 'Gallery',
+    'nav.team': 'Team',
+    'team.tabTitle': 'My team',
+    'team.forClubs': 'For club representatives',
+    'team.intro':
+      'This is where a club representative registers the team, edits the squad and votes for the player of the tournament.',
+    'team.signIn': 'Representative sign in',
+    'team.signUp': 'Create an account',
+    'team.spectatorNote':
+      'If you are here to watch, you do not need this — results, schedule and standings are open to everyone.',
     'nav.info': 'Info',
 
     'common.live': 'LIVE',

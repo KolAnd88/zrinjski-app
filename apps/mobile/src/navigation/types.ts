@@ -28,5 +28,8 @@ export type TabParamList = {
   Standings: undefined;
   Stats: undefined;
   Gallery: undefined;
+  /** Kartica predstavnika kluba. Ime se razlikuje od stack rute `Team`
+      (detalj ekipe), da navigacija ne bude dvoznacna. */
+  Klub: undefined;
   Info: undefined;
 };

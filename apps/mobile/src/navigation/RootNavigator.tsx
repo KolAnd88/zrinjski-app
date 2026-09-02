@@ -22,6 +22,8 @@ import { OnboardingScreen } from '../screens/OnboardingScreen';
 import { AdminLoginScreen } from '../screens/AdminLoginScreen';
 import { SignupScreen } from '../screens/SignupScreen';
 import { MyTeamScreen } from '../screens/MyTeamScreen';
+import { TeamTabScreen } from '../screens/TeamTabScreen';
+import { GALERIJA } from '../lib/features';
 import { AdminHomeScreen } from '../screens/AdminHomeScreen';
 import { AdminLiveScreen } from '../screens/AdminLiveScreen';
 import { AdminTvScreen } from '../screens/AdminTvScreen';
@@ -48,6 +50,7 @@ const ICONS: Record<keyof TabParamList, keyof typeof Ionicons.glyphMap> = {
   Standings: 'trophy',
   Stats: 'stats-chart',
   Gallery: 'images',
+  Klub: 'people',
   Info: 'information-circle',
 };
 
@@ -59,6 +62,7 @@ function Tabs() {
     Standings: t('nav.standings'),
     Stats: t('nav.stats'),
     Gallery: t('nav.gallery'),
+    Klub: t('nav.team'),
     Info: t('nav.info'),
   };
   return (
@@ -79,7 +83,9 @@ function Tabs() {
       <Tab.Screen name="Schedule" component={ScheduleScreen} />
       <Tab.Screen name="Standings" component={StandingsScreen} />
       <Tab.Screen name="Stats" component={StatsScreen} />
-      <Tab.Screen name="Gallery" component={GalleryScreen} />
+      {/* Galerija se pali prekidacem u lib/features.ts — ekran ostaje na mjestu. */}
+      {GALERIJA && <Tab.Screen name="Gallery" component={GalleryScreen} />}
+      <Tab.Screen name="Klub" component={TeamTabScreen} />
       <Tab.Screen name="Info" component={InfoScreen} />
     </Tab.Navigator>
   );

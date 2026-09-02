@@ -9,6 +9,7 @@ import { pickCurrentDayId } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import { useData } from '../lib/useData';
 import { useFollow } from '../lib/useFollow';
+import { GALERIJA } from '../lib/features';
 import { isoToHHMM, shortDayLabel, timeToHHMM } from '../lib/dates';
 import { openMaps } from '../lib/maps';
 import { C, F, R, S, SP } from '../theme';
@@ -115,7 +116,9 @@ export function HomeScreen() {
     { icon: 'calendar-outline', label: t('nav.schedule'), screen: 'Schedule' },
     { icon: 'trophy-outline', label: t('nav.standings'), screen: 'Standings' },
     { icon: 'stats-chart-outline', label: t('nav.stats'), screen: 'Stats' },
-    { icon: 'images-outline', label: t('nav.gallery'), screen: 'Gallery' },
+    // Precac prati isti prekidac kao kartica — inace bi vodio na karticu
+    // koje nema, i aplikacija bi izgledala pokvareno.
+    ...(GALERIJA ? ([{ icon: 'images-outline', label: t('nav.gallery'), screen: 'Gallery' }] as const) : []),
   ] as const;
 
   return (
