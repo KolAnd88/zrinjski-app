@@ -226,19 +226,20 @@ write('icon.png', icon);
  *     270        100.0%           100.0%
  *     348         98.5%           100.0%
  *     389         90.8%           100.0%
- *     461         71.7%           100.0%   ← ovdje smo
+ *     430         80.2%           100.0%   ← ovdje smo
+ *     461         71.7%           100.0%
  *
  * Zaobljena maska pokazuje cijeli grb pri svakoj veličini — štit staje u nju i
  * kad je gotovo preko cijelog sloja. Tako crtaju Samsung, Xiaomi i većina
  * ostalih, pa i telefoni na kojima će turnir stvarno gledati.
  *
- * Googleov zajamčeni krug od 72dp reže i pri 461 gubi 28% — vrh krune, donji
- * šiljak štita i rubove vijenca. To je SVJESTAN izbor: naručeno je "što veći
- * grb", a gubitak pogađa samo lansirnike s okruglom maskom (Pixel i slični).
- * Ako se pokaže presmjelim: 0.12 daje 389 (gubi 9%), 0.16 daje 348 (gubi 1.5%).
+ * Googleov zajamčeni krug od 72dp reže i pri 430 gubi 20% — vrh krune i donji
+ * šiljak štita. Isprobano je i 461: na zaobljenoj maski grb dodiruje rub i
+ * ikona djeluje pretijesno, pa je vraćeno na 430.
+ * Ako zatreba manje: 0.12 daje 389 (gubi 9%), 0.16 daje 348 (gubi 1.5%).
  */
 const fg = canvas(512, CLEAR);
-const fgFit = znak(512, 0.05);
+const fgFit = znak(512, 0.08);
 draw(fg, fgFit.img, fgFit.x, fgFit.y);
 write('android-icon-foreground.png', fg);
 
