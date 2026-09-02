@@ -116,6 +116,24 @@ export function lentaSvg(o: LentaSvgOpts): { defs: string; body: string } {
  * `locations` odgovaraju `offset` vrijednostima gore — ako se jedno mijenja,
  * mijenja se i drugo.
  */
+/**
+ * Lenta za površine koje je crtaju CSS-om, a ne SVG-om (prijava, registracija).
+ *
+ * Postoji da se vrijednosti ne prepisuju rukom: prijavni zasloni admina su
+ * upravo tako ostali na starih -12° i ravnom gradijentu dok je sve ostalo već
+ * bilo ujednačeno. Postavlja se jednom na `:root`, pa CSS čita varijable.
+ */
+export function lentaCssVars(kut: number = LENTA.angle.wide): Record<string, string> {
+  const stops = LENTA_RN.colors
+    .map((c, i) => `${c} ${(LENTA_RN.locations[i]! * 100).toFixed(0)}%`)
+    .join(', ');
+  return {
+    '--lenta-kut': `${kut}deg`,
+    '--lenta-grad': `linear-gradient(90deg, ${stops})`,
+    '--lenta-nit': `linear-gradient(90deg, ${LENTA_RN.nit[0]} 0%, ${LENTA_RN.nit[1]} 50%, ${LENTA_RN.nit[2]} 100%)`,
+  };
+}
+
 export const LENTA_RN = {
   colors: ['rgba(156,12,24,0)', 'rgba(156,12,24,.7)', 'rgba(225,29,42,.76)', 'rgba(225,29,42,0)'],
   locations: [0, 0.34, 0.7, 1],

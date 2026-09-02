@@ -9,17 +9,34 @@
   padding: var(--sp-xl);
 }
 
-/* Dijagonalna lenta */
+/* Dijagonalna lenta — kut, boje i blijeđenje dolaze iz zajedničke definicije
+   (packages/ui-tokens/src/lenta.ts), postavljene na :root u main.tsx.
+   Ranije je ovdje stajao vlastiti gradijent pod -12°, pa su prijavni zasloni
+   ostali na starom izgledu i nakon što je sve drugo ujednačeno. */
 .login::before {
   content: '';
   position: absolute;
-  left: -10%;
-  right: -10%;
-  top: 18%;
-  height: 130px;
-  background: linear-gradient(90deg, var(--red-dk), var(--red));
-  transform: rotate(-12deg);
-  opacity: 0.5;
+  left: -40%;
+  right: -40%;
+  top: 22%;
+  height: 150px;
+  background: var(--lenta-grad);
+  transform: rotate(var(--lenta-kut));
+  opacity: 0.82;
+  pointer-events: none;
+}
+
+/* Tanka nit iznad lente — ista gesta kao u aplikaciji. */
+.login::after {
+  content: '';
+  position: absolute;
+  left: -40%;
+  right: -40%;
+  top: calc(22% - 14px);
+  height: 3px;
+  background: var(--lenta-nit);
+  transform: rotate(var(--lenta-kut));
+  opacity: 0.82;
   pointer-events: none;
 }
 
