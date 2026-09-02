@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { EventType, Match, MatchEvent, Player } from '@zrinjski/core';
+import { applyChange, type RowChange } from '@zrinjski/core';
 import { HAS_DATA, supabase } from '../../lib/supabase';
 import {
   deleteEvent,
@@ -135,8 +136,21 @@ export function useLiveMatch(matchId: string | null): LiveMatchState {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'match_event', filter: `match_id=eq.${matchId}` },
-        () => {
-          void fetchEvents(matchId).then(setEvents);
+        (payload) => {
+          // Promjena se primjenjuje umjesto ponovnog dohvaćanja — zapisničaru
+          // gol tako uđe bez odlaska na poslužitelj. Ako se ne može pouzdano
+          // primijeniti, povlači se puni popis te utakmice.
+          setEvents((prev) => {
+            const r = applyChange<MatchEvent>(prev, payload as RowChange<MatchEvent>, {
+              sort: (a, b) => String(a.created_at).localeCompare(String(b.created_at)),
+              required: ['id', 'match_id', 'created_at'],
+            });
+            if (r.kind === 'refetch') {
+              void fetchEvents(matchId).then(setEvents);
+              return prev;
+            }
+            return r.rows;
+          });
         }
       )
       .subscribe();

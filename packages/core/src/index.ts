@@ -18,4 +18,5 @@ export * from './domain/sharecard';
 export * from './domain/knockout';
 export * from './domain/texts';
 export * from './domain/fixtures';
+export * from './domain/realtime';
 export * from './outbox';

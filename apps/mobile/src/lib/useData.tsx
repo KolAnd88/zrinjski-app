@@ -3,7 +3,7 @@
 //  • ŽIVO (isSupabaseConfigured): učitava iz Supabasea + realtime (match/match_event/team/day),
 //    a admin mutatori pišu u bazu (DB trigger sam diže rezultat na gol).
 //  • DEMO (bez .env): lokalni demo podaci u stanju (offline pregled).
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Alert, Platform } from 'react-native';
 import type {
   Day,
@@ -20,6 +20,7 @@ import type {
   Team,
   Tournament,
 } from '@zrinjski/core';
+import { applyChange, type RowChange } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import { isSupabaseConfigured, supabase } from './supabase';
 import { enqueue, flushOutbox, loadOutbox } from './outbox';
@@ -194,6 +195,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
   );
 
+  // Zadnje stanje dostupno unutar realtime rukovatelja, bez ponovne pretplate.
+  const dataRef = useRef(data);
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
+
   // Ponovno povuci utakmice + događaje iz baze (realtime osvježenje i oporavak od greške).
   const refreshMatchesEvents = useCallback(async () => {
     const sb = supabase;
@@ -242,6 +249,41 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  /**
+   * Primijeni jednu realtime promjenu na lokalni popis.
+   *
+   * Kad se ne može pouzdano primijeniti (nepotpun redak, nepoznat tip poruke),
+   * povlači se puni popis — bolje jedno suvišno preuzimanje nego tiho krivi
+   * rezultat na ekranu.
+   */
+  const primijeni = useCallback(
+    (kljuc: 'matches' | 'events', promjena: RowChange<Match> | RowChange<MatchEvent>) => {
+      const tid = dataRef.current.tournament?.id;
+      const ishod =
+        kljuc === 'matches'
+          ? applyChange<Match>(dataRef.current.matches, promjena as RowChange<Match>, {
+              belongs: (m) => !tid || m.tournament_id === tid,
+              sort: (a, b) => a.sort_order - b.sort_order,
+              required: ['id', 'tournament_id', 'sort_order', 'status', 'home_score', 'away_score'],
+            })
+          : applyChange<MatchEvent>(dataRef.current.events, promjena as RowChange<MatchEvent>, {
+              sort: (a, b) => String(a.created_at).localeCompare(String(b.created_at)),
+              required: ['id', 'match_id', 'created_at'],
+            });
+
+      if (ishod.kind === 'refetch') {
+        void refreshMatchesEvents();
+        return;
+      }
+      setData((d) =>
+        kljuc === 'matches'
+          ? { ...d, matches: ishod.rows as Match[] }
+          : { ...d, events: ishod.rows as MatchEvent[] }
+      );
+    },
+    [refreshMatchesEvents]
+  );
+
   // ŽIVO: učitavanje + realtime na match/match_event.
   useEffect(() => {
     if (!LIVE || !supabase) return;
@@ -253,8 +295,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     const ch = sb
       .channel('public-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'match' }, () => void refreshMatchesEvents())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'match_event' }, () => void refreshMatchesEvents())
+      // Promjena se PRIMJENJUJE, ne dohvaća ponovno. Ranije je svaki gol
+      // pokretao preuzimanje cijelog popisa utakmica i događaja — na kraju
+      // turnira ~780 KB, i to na svakom spojenom telefonu, preko mobilnog
+      // interneta gledatelja. Poruka koju Supabase ionako šalje nosi cijeli
+      // redak, pa isti posao stane u ~300 bajta.
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'match' }, (p) =>
+        primijeni('matches', p as RowChange<Match>)
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'match_event' }, (p) =>
+        primijeni('events', p as RowChange<MatchEvent>)
+      )
       // Ekipe i dani se mijenjaju rijetko (odobrena prijava, dodan dan), ali
       // dotad se nova ekipa nije vidjela dok gledatelj ne povuce prstom.
       // Puno ucitavanje je ovdje jeftino jer se dogada nekoliko puta u turniru.
@@ -265,7 +316,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return () => {
       void sb.removeChannel(ch);
     };
-  }, [reload, refreshMatchesEvents]);
+  }, [reload, refreshMatchesEvents, primijeni]);
 
   const value = useMemo<DataStore>(() => {
     const { teams, players, matches, events } = data;
