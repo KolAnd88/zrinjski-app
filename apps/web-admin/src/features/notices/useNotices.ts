@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { NotificationLog, Team } from '@zrinjski/core';
 import { HAS_DATA } from '../../lib/supabase';
-import { fetchAllTeams, fetchNotifications, insertNotification, sendPush, type PushResult } from '../../lib/data';
+import {
+  fetchAllTeams,
+  fetchNotifications,
+  insertNotification,
+  processPushReceipts,
+  sendPush,
+  type PushResult,
+} from '../../lib/data';
 
 export type NoticesData = {
   loading: boolean;
@@ -45,6 +52,13 @@ export function useNotices(tournamentId: string | null): NoticesData {
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  // Usput obradi Expo potvrde isporuke. Bez ovoga se obrađuju tek pri sljedećem
+  // slanju, pa zadnja poslana obavijest ostaje neprovjerena — a Expo potvrde
+  // briše nakon 24 sata.
+  useEffect(() => {
+    void processPushReceipts();
+  }, []);
 
   const send = useCallback(
     async (tId: string, audience: string, title: string, body: string) => {

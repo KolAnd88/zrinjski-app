@@ -62,17 +62,29 @@ async function send(op: PendingOp): Promise<SendResult> {
       .maybeSingle();
     if (row?.push_sent_at) return 'ok'; // stvarno poslano — ne šalji drugi put
 
-    const { error } = await sb.functions.invoke('send-push', {
+    const { data, error } = await sb.functions.invoke('send-push', {
       body: { audience: op.audience, title: op.title, body: op.body ?? undefined, type: op.type },
     });
     if (error) return 'retry';
 
-    // Zabilježi da je poslano. Ako baš ovaj upis padne, sljedeći pokušaj bi
-    // poslao još jednom — to je manja šteta od obavijesti koja nikad ne stigne.
-    await sb
-      .from('notification_log')
-      .update({ push_sent_at: new Date().toISOString() })
-      .eq('id', op.id);
+    // Koliko je Expo stvarno primio. Nula znači da nije otišlo nikamo — ili
+    // nema uređaja, ili je odbijeno trajno (npr. neispravan FCM ključ).
+    const sent = Number((data as { sent?: number } | null)?.sent ?? 0);
+
+    // Red se ne blokira: kod trajnog odbijanja ponavljanje ne bi pomoglo, a
+    // zaglavljena obavijest zaustavila bi sve iza sebe usred utakmice.
+    //
+    // Ali se ni NE LAŽE: `push_sent_at` se upisuje samo kad je nešto stvarno
+    // otišlo. Ranije se upisivao uvijek, pa je trajno odbijena obavijest u
+    // zapisniku izgledala kao uspješno poslana.
+    if (sent > 0) {
+      // Ako baš ovaj upis padne, sljedeći pokušaj bi poslao još jednom — to je
+      // manja šteta od obavijesti koja nikad ne stigne.
+      await sb
+        .from('notification_log')
+        .update({ push_sent_at: new Date().toISOString() })
+        .eq('id', op.id);
+    }
     return 'ok';
   }
 

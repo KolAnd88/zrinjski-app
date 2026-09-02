@@ -1066,6 +1066,26 @@ export async function fetchNotifications(tournamentId: string): Promise<Notifica
   return data ?? [];
 }
 
+/**
+ * Obradi Expo potvrde isporuke, bez slanja ičega.
+ *
+ * Potvrde se inače obrađuju tek pri SLJEDEĆEM slanju, pa bi zadnja obavijest
+ * ostala zauvijek neprovjerena — a Expo potvrde briše nakon 24 sata. Zato se
+ * ovo okida i pri otvaranju Obavijesti.
+ *
+ * Tiho odustaje: ovo je pospremanje, a ne nešto zbog čega ekran smije pasti.
+ */
+export async function processPushReceipts(): Promise<void> {
+  if (DEMO) return;
+  try {
+    const { data: sess } = await client().auth.getSession();
+    if (!sess.session) return;
+    await client().functions.invoke('send-push', { body: { receiptsOnly: true } });
+  } catch {
+    /* nevažno za korisnika */
+  }
+}
+
 /** Ishod slanja — ne samo broj, nego i ono što je pošlo po zlu. */
 export type PushResult = {
   /** Expo je poruku primio za toliko uređaja. */

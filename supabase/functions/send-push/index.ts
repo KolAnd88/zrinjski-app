@@ -82,37 +82,6 @@ Deno.serve(async (req) => {
     return json({ error: 'forbidden' }, 403);
   }
 
-  // ── Ulaz ──────────────────────────────────────────────────────────────────
-  const payload = await req.json().catch(() => ({}));
-  const audience = String(payload.audience ?? 'all');
-  const title = String(payload.title ?? '').trim();
-  const body = payload.body ? String(payload.body) : undefined;
-  const type = String(payload.type ?? '');
-  if (!title) return json({ error: 'title_required' }, 400);
-
-  // ── Odaberi uređaje ───────────────────────────────────────────────────────
-  let q = admin
-    .from('device')
-    .select('expo_push_token, prefs')
-    .eq('enabled', true)
-    .not('expo_push_token', 'is', null);
-
-  const teamMatch = audience.match(/^(?:team|followers):(.+)$/);
-  if (teamMatch) {
-    q = q.contains('followed_team_ids', [teamMatch[1]]);
-  }
-
-  const { data: devices, error } = await q;
-  if (error) return json({ error: error.message }, 500);
-
-  const prefKey = PREF_KEY[type];
-  const tokens = (devices ?? [])
-    // Uređaj koji je isključio baš ovu vrstu obavijesti ne dobiva ništa.
-    .filter((d) => !prefKey || (d.prefs as Record<string, boolean>)?.[prefKey] !== false)
-    .map((d) => d.expo_push_token as string);
-
-  if (tokens.length === 0) return json({ sent: 0, invalidated: 0 });
-
   /**
    * Obradi potvrde isporuke za RANIJA slanja.
    *
@@ -162,8 +131,47 @@ Deno.serve(async (req) => {
     }
   }
 
-  // Potvrde za PRIJAŠNJA slanja — sad su dovoljno stare da ih Expo ima.
+
+  // Potvrde za RANIJA slanja obraduju se PRIJE svega ostalog. Ranije su
+  // stajale iza izlaza "nema uredaja", pa se u tom slucaju nisu ni dotakle.
   await obradiPotvrde();
+
+  const payload = await req.json().catch(() => ({}));
+
+  // Poziv samo radi potvrda, bez slanja. Admin ga okida pri otvaranju
+  // Obavijesti, da zadnja poslana obavijest ne ostane zauvijek neprovjerena —
+  // Expo potvrde brise nakon 24 sata, a inace se obraduju tek sljedecim slanjem.
+  if (payload.receiptsOnly) return json({ receiptsOnly: true });
+
+  // ── Ulaz ──────────────────────────────────────────────────────────────────
+  const audience = String(payload.audience ?? 'all');
+  const title = String(payload.title ?? '').trim();
+  const body = payload.body ? String(payload.body) : undefined;
+  const type = String(payload.type ?? '');
+  if (!title) return json({ error: 'title_required' }, 400);
+
+  // ── Odaberi uređaje ───────────────────────────────────────────────────────
+  let q = admin
+    .from('device')
+    .select('expo_push_token, prefs')
+    .eq('enabled', true)
+    .not('expo_push_token', 'is', null);
+
+  const teamMatch = audience.match(/^(?:team|followers):(.+)$/);
+  if (teamMatch) {
+    q = q.contains('followed_team_ids', [teamMatch[1]]);
+  }
+
+  const { data: devices, error } = await q;
+  if (error) return json({ error: error.message }, 500);
+
+  const prefKey = PREF_KEY[type];
+  const tokens = (devices ?? [])
+    // Uređaj koji je isključio baš ovu vrstu obavijesti ne dobiva ništa.
+    .filter((d) => !prefKey || (d.prefs as Record<string, boolean>)?.[prefKey] !== false)
+    .map((d) => d.expo_push_token as string);
+
+  if (tokens.length === 0) return json({ sent: 0, invalidated: 0 });
 
   // ── Pošalji Expou u komadima ──────────────────────────────────────────────
   /** Karte za kasniju provjeru isporuke. */

@@ -123,7 +123,7 @@
   color: var(--mut);
 }
 
-/* Okvir 3:2 unutar pločice — reže kao contain u aplikaciji. */
+/* Okvir logotipa unutar pločice — reže kao contain u aplikaciji. */
 .imged__uklop {
   position: relative;
   overflow: hidden;

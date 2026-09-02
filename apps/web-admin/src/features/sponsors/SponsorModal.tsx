@@ -122,7 +122,8 @@ export function SponsorModal({
           <ImageEditor
             file={editing}
             mode="fit"
-            // 900 jer je okvir 3:2 — izlaz je onda točno 900×600, bez
+            // 900 je širina izlaza; visina slijedi omjer okvira (vidi
+            // imageFrame.ts). Djeljivo s pregledom od 300 px, pa nema
             // zaokruživanja koje bi sredinu pomaknulo za djelić piksela.
             size={900}
             onCancel={() => setEditing(null)}

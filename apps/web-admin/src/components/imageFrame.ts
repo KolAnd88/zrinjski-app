@@ -1,8 +1,8 @@
 // imageFrame.ts — računica kadra za uređivač slika.
 //
 // Izdvojeno iz komponente jer je ovdje jedina stvar koja stvarno može ispasti
-// kriva: preslikavanje između PREGLEDA (300 px širine) i IZLAZA (800 px), te
-// između okvira 3:2 i pločica u aplikaciji. Ako se ta dva razmimoiđu,
+// kriva: preslikavanje između PREGLEDA (300 px širine) i IZLAZA (900 px), te
+// između okvira logotipa i pločica u aplikaciji. Ako se ta dva razmimoiđu,
 // organizator namjesti jedno a dobije drugo — a to se na oko ne primijeti dok
 // logo ne završi u aplikaciji.
 
@@ -60,6 +60,33 @@ export function clampCover(
   };
 }
 
+/**
+ * Drži logo tako da barem dio ostane u okviru.
+ *
+ * Bez ovoga se logo mogao odvući skroz van, a onda se sprema prazna slika i
+ * nigdje nema traga zašto. Ne traži da bude cijeli unutra — namjerno, jer se
+ * natpis ponekad kadrira tako da mu rub izađe.
+ */
+export function clampVisible(
+  next: { x: number; y: number },
+  natW: number,
+  natH: number,
+  zoom: number,
+  boxW: number,
+  boxH: number,
+  minVidljivo = 0.25
+): { x: number; y: number } {
+  const w = natW * zoom;
+  const h = natH * zoom;
+  // Barem `minVidljivo` udjela logotipa (ili okvira, ako je logo manji).
+  const dx = Math.min(w, boxW) * minVidljivo;
+  const dy = Math.min(h, boxH) * minVidljivo;
+  return {
+    x: Math.min(boxW - dx, Math.max(dx - w, next.x)),
+    y: Math.min(boxH - dy, Math.max(dy - h, next.y)),
+  };
+}
+
 /** Novi pomak nakon zumiranja oko SREDINE okvira, a ne oko gornjeg lijevog kuta. */
 export function zoomAroundCenter(
   off: { x: number; y: number },
@@ -93,7 +120,7 @@ export function fitDraw(natW: number, natH: number, kadar: Kadar, size: number):
 }
 
 /**
- * Koliko se okvir 3:2 smanji da stane u pločicu u aplikaciji.
+ * Koliko se okvir logotipa smanji da stane u pločicu u aplikaciji.
  * Isto što `resizeMode="contain"` radi na uređaju — zato je pregled istinit.
  */
 export function previewScale(boxW: number, boxH: number): number {

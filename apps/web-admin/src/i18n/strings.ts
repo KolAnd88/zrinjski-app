@@ -457,7 +457,9 @@ export const strings = {
     'gallery.tooLargePx': 'Fotografija je prevelika — dulja stranica smije imati najviše 6000 px.',
     'gallery.remove': 'Ukloni',
     'gallery.removeConfirm': 'Ukloniti ovu fotografiju?',
-    'notices.delivered': 'Isporučeno uređaja: {n}',
+    // NE "isporučeno": Expo je poruku tek PRIMIO. Je li stigla na uređaj, zna
+    // se tek iz potvrde koja dolazi kasnije — pa neka i naziv to govori.
+    'notices.delivered': 'Predano za slanje, uređaja: {n}',
     'notices.deliveredNone': 'Nijedan uređaj nema uključene obavijesti ove vrste.',
     'notices.sendFailed': 'Obavijest je zabilježena, ali slanje nije uspjelo: {e}',
     'notices.deliveredRejected':
@@ -1061,7 +1063,7 @@ export const strings = {
     'gallery.tooLargePx': 'Photo is too large — the longer side may be at most 6000 px.',
     'gallery.remove': 'Remove',
     'gallery.removeConfirm': 'Remove this photo?',
-    'notices.delivered': 'Delivered to {n} device(s)',
+    'notices.delivered': 'Handed off for delivery to {n} device(s)',
     'notices.deliveredNone': 'No device has this notification type enabled.',
     'notices.sendFailed': 'Notice was recorded, but sending failed: {e}',
     'notices.deliveredRejected':

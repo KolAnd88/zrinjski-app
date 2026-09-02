@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   centered,
   clampCover,
+  clampVisible,
   coverZoom,
   FIT_H,
   FIT_RATIO,
@@ -172,6 +173,34 @@ describe('izrezivanje grba (nepromijenjeno ponašanje)', () => {
     const c = clampCover({ x: 500, y: -9999 }, 600, 300, z, 300, 300);
     expect(c.x).toBeLessThanOrEqual(0);
     expect(c.y).toBeGreaterThanOrEqual(300 - 300 * z);
+  });
+});
+
+describe('clampVisible — logo se ne smije odvući skroz van', () => {
+  const NAT = { w: 600, h: 100 };
+  const z = 0.42; // fitZoom za 600×100
+
+  it('vraća logo koji je odvučen daleko desno', () => {
+    const c = clampVisible({ x: 99999, y: 0 }, NAT.w, NAT.h, z, FIT_W, FIT_H);
+    expect(c.x).toBeLessThanOrEqual(FIT_W);
+    // Barem četvrtina logotipa mora ostati u okviru.
+    expect(FIT_W - c.x).toBeGreaterThanOrEqual(NAT.w * z * 0.25 - 0.001);
+  });
+
+  it('vraća logo koji je odvučen daleko lijevo', () => {
+    const c = clampVisible({ x: -99999, y: 0 }, NAT.w, NAT.h, z, FIT_W, FIT_H);
+    expect(c.x + NAT.w * z).toBeGreaterThanOrEqual(NAT.w * z * 0.25 - 0.001);
+  });
+
+  it('ne dira kadar koji je već unutra', () => {
+    const dobar = { x: 50, y: 30 };
+    expect(clampVisible(dobar, NAT.w, NAT.h, z, FIT_W, FIT_H)).toEqual(dobar);
+  });
+
+  it('radi i kad je logo veći od okvira', () => {
+    const c = clampVisible({ x: 99999, y: 99999 }, 600, 100, 2, FIT_W, FIT_H);
+    expect(c.x).toBeLessThanOrEqual(FIT_W);
+    expect(c.y).toBeLessThanOrEqual(FIT_H);
   });
 });
 

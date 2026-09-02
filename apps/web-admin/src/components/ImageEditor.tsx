@@ -4,6 +4,7 @@ import { Button } from './ui';
 import {
   centered,
   clampCover,
+  clampVisible,
   coverZoom,
   FIT_H,
   FIT_W,
@@ -104,12 +105,15 @@ export function ImageEditor({
 
   /**
    * Pri izrezivanju slika mora uvijek prekrivati okvir — inače bi se vidjela
-   * prazna traka. Kod logotipa se NE ograničava: logo smije biti manji od
-   * okvira, u tome je i smisao.
+   * prazna traka. Kod logotipa smije biti manja od okvira (u tome je i smisao),
+   * ali ne smije se odvući skroz van: tada bi se spremila prazna slika, a
+   * nigdje ne bi pisalo zašto.
    */
   function clamp(next: { x: number; y: number }, z: number) {
-    if (!img || mode === 'fit') return next;
-    return clampCover(next, img.naturalWidth, img.naturalHeight, z, VIEW, VIEW);
+    if (!img) return next;
+    return mode === 'fit'
+      ? clampVisible(next, img.naturalWidth, img.naturalHeight, z, boxW, boxH)
+      : clampCover(next, img.naturalWidth, img.naturalHeight, z, VIEW, VIEW);
   }
 
   function onZoom(z: number) {
@@ -253,7 +257,7 @@ export function ImageEditor({
 }
 
 /**
- * Okvir 3:2 uklopljen u zadanu pločicu — točno ono što `resizeMode="contain"`
+ * Okvir logotipa uklopljen u zadanu pločicu — točno ono što `resizeMode="contain"`
  * radi u aplikaciji, pa je pregled istinit, a ne približan.
  */
 function Uklop({
