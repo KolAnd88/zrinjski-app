@@ -185,29 +185,68 @@ const src = readPng(SRC);
 const box = contentBox(src);
 console.log(`izvor: ${src.width}x${src.height}, grb u okviru ${box.w}x${box.h} @ ${box.x},${box.y}\n`);
 
-const WHITE = [255, 255, 255, 255];
 const CLEAR = [0, 0, 0, 0];
+/**
+ * Pozadina ikone je TAMNA, boja aplikacije — ne bijela.
+ *
+ * Ranije je bila bijela, pa je ikona na zaslonu telefona bila bijeli kvadratić
+ * s malim grbom u sredini. Grb se pritom ne može bitno povećati: mjereno,
+ * najdalji obojani piksel je na 0.632 visine grba, pa unutar sigurnog kruga
+ * (unutarnjih 66% promjera) stane najviše 270 od 512 px visine. Bjelina nije
+ * dolazila od veličine grba nego od podloge.
+ */
+const BG = [11, 11, 14, 255];
+
+/**
+ * Grb BEZ bijele podloge oko sebe.
+ *
+ * Izvorna slika ima bijelu pozadinu unutar svog okvira. Dok je i ikona bila
+ * bijela to se nije vidjelo, ali na tamnoj podlozi bi ispao bijeli pravokutnik
+ * oko štita. `cutout` miče samo bijelo POVEZANO S RUBOM, pa lovor i natpis
+ * unutar grba ostaju.
+ */
+function znak(size, inset) {
+  const f = fitted(src, box, size, inset);
+  return { img: cutout(f.img), x: f.x, y: f.y };
+}
 
 // iOS + zadana ikona: MORA biti neprozirna, inače prozirno ispadne crno.
-const icon = canvas(1024, WHITE);
-const iconFit = fitted(src, box, 1024, 0.07);
+// Ovdje nema maske osim zaobljenih kutova, pa grb ide gotovo do ruba.
+const icon = canvas(1024, BG);
+const iconFit = znak(1024, 0.04);
 draw(icon, iconFit.img, iconFit.x, iconFit.y);
 write('icon.png', icon);
 
-// Android adaptivna: sustav reže u krug/kvadrat po svom, pa grb mora stati u
-// sigurnu sredinu (unutarnjih 66% promjera). Štit je viši nego širi, pa kad se
-// uklopi po visini, vrhovi crvene krune završe u kutovima okvira — a kut je od
-// središta dalje nego rub. Rub od 0.25 drži i njih unutar kruga.
+/**
+ * Android adaptivna ikona.
+ *
+ * Sustav reže sloj u oblik po svom izboru. Izmjereno koliko grba preživi:
+ *
+ *   visina   okrugla maska   zaobljena maska
+ *     270        100.0%           100.0%
+ *     348         98.5%           100.0%
+ *     389         90.8%           100.0%
+ *     461         71.7%           100.0%   ← ovdje smo
+ *
+ * Zaobljena maska pokazuje cijeli grb pri svakoj veličini — štit staje u nju i
+ * kad je gotovo preko cijelog sloja. Tako crtaju Samsung, Xiaomi i većina
+ * ostalih, pa i telefoni na kojima će turnir stvarno gledati.
+ *
+ * Googleov zajamčeni krug od 72dp reže i pri 461 gubi 28% — vrh krune, donji
+ * šiljak štita i rubove vijenca. To je SVJESTAN izbor: naručeno je "što veći
+ * grb", a gubitak pogađa samo lansirnike s okruglom maskom (Pixel i slični).
+ * Ako se pokaže presmjelim: 0.12 daje 389 (gubi 9%), 0.16 daje 348 (gubi 1.5%).
+ */
 const fg = canvas(512, CLEAR);
-const fgFit = fitted(src, box, 512, 0.25);
+const fgFit = znak(512, 0.05);
 draw(fg, fgFit.img, fgFit.x, fgFit.y);
 write('android-icon-foreground.png', fg);
 
-write('android-icon-background.png', canvas(512, WHITE));
+write('android-icon-background.png', canvas(512, BG));
 write('android-icon-monochrome.png', monochrome(fg));
 
-const fav = canvas(48, WHITE);
-const favFit = fitted(src, box, 48, 0.04);
+const fav = canvas(48, BG);
+const favFit = znak(48, 0.04);
 draw(fav, favFit.img, favFit.x, favFit.y);
 write('favicon.png', fav);
 
