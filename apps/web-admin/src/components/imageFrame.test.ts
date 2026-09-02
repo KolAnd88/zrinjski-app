@@ -18,14 +18,15 @@ import {
  * `apps/mobile/src/components/home.tsx` — MARQUEE_SIZE.
  */
 const PLOCICE = [
-  { ime: 'zlatna', w: 186 - 18, h: 88 - 18 },
-  { ime: 'srebrna', w: 163 - 18, h: 78 - 18 },
-  { ime: 'partner', w: 122 - 18, h: 52 - 18 },
+  // sirina: minus 2x6 razmaka i 2x1 ruba; visina: minus 2x5 i 2x1
+  { ime: 'zlatna', w: 186 - 14, h: 88 - 12 },
+  { ime: 'srebrna', w: 163 - 14, h: 78 - 12 },
+  { ime: 'partner', w: 122 - 14, h: 52 - 12 },
 ] as const;
 
 describe('okvir logotipa', () => {
-  it('ima zadani omjer', () => {
-    expect(FIT_W / FIT_H).toBeCloseTo(FIT_RATIO, 2);
+  it('omjer je izveden iz okvira, pa se ne može raziću s njim', () => {
+    expect(FIT_RATIO).toBe(FIT_W / FIT_H);
   });
 
   // Ovo je uvjet ujednačenosti: ako je okvir u svakoj pločici ograničen
@@ -40,19 +41,19 @@ describe('okvir logotipa', () => {
 
 describe('fitZoom', () => {
   it('širok logo ograničava širina okvira', () => {
-    // 600×100 → širina je uže grlo: 300*0.84/600 = 0.42
-    expect(fitZoom(600, 100, FIT_W, FIT_H)).toBeCloseTo(0.42, 5);
+    // 600×100 → širina je uže grlo: 300/600 = 0.5 (logo ide do ruba okvira)
+    expect(fitZoom(600, 100, FIT_W, FIT_H)).toBeCloseTo(0.5, 5);
   });
 
   it('visok logo ograničava visina okvira', () => {
-    expect(fitZoom(100, 600, FIT_W, FIT_H)).toBeCloseTo((FIT_H * 0.84) / 600, 5);
+    expect(fitZoom(100, 600, FIT_W, FIT_H)).toBeCloseTo(FIT_H / 600, 5);
   });
 
   it('cijeli logo uvijek stane, s rubom', () => {
     for (const [w, h] of [[600, 100], [100, 600], [400, 400], [1200, 50]] as const) {
       const z = fitZoom(w, h, FIT_W, FIT_H);
-      expect(w * z).toBeLessThanOrEqual(FIT_W * 0.8401);
-      expect(h * z).toBeLessThanOrEqual(FIT_H * 0.8401);
+      expect(w * z).toBeLessThanOrEqual(FIT_W + 0.001);
+      expect(h * z).toBeLessThanOrEqual(FIT_H + 0.001);
     }
   });
 });
@@ -160,7 +161,7 @@ describe('previewScale — pregled mora lagati manje od oka', () => {
       [50, 50],
     ].map(([w, h]) => +(h! * fitZoom(w!, h!, FIT_W, FIT_H)).toFixed(6));
     expect(new Set(visine).size).toBe(1);
-    expect(visine[0]).toBeCloseTo(FIT_H * 0.84, 5);
+    expect(visine[0]).toBeCloseTo(FIT_H, 5);
   });
 });
 
@@ -181,7 +182,7 @@ describe('izrezivanje grba (nepromijenjeno ponašanje)', () => {
 
 describe('clampVisible — logo se ne smije odvući skroz van', () => {
   const NAT = { w: 600, h: 100 };
-  const z = 0.42; // fitZoom za 600×100
+  const z = 0.5; // fitZoom za 600×100
 
   it('vraća logo koji je odvučen daleko desno', () => {
     const c = clampVisible({ x: 99999, y: 0 }, NAT.w, NAT.h, z, FIT_W, FIT_H);

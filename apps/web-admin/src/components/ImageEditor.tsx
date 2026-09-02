@@ -44,9 +44,9 @@ const VIEW = 300;
  * — ako se ondje mijenjaju, mijenjaju se i ovdje, inače pregled laže.
  */
 const MJESTA = [
-  { key: 'imged.spotGold', w: 186, h: 88, pad: 9 },
-  { key: 'imged.spotSilver', w: 163, h: 78, pad: 9 },
-  { key: 'imged.spotPartner', w: 122, h: 52, pad: 9 },
+  { key: 'imged.spotGold', w: 186, h: 88, pad: 5 },
+  { key: 'imged.spotSilver', w: 163, h: 78, pad: 5 },
+  { key: 'imged.spotPartner', w: 122, h: 52, pad: 5 },
 ] as const;
 
 export function ImageEditor({

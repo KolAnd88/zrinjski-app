@@ -9,21 +9,30 @@
 /**
  * Okvir logotipa je isti za SVE sponzore — otud ujednačen izgled.
  *
- * Omjer 2.4 nije proizvoljan. Pločice u aplikaciji imaju unutarnje omjere
- * 4.06 (zlatna), 2.42 (srebrna/brončana) i 3.06 (partner). Okvir uži od
- * najužeg od njih ograničen je VISINOM u svima — pa svaki logo dobije jednaku
- * visinu, bez obzira na oblik. To je ono što se vidi kao ujednačenost.
+ * Omjer nije proizvoljan. Pločice u aplikaciji imaju unutarnje omjere 2.26
+ * (zlatna), 2.25 (srebrna) i 2.67 (partner). Okvir uži od NAJUŽEG od njih
+ * ograničen je VISINOM u svima — pa svaki logo dobije jednaku visinu, bez
+ * obzira na oblik. To je ono što se vidi kao ujednačenost.
  *
  * Ići uže (npr. 3:2) ne bi pokvarilo ujednačenost, ali bi široke natpise
- * bespotrebno smanjilo: u zlatnoj kartici zauzeli bi 102 od 276 px širine
- * umjesto 163.
+ * bespotrebno smanjilo. Ići šire od najuže pločice pokvarilo bi je.
+ *
+ * Ako se u `home.tsx` mijenja MARQUEE_SIZE ili razmak pločice, ovaj broj se
+ * mora provjeriti — test to i traži.
  */
-export const FIT_RATIO = 2.4;
 export const FIT_W = 300;
-export const FIT_H = Math.round(FIT_W / FIT_RATIO);
+export const FIT_H = 136;
+/** Izveden iz okvira, ne obratno — inače zaokruživanje razilazi pregled i izlaz. */
+export const FIT_RATIO = FIT_W / FIT_H;
 
-/** Rub koji logo dobiva pri automatskom uklapanju (8% sa svake strane). */
-const PAD = 0.84;
+/**
+ * Koliko okvira logo zauzme pri automatskom uklapanju.
+ *
+ * 1 = do ruba. Ranije je ovdje stajalo 0.84, pa je slika NOSILA 8% praznine u
+ * sebi — a pločica u aplikaciji ionako dodaje svoju. Dva ruba su se zbrajala i
+ * logo je ostajao malen usred bjeline. Prazninu sada daje samo pločica.
+ */
+const PAD = 1;
 
 export type Kadar = { zoom: number; x: number; y: number };
 
@@ -111,7 +120,9 @@ export function fitDraw(natW: number, natH: number, kadar: Kadar, size: number):
   const s = size / FIT_W;
   return {
     canvasW: size,
-    canvasH: Math.round(size / FIT_RATIO),
+    // Iz FIT_H, ne iz FIT_RATIO: dijeljenje omjerom daje drugi broj zbog
+    // zaokruživanja, pa bi sredina izlaza odstupala od sredine pregleda.
+    canvasH: Math.round(FIT_H * s),
     dx: kadar.x * s,
     dy: kadar.y * s,
     dw: natW * kadar.zoom * s,

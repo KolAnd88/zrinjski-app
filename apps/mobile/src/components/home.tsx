@@ -165,7 +165,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   // Rub NE diramo — dolazi iz razreda (MARQUEE_SIZE) i mora ostati vidljiv.
-  mqTileLogo: { backgroundColor: '#fff', padding: 9 },
+  // Razmak je malen jer logo više ne nosi vlastitu prazninu (vidi imageFrame.ts);
+  // s prijašnjih 9 px zbrajala su se dva ruba i logo je ispadao sitan.
+  // paddingHorizontal mora biti izričit: `mqTile` ga postavlja na 10, a u RN-u
+  // je specifičniji od `padding`, pa bi inače vodoravno ostalo dvostruko.
+  mqTileLogo: { backgroundColor: '#fff', padding: 5, paddingHorizontal: 6 },
   mqLogo: { width: '100%', height: '100%' },
   mqName: {
     fontFamily: F.headSemi,
