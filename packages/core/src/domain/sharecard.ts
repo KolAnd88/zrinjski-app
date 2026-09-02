@@ -69,6 +69,19 @@ export type ShareCardOpts = {
   labels?: { scorers?: string; sponsors?: string; goldSponsor?: string };
 };
 
+/**
+ * Stalan indeks iz teksta — ista utakmica uvijek daje isti izbor.
+ *
+ * Namjerno NIJE slučajan: dvije slike iste utakmice moraju izgledati jednako,
+ * inače bi sponzor "nestao" pri ponovnom dijeljenju.
+ */
+function stableIndex(key: string, n: number): number {
+  if (n <= 0) return 0;
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+  return h % n;
+}
+
 const W = 1080;
 const H = 1350;
 
@@ -211,7 +224,16 @@ export function shareCardSvg(o: ShareCardOpts): string {
   // Zlatni ide GORE, uz naziv turnira: to je najgledaniji dio slike. Ostali razredi idu dolje, svaki u boji svog razreda — iste
   // boje kao na Početnoj.
   const all = o.sponsors ?? [];
-  const gold = all.find((s) => s.tier === 'gold') ?? null;
+
+  // Zlatnih sponzora može biti više, a pločica u zaglavlju je jedna — najbolje
+  // mjesto na slici i ne da se podijeliti a da ostane čitljivo.
+  //
+  // Zato se bira po utakmici, a ne uvijek prvi: svaka utakmica dobiva SVOG
+  // zlatnog sponzora, uvijek istog za istu utakmicu (izbor je izveden iz imena
+  // ekipa, ne iz slučaja). Kroz turnir se tako izloženost ravnomjerno podijeli,
+  // umjesto da jedan sponzor pokupi sve slike a ostali nijednu.
+  const golds = all.filter((s) => s.tier === 'gold');
+  const gold = golds.length ? (golds[stableIndex(o.home.name + o.away.name, golds.length)] ?? null) : null;
 
   // Podloga je bijela kad ima logotipa — logotipi dolaze i kao JPEG s bijelim
   // rubom, pa bi na tamnom izgledali kao zakrpa. Bez logotipa ostaje ime na

@@ -77,6 +77,9 @@ const MARQUEE_PX_PER_SEC = 40;
 // prozirni sivi/brončani rub na bijelom nestane — pa bi razred nestao točno
 // kod sponzora koji su poslali logo, dakle kod većine.
 export const MARQUEE_SIZE = {
+  // Zlatni je najkrupniji jer plaća najviše, ali od verzije s više zlatnih
+  // sponzora više nije kartica preko cijele širine — vrti se kao i ostali.
+  gold: { w: 186, h: 88, border: C.gold },
   silver: { w: 163, h: 78, border: C.silverTxt },
   bronze: { w: 163, h: 60, border: C.bronzeTxt },
   partner: { w: 122, h: 52, border: C.line },

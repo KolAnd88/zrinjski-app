@@ -13,9 +13,12 @@ import {
   zoomAroundCenter,
 } from './imageFrame';
 
-/** Unutarnje mjere pločica u aplikaciji (veličina minus razmak). */
+/**
+ * Unutarnje mjere pločica u aplikaciji (veličina minus razmak), prepisane iz
+ * `apps/mobile/src/components/home.tsx` — MARQUEE_SIZE.
+ */
 const PLOCICE = [
-  { ime: 'zlatna', w: 300 - 24, h: 92 - 24 },
+  { ime: 'zlatna', w: 186 - 18, h: 88 - 18 },
   { ime: 'srebrna', w: 163 - 18, h: 78 - 18 },
   { ime: 'partner', w: 122 - 18, h: 52 - 18 },
 ] as const;

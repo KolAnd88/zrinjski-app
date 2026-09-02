@@ -401,10 +401,12 @@ export const strings = {
 
     // Sponzori
     'sponsors.goldTitle': 'Zlatni sponzor',
+    'sponsors.goldTitlePlural': 'Zlatni sponzori',
     'sponsors.goldHint': 'prikazuje se na vrhu Početne',
     'sponsors.othersTitle': 'Ostali sponzori',
     'sponsors.add': '+ Dodaj sponzora (upload logo)',
     'sponsors.addGold': '+ Dodaj zlatnog sponzora',
+    'sponsors.addGoldMore': '+ Dodaj još jednog zlatnog',
     'sponsors.noOthers': 'Još nema ostalih sponzora.',
     'sponsors.edit': 'uredi',
     'sponsors.tier.gold': 'Zlatni',
@@ -1008,10 +1010,12 @@ export const strings = {
     'tv.next': 'Next',
 
     'sponsors.goldTitle': 'Gold sponsor',
+    'sponsors.goldTitlePlural': 'Gold sponsors',
     'sponsors.goldHint': 'shown at the top of Home',
     'sponsors.othersTitle': 'Other sponsors',
     'sponsors.add': '+ Add sponsor (upload logo)',
     'sponsors.addGold': '+ Add gold sponsor',
+    'sponsors.addGoldMore': '+ Add another gold sponsor',
     'sponsors.noOthers': 'No other sponsors yet.',
     'sponsors.edit': 'edit',
     'sponsors.tier.gold': 'Gold',

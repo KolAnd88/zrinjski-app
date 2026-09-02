@@ -3,7 +3,6 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import type { Match } from '@zrinjski/core';
 import { crestPair } from '@zrinjski/ui-tokens';
 import { pickCurrentDayId } from '@zrinjski/core';
@@ -53,7 +52,7 @@ export function HomeScreen() {
   const nextMatch = upcoming[0] ?? null;
   const countdown = useCountdown(nextMatch?.scheduled_time);
 
-  const gold = d.sponsors.find((s) => s.tier === 'gold' && s.is_active) ?? null;
+  const gold = d.sponsors.filter((s) => s.tier === 'gold' && s.is_active);
 
   // Sponzori po razredu. Razred se mora vidjeti — klub ga naplaćuje.
   const byTier = (tier: 'silver' | 'bronze' | 'partner') =>
@@ -163,43 +162,17 @@ export function HomeScreen() {
           </Card>
         )}
 
-        {/* ── ZLATNI SPONZOR ───────────────────────────────────────────── */}
-        {/* Zlatni sponzor plaća najviše i zato dobiva mjesto odmah ispod
-            rezultata — vlastitu sekciju, punu širinu i zlatni okvir. Zlatna
-            se u cijeloj app koristi samo ovdje i za finale.
-            Jedan naziv, ne dva: kartica je ranije nosila i "Glavni pokrovitelj"
-            iznad i značku "Zlatni sponzor" unutra, za istu stvar. */}
-        {gold && (
+        {/* ── ZLATNI SPONZORI ──────────────────────────────────────────── */}
+        {/* Zlatni i dalje dobiva mjesto odmah ispod rezultata i najkrupnije
+            pločice, ali od kad ih može biti više, vrti se kao i ostali razredi.
+            Ranije je to bila kartica preko cijele širine i prikazivala je SAMO
+            prvog pronađenog — ostali zlatni sponzori nisu se vidjeli nigdje. */}
+        {gold.length > 0 && (
           <>
-            <SectionLabel>{t('home.goldSponsor')}</SectionLabel>
-            <LinearGradient
-              colors={['rgba(217,178,74,.16)', 'rgba(217,178,74,.05)', 'rgba(217,178,74,.02)']}
-              locations={[0, 0.55, 1]}
-              start={{ x: 0.1, y: 0 }}
-              end={{ x: 0.9, y: 1 }}
-              style={styles.goldCard}
-            >
-              <View style={styles.goldTopLine} />
-
-              <View style={styles.goldPlaque}>
-                {gold.logo_url ? (
-                  // contain na bijeloj podlozi — cijeli logo, bez obrezivanja
-                  <Image source={{ uri: gold.logo_url }} style={styles.goldLogoImg} resizeMode="contain" />
-                ) : (
-                  <Txt style={styles.goldLogoTxt} numberOfLines={2}>
-                    {(gold.name || '').toUpperCase()}
-                  </Txt>
-                )}
-              </View>
-
-              {/* Ime ispod pločice ima smisla samo uz logotip. Bez logotipa
-                  pločica VEĆ pokazuje ime, pa bi ovdje pisalo dvaput. */}
-              {!!gold.logo_url && (
-                <Txt style={styles.goldName} numberOfLines={2}>
-                  {gold.name}
-                </Txt>
-              )}
-            </LinearGradient>
+            <SectionLabel>
+              {gold.length === 1 ? t('home.goldSponsor') : t('home.goldSponsors')}
+            </SectionLabel>
+            <SponsorMarquee sponsors={gold} tier="gold" />
           </>
         )}
 
@@ -713,51 +686,6 @@ const styles = StyleSheet.create({
 
   // Zlatni sponzor
   // ── Glavni pokrovitelj ──────────────────────────────────────────────────
-  goldCard: {
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(217,178,74,.5)',
-    borderRadius: R.card,
-    paddingTop: 20,
-    paddingBottom: 16,
-    paddingHorizontal: SP.screenX,
-    overflow: 'hidden',
-    shadowColor: C.gold,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    elevation: 4,
-  },
-  /** Zlatna nit na vrhu — tanka, ali odmah odvaja pokrovitelja od ostatka. */
-  goldTopLine: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 3,
-    backgroundColor: C.gold,
-  },
-  /** Bijela ploča: logotipi su rađeni za svijetlu podlogu. */
-  goldPlaque: {
-    width: '100%',
-    height: 92,
-    backgroundColor: '#fff',
-    borderRadius: R.chip,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  goldLogoTxt: { fontFamily: F.head, fontSize: 20, letterSpacing: 0.5, color: C.redDk, textAlign: 'center' },
-  goldLogoImg: { width: '100%', height: '100%' },
-  goldName: {
-    fontFamily: F.head,
-    fontSize: 21,
-    letterSpacing: 0.4,
-    color: C.txt,
-    textAlign: 'center',
-    marginTop: SP.divider,
-  },
   goldBadge: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -26,7 +26,8 @@ export function AdminTvScreen() {
   const home = d.teamById(m.home_team_id);
   const away = d.teamById(m.away_team_id);
   const isLive = m.status === 'live';
-  const gold = d.sponsors.find((s) => s.tier === 'gold' && s.is_active);
+  // Svi zlatni, ne samo prvi — na semaforu ih vidi cijela dvorana.
+  const golds = d.sponsors.filter((s) => s.tier === 'gold' && s.is_active);
 
   return (
     <View style={styles.tv}>
@@ -70,9 +71,10 @@ export function AdminTvScreen() {
       </View>
 
       <View style={styles.bottom}>
-        {gold ? (
-          <Txt style={styles.sponsor}>
-            {t('home.goldSponsor')}: <Txt style={styles.sponsorName}>{gold.name}</Txt>
+        {golds.length > 0 ? (
+          <Txt style={styles.sponsor} numberOfLines={1}>
+            {golds.length === 1 ? t('home.goldSponsor') : t('home.goldSponsors')}:{' '}
+            <Txt style={styles.sponsorName}>{golds.map((g) => g.name).join(' · ')}</Txt>
           </Txt>
         ) : (
           <View />

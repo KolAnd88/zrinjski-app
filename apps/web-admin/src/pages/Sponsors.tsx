@@ -38,40 +38,50 @@ export function Sponsors() {
 
   return (
     <div className="sponsors">
-      {/* Zlatni sponzor */}
+      {/* Zlatni sponzori — može ih biti više. Svaki ima svoj prekidač, jer se
+          sponzor zna povući ili doći naknadno. */}
       <div className="sponsors__goldhead">
-        <h2 className="section-label sponsors__goldlabel">{t('sponsors.goldTitle')}</h2>
-        {data.gold && (
+        <h2 className="section-label sponsors__goldlabel">
+          {data.golds.length > 1 ? t('sponsors.goldTitlePlural') : t('sponsors.goldTitle')}
+        </h2>
+      </div>
+
+      {data.golds.map((g) => (
+        <div key={g.id} className="gold-card">
+          <Logo url={g.logo_url} />
+          <div className="gold-card__main">
+            <div className="gold-card__name">{g.name}</div>
+            <div className="gold-card__hint">{t('sponsors.goldHint')}</div>
+          </div>
           <label className="switch">
             <input
               type="checkbox"
-              checked={data.gold.is_active}
-              onChange={(e) => void data.setActive(data.gold!.id, e.target.checked)}
+              checked={g.is_active}
+              onChange={(e) => void data.setActive(g.id, e.target.checked)}
             />
             <span className="switch__track" />
           </label>
-        )}
-      </div>
-
-      {data.gold ? (
-        <div className="gold-card">
-          <Logo url={data.gold.logo_url} />
-          <div className="gold-card__main">
-            <div className="gold-card__name">{data.gold.name}</div>
-            <div className="gold-card__hint">{t('sponsors.goldHint')}</div>
-          </div>
-          <button className="gold-card__edit" onClick={() => setEditing({ sponsor: data.gold })}>
+          <button className="gold-card__edit" onClick={() => setEditing({ sponsor: g })}>
             {t('tournament.edit')}
           </button>
+          <button
+            className="sponsor-row__del"
+            aria-label="×"
+            onClick={() => {
+              if (confirm(t('sponsors.deleteConfirm'))) void data.removeSponsor(g.id);
+            }}
+          >
+            ×
+          </button>
         </div>
-      ) : (
-        <button
-          className="sponsors__add sponsors__add--gold"
-          onClick={() => setEditing({ sponsor: null, fixedTier: 'gold' })}
-        >
-          {t('sponsors.addGold')}
-        </button>
-      )}
+      ))}
+
+      <button
+        className="sponsors__add sponsors__add--gold"
+        onClick={() => setEditing({ sponsor: null, fixedTier: 'gold' })}
+      >
+        {data.golds.length === 0 ? t('sponsors.addGold') : t('sponsors.addGoldMore')}
+      </button>
 
       {/* Ostali sponzori */}
       <h2 className="section-label" style={{ marginTop: 'var(--sp-md)' }}>

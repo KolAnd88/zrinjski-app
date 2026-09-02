@@ -233,3 +233,42 @@ describe('shareCardSvg — sponzori', () => {
     expect(shareCardSvg(base)).not.toContain('SPONZORI');
   });
 });
+
+describe('shareCardSvg — više zlatnih sponzora', () => {
+  const gold = (name: string): ShareSponsor => ({ name, tier: 'gold' });
+  const TRI = [gold('Alfa'), gold('Beta'), gold('Gama')];
+
+  const zaUtakmicu = (h: string, a: string, sponsors: ShareSponsor[]) =>
+    shareCardSvg({ ...base, home: { ...base.home, name: h }, away: { ...base.away, name: a }, sponsors });
+
+  const kojiZlatni = (svg: string) => TRI.map((s) => s.name).filter((n) => svg.includes(n.toUpperCase()));
+
+  it('jedan zlatni je uvijek taj', () => {
+    const svg = zaUtakmicu('Zrinjski', 'Posušje', [gold('Alfa')]);
+    expect(svg).toContain('ALFA');
+  });
+
+  // Pločica u zaglavlju je jedna, pa se ne smiju pojaviti dva imena odjednom.
+  it('na jednoj slici je točno jedan zlatni', () => {
+    expect(kojiZlatni(zaUtakmicu('Zrinjski', 'Posušje', TRI))).toHaveLength(1);
+  });
+
+  // Dvije slike iste utakmice moraju biti jednake — inače bi sponzor
+  // "nestao" pri ponovnom dijeljenju.
+  it('ista utakmica uvijek daje istog zlatnog', () => {
+    const a = kojiZlatni(zaUtakmicu('Zrinjski', 'Posušje', TRI));
+    const b = kojiZlatni(zaUtakmicu('Zrinjski', 'Posušje', TRI));
+    expect(a).toEqual(b);
+  });
+
+  // Smisao rotacije: kroz turnir svi zlatni dođu na red, a ne samo prvi.
+  it('kroz više utakmica se izmjenjuju svi', () => {
+    const parovi: [string, string][] = [
+      ['Zrinjski', 'Posušje'], ['Grude', 'Čapljina'], ['Ljubuški', 'Mostar'],
+      ['Široki', 'Livno'], ['Neum', 'Stolac'], ['Metković', 'Imotski'],
+      ['Vitez', 'Travnik'], ['Jajce', 'Bugojno'], ['Konjic', 'Prozor'],
+    ];
+    const vidjeni = new Set(parovi.flatMap(([h, a]) => kojiZlatni(zaUtakmicu(h, a, TRI))));
+    expect(vidjeni.size).toBe(3);
+  });
+});

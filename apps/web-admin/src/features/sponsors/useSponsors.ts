@@ -22,7 +22,8 @@ export type SponsorsData = {
   loading: boolean;
   configured: boolean;
   error: string | null;
-  gold: Sponsor | null;
+  /** Zlatnih može biti više — klub ih prodaje koliko ih ima. */
+  golds: Sponsor[];
   others: Sponsor[];
   saveSponsor: (input: SponsorInput) => Promise<void>;
   removeSponsor: (id: string) => Promise<void>;
@@ -99,14 +100,16 @@ export function useSponsors(tournamentId: string | null): SponsorsData {
     setSponsors((xs) => xs.map((s) => (s.id === id ? { ...s, is_active: active } : s)));
   }, []);
 
-  const gold = sponsors.find((s) => s.tier === 'gold') ?? null;
+  // Zlatnih sponzora može biti više. Ranije se uzimao samo prvi pronađeni, pa
+  // se ostali nisu vidjeli ni u adminu ni u aplikaciji.
+  const golds = sponsors.filter((s) => s.tier === 'gold');
   const others = sponsors.filter((s) => s.tier !== 'gold');
 
   return {
     loading,
     configured: HAS_DATA,
     error,
-    gold,
+    golds,
     others,
     saveSponsor,
     removeSponsor,

@@ -40,11 +40,11 @@ const VIEW = 300;
 
 /**
  * Mjesta na kojima se logo stvarno pojavljuje u aplikaciji, u točkama uređaja.
- * Brojevi dolaze iz `apps/mobile`: zlatna pločica (HomeScreen `goldPlaque`,
- * visina 92 s razmakom 12) i traka sponzora (home.tsx `MARQUEE_SIZE`).
+ * Brojevi su prepisani iz `apps/mobile/src/components/home.tsx` (MARQUEE_SIZE)
+ * — ako se ondje mijenjaju, mijenjaju se i ovdje, inače pregled laže.
  */
 const MJESTA = [
-  { key: 'imged.spotGold', w: 300, h: 92, pad: 12 },
+  { key: 'imged.spotGold', w: 186, h: 88, pad: 9 },
   { key: 'imged.spotSilver', w: 163, h: 78, pad: 9 },
   { key: 'imged.spotPartner', w: 122, h: 52, pad: 9 },
 ] as const;
