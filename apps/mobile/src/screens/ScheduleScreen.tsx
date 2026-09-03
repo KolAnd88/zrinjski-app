@@ -161,9 +161,14 @@ function MatchRow({ match, isFinal, onPress }: { match: Match; isFinal: boolean;
             </LinearGradient>
           ) : match.status === 'finished' ? (
             <>
-              <Txt style={styles.doneScore}>
-                {match.home_score}:{match.away_score}
-              </Txt>
+              {/* Rezultat u okviru i u punoj bjelini. Prije je bio prigusen
+                  (C.sub) — dakle tamniji od naziva ekipa oko sebe, iako je on
+                  razlog zbog kojeg se red uopce gleda. */}
+              <View style={[styles.scoreBox, isFinal && styles.scoreBoxFinal]}>
+                <Txt style={[styles.doneScore, isFinal && { color: C.gold }]}>
+                  {match.home_score}:{match.away_score}
+                </Txt>
+              </View>
               <Txt style={styles.doneLabel}>{t('common.finished')}</Txt>
             </>
           ) : (
@@ -300,7 +305,17 @@ const styles = StyleSheet.create({
   mid: { minWidth: 60, alignItems: 'center' },
   livePill: { borderRadius: 7, paddingHorizontal: 8, paddingVertical: 3 },
   livePillTxt: { fontFamily: F.head, fontSize: 11, color: '#fff' },
-  doneScore: { fontFamily: F.head, fontSize: 16, color: C.sub },
+  doneScore: { fontFamily: F.head, fontSize: 16, color: C.txt },
+  scoreBox: {
+    paddingHorizontal: 9,
+    paddingVertical: 2,
+    borderRadius: R.chip,
+    borderWidth: 1,
+    borderColor: C.line,
+    backgroundColor: C.card2,
+  },
+  /** Finale je jedino mjesto uz zlatnog sponzora gdje zlatna smije (DIZAJN.md). */
+  scoreBoxFinal: { borderColor: 'rgba(217,178,74,.55)', backgroundColor: 'rgba(217,178,74,.08)' },
   doneLabel: { fontFamily: F.headSemi, fontSize: 9, letterSpacing: 1, color: C.mut, marginTop: 1 },
   vs: { fontFamily: F.headSemi, fontSize: 14, color: C.mut },
 

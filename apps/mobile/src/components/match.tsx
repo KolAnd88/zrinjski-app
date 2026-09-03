@@ -53,9 +53,14 @@ export function MatchRow({
             {t('common.live')} {match.home_score}:{match.away_score}
           </Badge>
         ) : match.status === 'finished' ? (
-          <Txt style={styles.score}>
-            {match.home_score}:{match.away_score}
-          </Txt>
+          // Rezultat u okviru: on je razlog zbog kojeg se red uopce gleda, a
+          // prije je bio istog naglaska kao vrijeme i nazivi oko njega.
+          // Finale dobiva zlatni okvir — jedina iznimka u paleti, po DIZAJN.md.
+          <View style={[styles.scoreBox, isFinal && styles.scoreBoxFinal]}>
+            <Txt style={[styles.score, isFinal && { color: C.gold }]}>
+              {match.home_score}:{match.away_score}
+            </Txt>
+          </View>
         ) : (
           <Txt style={styles.vs}>{t('common.vs')}</Txt>
         )}
@@ -112,6 +117,15 @@ const styles = StyleSheet.create({
   ph: { color: C.mut, fontFamily: F.body, fontStyle: 'italic' },
   mid: { minWidth: 56, alignItems: 'center' },
   score: { fontFamily: F.head, fontSize: 16, color: C.txt },
+  scoreBox: {
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: R.chip,
+    borderWidth: 1,
+    borderColor: C.line,
+    backgroundColor: C.card2,
+  },
+  scoreBoxFinal: { borderColor: 'rgba(217,178,74,.55)', backgroundColor: 'rgba(217,178,74,.08)' },
   vs: { color: C.mut, fontSize: 12 },
   // Segmentirani M/Ž prekidač iz makete: nosač #1C1D24 r11, segment r8.
   toggle: {

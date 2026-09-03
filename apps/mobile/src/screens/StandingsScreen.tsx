@@ -136,7 +136,14 @@ export function StandingsScreen() {
               <View style={styles.thead}>
                 <Txt style={[styles.hCell, styles.cRank]}>#</Txt>
                 <Txt style={[styles.hCell, { flex: 1 }]}>{t('standings.team')}</Txt>
-                <Txt style={[styles.hCell, styles.cPlayed]}>{t('standings.colPlayed')}</Txt>
+                {/* Odigrano se NE prikazuje: to je zbroj P+N+I, pa bi samo
+                    trosilo sirinu koja treba nazivu ekipe. */}
+                {/* Pobjede / neriseno / porazi. Tablica je prije imala samo
+                    odigrano i gol-razliku, pa se iz nje nije vidjelo KAKO je
+                    ekipa dosla do bodova. */}
+                <Txt style={[styles.hCell, styles.cWdl, { color: C.green }]}>{t('standings.w')}</Txt>
+                <Txt style={[styles.hCell, styles.cWdl, { color: C.goldTxt }]}>{t('standings.d')}</Txt>
+                <Txt style={[styles.hCell, styles.cWdl, { color: C.redLt }]}>{t('standings.l')}</Txt>
                 <Txt style={[styles.hCell, styles.cGd]}>{t('standings.gd')}</Txt>
                 <Txt style={[styles.hCell, styles.cPts, { color: C.sub }]}>{t('standings.pts')}</Txt>
               </View>
@@ -168,10 +175,16 @@ export function StandingsScreen() {
                     >
                       {r.teamName}
                     </Txt>
-                    <Txt style={[styles.num, styles.cPlayed]}>{r.played}</Txt>
-                    <Txt style={[styles.num, styles.cGd, r.goalDiff < 0 && { color: C.navOff }]}>
-                      {r.goalDiff > 0 ? `+${r.goalDiff}` : r.goalDiff}
-                    </Txt>
+                    {/* Nula se prigusuje: tablica se cita brze kad se vide samo
+                        brojevi koji postoje. */}
+                    <Txt style={[styles.num, styles.cWdl, { color: r.wins ? C.green : C.navOff }]}>{r.wins}</Txt>
+                    <Txt style={[styles.num, styles.cWdl, { color: r.draws ? C.goldTxt : C.navOff }]}>{r.draws}</Txt>
+                    <Txt style={[styles.num, styles.cWdl, { color: r.losses ? C.redLt : C.navOff }]}>{r.losses}</Txt>
+                    <View style={styles.cGd}>
+                      <Txt style={[styles.gdChip, gdStyle(r.goalDiff)]}>
+                        {r.goalDiff > 0 ? `+${r.goalDiff}` : r.goalDiff}
+                      </Txt>
+                    </View>
                     <Txt style={[styles.ptsTxt, styles.cPts]}>{r.points}</Txt>
                   </Pressable>
                 );
@@ -241,6 +254,13 @@ export function StandingsScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+/** Zelena kad je gol-razlika pozitivna, crvena kad je negativna, mirna na nuli. */
+function gdStyle(gd: number) {
+  if (gd > 0) return { color: C.green, backgroundColor: 'rgba(34,197,94,.13)' };
+  if (gd < 0) return { color: C.redLt, backgroundColor: 'rgba(225,29,42,.13)' };
+  return { color: C.mut, backgroundColor: 'transparent' };
 }
 
 const styles = StyleSheet.create({
@@ -327,8 +347,17 @@ const styles = StyleSheet.create({
   },
 
   cRank: { width: 16, alignItems: 'center', justifyContent: 'center' },
-  cPlayed: { width: 26 },
-  cGd: { width: 36 },
+  cWdl: { width: 18 },
+  cGd: { width: 40 },
+  /** Gol-razlika kao znacka: predznak se vidi bojom, ne citanjem minusa. */
+  gdChip: {
+    fontFamily: F.headMed,
+    fontSize: 12,
+    textAlign: 'center',
+    paddingVertical: 2,
+    borderRadius: R.chip,
+    overflow: 'hidden',
+  },
   cPts: { width: 24 },
 
   qualBar: {
