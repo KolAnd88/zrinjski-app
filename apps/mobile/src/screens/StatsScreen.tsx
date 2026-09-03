@@ -215,7 +215,9 @@ export function StatsScreen() {
                 const info = playerInfo(r.playerId);
                 return (
                   <View key={r.playerId} style={[styles.row, i > 0 && styles.rowBorder]}>
-                    <Txt style={[styles.rank, r.rank === 1 && { color: C.gold }]}>{r.rank}</Txt>
+                    {/* Drugo i trece mjesto su prije izgledali kao deseto.
+                        Zlato/srebro/bronca su opcepoznata, ne brend. */}
+                    <Txt style={[styles.rank, { color: medalja(r.rank) }]}>{r.rank}</Txt>
                     <Crest
                       code={info.team?.short_code}
                       index={info.team?.sort_order ?? 0}
@@ -248,6 +250,14 @@ export function StatsScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+/** Boja mjesta u popisu: prva tri dobivaju medalju, ostali ostaju mirni. */
+function medalja(rank: number): string {
+  if (rank === 1) return C.gold;
+  if (rank === 2) return C.silverTxt;
+  if (rank === 3) return C.bronzeTxt;
+  return C.mut;
 }
 
 const styles = StyleSheet.create({

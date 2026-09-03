@@ -73,12 +73,16 @@ export function TeamScreen() {
 
   const stats = standing
     ? [
-        { value: String(standing.played), label: t('standings.colPlayed'), color: C.txt },
-        { value: String(standing.wins), label: t('team.w'), color: C.txt },
+        // Iste boje kao u tablici poretka: pobjede zelene, porazi crveni.
+        // Ranije su ovdje stajali samo odigrano i pobjede, pa se iz kartice
+        // nije vidjelo kako je ekipa dosla do bodova.
+        { value: String(standing.wins), label: t('standings.w'), color: standing.wins ? C.green : C.mut },
+        { value: String(standing.draws), label: t('standings.d'), color: standing.draws ? C.goldTxt : C.mut },
+        { value: String(standing.losses), label: t('standings.l'), color: standing.losses ? C.redLt : C.mut },
         {
           value: standing.goalDiff > 0 ? `+${standing.goalDiff}` : String(standing.goalDiff),
           label: t('standings.gd'),
-          color: standing.goalDiff > 0 ? C.green : C.txt,
+          color: standing.goalDiff > 0 ? C.green : standing.goalDiff < 0 ? C.redLt : C.txt,
         },
         { value: String(standing.points), label: t('standings.pts'), color: C.txt },
       ]
