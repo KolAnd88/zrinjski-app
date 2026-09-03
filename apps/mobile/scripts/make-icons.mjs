@@ -187,15 +187,17 @@ console.log(`izvor: ${src.width}x${src.height}, grb u okviru ${box.w}x${box.h} @
 
 const CLEAR = [0, 0, 0, 0];
 /**
- * Pozadina ikone je TAMNA, boja aplikacije — ne bijela.
+ * Pozadina ikone je BIJELA — odluka korisnika, jer mu je tako ljepše.
  *
- * Ranije je bila bijela, pa je ikona na zaslonu telefona bila bijeli kvadratić
- * s malim grbom u sredini. Grb se pritom ne može bitno povećati: mjereno,
- * najdalji obojani piksel je na 0.632 visine grba, pa unutar sigurnog kruga
- * (unutarnjih 66% promjera) stane najviše 270 od 512 px visine. Bjelina nije
- * dolazila od veličine grba nego od podloge.
+ * Kratko je bila tamna: ikona je izgledala kao bijeli kvadratić s malim grbom,
+ * pa se cinilo da je kriva podloga. Pravi uzrok bio je drugi — grb je bio
+ * premalen (270 od 512 px) i izvor je imao samo 447 px. Kad je grb narastao na
+ * 430 i izvor na 1536 px, bijela podloga vise ne smeta.
+ *
+ * Grbu se i dalje izrezuje bijela pozadina: na bijeloj podlozi to ne mijenja
+ * izgled, ali crest.png i splash rade na tamnom i ondje je izrezivanje nuzno.
  */
-const BG = [11, 11, 14, 255];
+const BG = [255, 255, 255, 255];
 
 /**
  * Grb BEZ bijele podloge oko sebe.
