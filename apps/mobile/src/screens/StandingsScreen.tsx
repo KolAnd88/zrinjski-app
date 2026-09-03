@@ -1,4 +1,3 @@
-import { Fragment } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -130,7 +129,10 @@ export function StandingsScreen() {
             ekipa nikome ništa ne govori, samo zbunjuje. */}
         {drawn && groups.map((g) => (
           <View key={g.id}>
-            <Txt style={styles.groupLabel}>{g.name}</Txt>
+            <View style={styles.groupHead}>
+              <Txt style={styles.groupLabel}>{g.name}</Txt>
+              <Txt style={styles.groupNote}>{t('standings.cut', { n: cfg.advancePerGroup })}</Txt>
+            </View>
 
             <View style={styles.table}>
               {/* Zaglavlje tablice */}
@@ -149,21 +151,16 @@ export function StandingsScreen() {
                 <Txt style={[styles.hCell, styles.cPts, { color: C.sub }]}>{t('standings.pts')}</Txt>
               </View>
 
-              {standingsOf(g).map((r, i, sve) => {
+              {standingsOf(g).map((r) => {
                 const team = d.teamById(r.teamId);
-                // Crta reza: povlaci se ISPOD zadnje ekipe koja prolazi, i to
-                // samo ako ispod nje uopce ima nekoga. Broj dolazi iz pravila
-                // turnira, pa se crta sama pomakne kad organizator promijeni
-                // koliko ekipa prolazi.
-                const rez = i + 1 === cfg.advancePerGroup && i + 1 < sve.length;
                 const mine = followed.includes(r.teamId);
                 // Prvo mjesto je zlatno, ostali koji prolaze zeleni, ostatak prigušen.
                 const rankColor = r.rank === 1 ? C.gold : r.qualifies ? C.green : C.mut;
                 return (
-                  <Fragment key={r.teamId}>
                   <Pressable
+                    key={r.teamId}
                     onPress={() => nav.navigate('Team', { teamId: r.teamId })}
-                    style={[styles.trow, mine && styles.trowMine]}
+                    style={[styles.trow, r.qualifies && styles.trowQual, mine && styles.trowMine]}
                   >
                     <View style={styles.cRank}>
                       {r.qualifies && <View style={styles.qualBar} />}
@@ -193,14 +190,6 @@ export function StandingsScreen() {
                     </View>
                     <Txt style={[styles.ptsTxt, styles.cPts]}>{r.points}</Txt>
                   </Pressable>
-                  {rez && (
-                    <View style={styles.cut}>
-                      <View style={styles.cutLine} />
-                      <Txt style={styles.cutTxt}>{t('standings.cut')}</Txt>
-                      <View style={styles.cutLine} />
-                    </View>
-                  )}
-                  </Fragment>
                 );
               })}
             </View>
@@ -329,7 +318,12 @@ const styles = StyleSheet.create({
   },
   trowFirst: { borderTopWidth: 0 },
   // Praćena ekipa dobiva blagi crveni podložak i jači tekst.
-  trowMine: { backgroundColor: 'rgba(225,29,42,.06)' },
+  /** Prozirna traka preko redova koji prolaze u zavrsnicu. Granica se vidi kao
+      ploha, ne kao crta — gledatelj je uhvati pogledom, bez citanja.
+      Broj redova dolazi iz pravila turnira, pa se traka sama prilagodi. */
+  trowQual: { backgroundColor: 'rgba(34,197,94,.09)' },
+  /** Pracena ekipa ostaje jaca od trake — inace bi se izgubila medu zelenim. */
+  trowMine: { backgroundColor: 'rgba(225,29,42,.10)' },
 
   regHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
   regCount: {
@@ -384,17 +378,9 @@ const styles = StyleSheet.create({
   num: { fontFamily: F.body, fontSize: 13, color: C.sub, textAlign: 'center' },
   ptsTxt: { fontFamily: F.head, fontSize: 15, color: C.txt, textAlign: 'center' },
 
-  /** Crta reza u tablici — zamijenila je legendu na dnu. Gledatelj vidi granicu
-      ondje gdje ona i jest, umjesto da broji redove i cita objasnjenje ispod. */
-  cut: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: SP.gap, paddingVertical: 5 },
-  cutLine: { flex: 1, height: 1, backgroundColor: 'rgba(34,197,94,.45)' },
-  cutTxt: {
-    fontFamily: F.headSemi,
-    fontSize: 9,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: C.green,
-  },
+  /** Uz naziv grupe stoji sto traka znaci — kratko i na vrhu, ne na dnu. */
+  groupHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
+  groupNote: { fontFamily: F.headSemi, fontSize: 10, letterSpacing: 0.8, color: C.green },
 
   bcard: {
     backgroundColor: C.card,
