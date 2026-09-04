@@ -43,6 +43,23 @@
   EXPO_PUBLIC_SUPABASE_URL = "https://iymdqfxltwhvngfxkjfy.supabase.co"
   EXPO_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5bWRxZnhsdHdodm5nZnhramZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3NDkyNzgsImV4cCI6MjA5NzMyNTI3OH0.FcoKqxH-APXffBuBbyAdtO5qmfQrsCYuLFVHANrU7NA"
 
+# Prijava ekipe za turnir.
+#
+# Obrazac tehnički živi u web adminu, ali adresa koja ide na plakat, u objavu
+# klubovima i u QR kod mora biti kratka i bez riječi "admin" —
+# ponoshercegovine.com/prijava. Ovo pravilo spaja to dvoje.
+#
+# MORA stajati PRIJE SPA pravila ispod: Netlify uzima prvo pravilo koje se
+# poklopi, a `/*` se poklapa sa svime.
+#
+# 302, ne 301: trajno preusmjeravanje preglednici zapamte zauvijek, pa ako se
+# prijava jednom preseli u samu aplikaciju, ljudi koji su je već otvorili
+# nastavili bi ići na staro mjesto.
+[[redirects]]
+  from = "/prijava"
+  to = "https://admin.ponoshercegovine.com/prijava"
+  status = 302
+
 # Aplikacija je SPA — svaka putanja mora vratiti index.html, inače osvježavanje
 # stranice vrati 404.
 [[redirects]]
