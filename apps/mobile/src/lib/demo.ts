@@ -18,7 +18,7 @@ import type {
 
 export const demoTournament: Tournament = {
   id: 'T',
-  name: 'VHMRK Zrinjski Cup',
+  name: 'Ponos Hercegovine 2026',
   season_year: 2026,
   match_duration_min: 15,
   gap_min: 5,

@@ -139,7 +139,11 @@ export function PublicRegistration() {
         <div className="login__brand">
           <div className="login__logo">ZRI</div>
           <div className="login__title">{t('regform.title')}</div>
-          <div className="login__subtitle">{t('regform.sub')}</div>
+          {/* Naziv turnira dolazi IZ BAZE, ne iz prijevoda. Ovdje je stajalo
+              zakucano "VHMRK Zrinjski Cup", a turnir se zove "Ponos
+              Hercegovine 2026" — klub bi na pozivnici vidio jedno ime, a u
+              aplikaciji drugo. Prijevod ostaje samo dok se turnir učitava. */}
+          <div className="login__subtitle">{tournament?.name ?? t('regform.sub')}</div>
         </div>
 
         {statusLoading ? (

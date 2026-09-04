@@ -36,6 +36,10 @@ export function Tv() {
   const matchId = params.get('match');
   const live = useLiveMatch(matchId);
   const [sponsor, setSponsor] = useState<string | null>(null);
+  // Naziv turnira se ČITA, ne piše u kodu. Ovdje je stajalo zakucano
+  // "VHMRK ZRINJSKI CUP" dok se turnir zvao "Ponos Hercegovine 2026" —
+  // a ovaj zaslon ide na projektor, pa krivo ime vidi cijela dvorana.
+  const [cup, setCup] = useState<string | null>(null);
   const [next, setNext] = useState<{ time: string; label: string }[]>([]);
 
   const m = live.match;
@@ -52,6 +56,13 @@ export function Tv() {
       .limit(1)
       .maybeSingle()
       .then(({ data }) => setSponsor(data?.name ?? null));
+
+    void supabase
+      .from('tournament')
+      .select('name')
+      .eq('id', tournamentId)
+      .maybeSingle()
+      .then(({ data }) => setCup(data?.name ?? null));
 
     void fetchEnterableMatches(tournamentId).then((ms) => {
       setNext(
@@ -98,8 +109,11 @@ export function Tv() {
       <header className="tv__top">
         <div className="tv__brand">
           <div className="tv__logo">ZC</div>
+          {/* Tvrdi razmak dok se naziv učitava: prazan div se skupi na nultu
+              visinu i podnaslov poskoči. Velika slova radi CSS, pa naziv
+              izgleda isto kako god ga tko upiše u adminu. */}
           <div>
-            <div className="tv__cup">VHMRK ZRINJSKI CUP</div>
+            <div className="tv__cup">{cup ?? ' '}</div>
             <div className="tv__cupsub">Turnir veterana · Bijeli Brijeg, Mostar</div>
           </div>
         </div>

@@ -62,6 +62,10 @@
   font-size: 1.67vw;
   letter-spacing: 0.05vw;
   line-height: 1;
+  /* Naziv sada dolazi iz baze, gdje je pisan normalno ("Ponos Hercegovine
+     2026"). Velika slova su dio dizajna semafora, pa ih radi CSS — inače bi
+     izgled ovisio o tome kako je tko upisao naziv u adminu. */
+  text-transform: uppercase;
 }
 
 .tv__cupsub {

@@ -543,7 +543,9 @@ export const strings = {
 
     // Javna prijava ekipe (/prijava — bez logina)
     'regform.title': 'Prijava ekipe',
-    'regform.sub': 'VHMRK Zrinjski Cup — turnir veterana',
+    // Bez naziva turnira: pravi naziv dolazi iz baze (vidi PublicRegistration).
+    // Ovo se vidi samo u sekundi dok se turnir učitava.
+    'regform.sub': 'Turnir veterana',
     'regform.teamName': 'Naziv ekipe',
     'regform.gender': 'Konkurencija',
     'regform.men': 'Muška',
@@ -1146,7 +1148,7 @@ export const strings = {
     'rep.logout': 'Log out',
 
     'regform.title': 'Team registration',
-    'regform.sub': 'VHMRK Zrinjski Cup — veterans tournament',
+    'regform.sub': 'Veterans tournament',
     'regform.teamName': 'Team name',
     'regform.gender': 'Competition',
     'regform.men': "Men's",

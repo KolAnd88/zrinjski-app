@@ -89,7 +89,10 @@ export function Promo() {
     if (!matchId && data.matches.length > 0) setMatchId(data.matches[0]!.id);
   }, [data.matches, matchId]);
 
-  const tournamentName = tournament.tournament?.name ?? 'VHMRK Zrinjski Cup';
+  // Prazno, ne staro ime. Ova slika se dijeli na društvenim mrežama, pa je
+  // bolje da naziv nakratko nedostaje nego da ode van s imenom koje turnir
+  // vise ne nosi.
+  const tournamentName = tournament.tournament?.name ?? '';
 
   const resultOpts = useMemo<ResultCardOpts | null>(() => {
     const m: Match | undefined = data.matches.find((x) => x.id === matchId);

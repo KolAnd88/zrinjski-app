@@ -34,7 +34,10 @@ export function AdminTvScreen() {
       <Lenta />
 
       <View style={styles.top}>
-        <Txt style={styles.cup}>VHMRK ZRINJSKI CUP</Txt>
+        {/* Naziv turnira dolazi iz baze, kao i na početnom zaslonu. Zakucano
+            "VHMRK ZRINJSKI CUP" ostalo je od starog imena, a ovaj se zaslon
+            baca na projektor — krivo ime vidjela bi cijela dvorana. */}
+        <Txt style={styles.cup}>{(d.tournament?.name ?? '').toUpperCase()}</Txt>
         <View style={styles.state}>
           {isLive && <LiveDot />}
           <Txt style={styles.stateTxt}>
