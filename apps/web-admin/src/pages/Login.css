@@ -12,32 +12,75 @@
 /* Dijagonalna lenta — kut, boje i blijeđenje dolaze iz zajedničke definicije
    (packages/ui-tokens/src/lenta.ts), postavljene na :root u main.tsx.
    Ranije je ovdje stajao vlastiti gradijent pod -12°, pa su prijavni zasloni
-   ostali na starom izgledu i nakon što je sve drugo ujednačeno. */
-.login::before {
+   ostali na starom izgledu i nakon što je sve drugo ujednačeno.
+
+   LENTA JE VEZANA ZA NASLOV, ne za prozor.
+   Prije je stajala na `top: 22%` visine zaslona, a naslov je okomito
+   centriran — pa je odnos to dvoje ovisio o visini prozora. Na jednoj
+   visini lenta je prolazila ispod naziva, na drugoj mu je gornji rub
+   presijecao slova ("VH" je izlazilo iznad crte). Ovako sredina lente
+   uvijek pada točno na sredinu naziva.
+
+   Zato je nosač `.login__title`: `translateY(-50%)` spušta lentu za pola
+   njezine visine, pa joj sredina sjedne na sredinu retka. Rotacija ide
+   PRIJE pomaka (transformacije se čitaju zdesna nalijevo), tako da se
+   lenta okrene oko vlastitog središta pa tek onda namjesti. */
+.login__title {
+  position: relative;
+}
+
+.login__title::before {
   content: '';
   position: absolute;
-  left: -40%;
-  right: -40%;
-  top: 22%;
-  height: 150px;
+  /* Puna širina zaslona bez obzira na širinu kartice; `.login` ima
+     `overflow: hidden` pa se višak odreže. */
+  left: -100vw;
+  right: -100vw;
+  top: 50%;
+  /* Debljina je izmjerena, ne pogođena. Pod 30° lenta preko naslova širokog
+     W piksela pada za W·tan30, pa okomiti raspon mora pokriti taj pad plus
+     visinu retka. Debljina h daje raspon h/cos30.
+
+     "VHMRK Zrinjski" je 184 px: pad 106 + redak 41 = 147 px. Zadanih 178 px
+     daje 205 px raspona — naziv stane s ~29 px zraka sa svake strane.
+
+     Duži naslov traži deblju lentu; zato je broj u varijabli, a ne zakucan.
+     Vidi `.login__card` ispod. */
+  height: var(--lenta-visina, 178px);
   background: var(--lenta-grad);
-  transform: rotate(var(--lenta-kut));
+  transform: translateY(-50%) rotate(var(--lenta-kut));
   opacity: 0.82;
   pointer-events: none;
+  /* Iza teksta. Nijedan predak nema pozadinu ni vlastiti slagaći kontekst,
+     pa lenta pada na pozadinu stranice, a naziv ostaje iznad nje. */
+  z-index: -1;
 }
 
 /* Tanka nit iznad lente — ista gesta kao u aplikaciji. */
-.login::after {
+.login__title::after {
   content: '';
   position: absolute;
-  left: -40%;
-  right: -40%;
-  top: calc(22% - 14px);
+  left: -100vw;
+  right: -100vw;
+  top: 50%;
   height: 3px;
+  /* Pola debljine lente plus razmak — nit stoji uz njezin gornji rub, pa se
+     mora pomicati zajedno s debljinom. */
+  transform: translateY(calc(-50% - var(--lenta-visina, 178px) / 2 - 14px))
+    rotate(var(--lenta-kut));
   background: var(--lenta-nit);
-  transform: rotate(var(--lenta-kut));
   opacity: 0.82;
   pointer-events: none;
+  z-index: -1;
+}
+
+/* Registracija predstavnika ima najduži naslov u sustavu — "Otvori račun
+   predstavnika" je 308 px, protiv 184 px koliko ima naziv kluba. Izmjereno:
+   sa zadanih 178 px lente naslov je gornjim lijevim uglom virio 19 px van.
+   Svaki dodatni piksel debljine daje 0,58 px okomitog prostora sa svake
+   strane, pa 240 px vraća naslov unutra s ~35 px zraka. */
+.login__card {
+  --lenta-visina: 240px;
 }
 
 .login__box {
