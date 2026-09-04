@@ -12,6 +12,10 @@
 # U Netlify sučelju za ovaj projekt postavi:
 #   Base directory   = deploy/spectator
 #   (Build command i Publish directory dolaze odavde, ne diraj ih)
+#
+# Base directory MORA ići u sučelje, ne ovamo: Netlify korijenski netlify.toml
+# čita prvi, pa bi `base` upisan ondje pregazio ovu postavku. Zato korijenski
+# netlify.toml više nema `base` — vidi komentar u njemu.
 
 [build]
   command = "cd ../.. && npm ci && npm run build:app && rm -rf deploy/spectator/dist && cp -r apps/mobile/dist deploy/spectator/dist"
@@ -20,7 +24,10 @@
   # Ne troši objavu kad se aplikacija nije promijenila. Netlify naplaćuje 15
   # kredita po produkcijskoj objavi, a commit koji dira samo web admin ovdje
   # ne mijenja ništa. Izlazni kod 0 = preskoči.
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- apps/mobile packages package.json package-lock.json deploy/spectator"
+  # Prazan $CACHED_COMMIT_REF (projekt bez ijedne objave) inače prevari
+  # usporedbu i preskoči prvu objavu — vidi objašnjenje u korijenskom
+  # netlify.toml.
+  ignore = "if [ -z \"$CACHED_COMMIT_REF\" ]; then exit 1; fi; git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- apps/mobile packages package.json package-lock.json deploy/spectator"
 
 [build.environment]
   NODE_VERSION = "20"

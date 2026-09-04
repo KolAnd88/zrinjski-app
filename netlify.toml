@@ -1,15 +1,25 @@
 # Netlify — objava web admina (apps/web-admin) iz monorepa.
 # Build se pokreće iz korijena jer web-admin ovisi o workspace paketima
 # (@zrinjski/core, @zrinjski/ui-tokens) koji se moraju instalirati zajedno.
-#
-# Supabase ključevi se NE drže ovdje — postavljaju se u Netlify sučelju
-# (Site settings → Environment variables): VITE_SUPABASE_URL i VITE_SUPABASE_ANON_KEY.
 
 [build]
-  # Korijen repozitorija, izričito. Bez ovoga Netlify sam pogodi da je projekt u
-  # apps/mobile, pa instalira samo njegove pakete (web-admin ostane bez vite →
-  # "Cannot find type definition file for 'vite/client'") i objavi krivu mapu.
-  base = "."
+  # OVDJE NE SMIJE STAJATI `base`.
+  #
+  # Nekad je stajalo `base = "."`, da Netlify ne pogodi kako je projekt u
+  # apps/mobile. Problem je što Netlify korijenski netlify.toml pročita PRVI,
+  # za SVAKI projekt vezan uz ovaj repozitorij — pa je `base = "."` gazio i
+  # postavku gledateljskog projekta (Base directory = deploy/spectator).
+  # Rezultat: projekt za gledatelje objavio je web admin. Netlify je to i
+  # ispisao u sučelju: "Overridden by netlify.toml. Published deploy built
+  # with '.'".
+  #
+  # Sada svaki projekt svoj korijen određuje u sučelju:
+  #   web admin           → Base directory prazan  (čita ovu datoteku)
+  #   gledateljska app    → deploy/spectator       (čita svoju datoteku)
+  #
+  # Stara opasnost — da Netlify sam pogodi apps/mobile — ne vrijedi više: to
+  # se događalo samo pri uvozu projekta, a naredba i publish mapa ionako su
+  # zapisane ovdje ispod.
   command = "npm run build -w @zrinjski/web-admin"
   publish = "apps/web-admin/dist"
 
@@ -22,14 +32,32 @@
   # Izlazni kod 0 = preskoči objavu. `git diff --quiet` vraća 0 kad razlike
   # NEMA, što je točno željeno ponašanje. Uspoređuje se zadnji objavljeni
   # commit s trenutnim, pa ispravno radi i kad se pushne više commitova odjednom.
-  # Kod prve objave $CACHED_COMMIT_REF je prazan → naredba padne → build ide.
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- apps/web-admin packages package.json package-lock.json netlify.toml"
+  #
+  # Prva provjera nije ukras. Kad projekt još nema objavu, $CACHED_COMMIT_REF
+  # je prazan i naredba se skupi u `git diff --quiet $COMMIT_REF -- putanje`,
+  # što uspoređuje taj commit s radnom kopijom — a ona je upravo s njega
+  # preuzeta. Razlike nema, izlaz 0, i Netlify preskoči PRVU objavu projekta.
+  # Izričit `exit 1` znači: nemam s čim usporediti, gradi.
+  ignore = "if [ -z \"$CACHED_COMMIT_REF\" ]; then exit 1; fi; git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- apps/web-admin packages package.json package-lock.json netlify.toml"
 
 [build.environment]
   NODE_VERSION = "20"
   # Mobilna app (Expo/React Native) nije potrebna za web build, ali je u istom
   # workspaceu. Ako instalacija bude presporo/pukne, ovdje se prelazi na:
   # NPM_FLAGS = "--workspace @zrinjski/web-admin --include-workspace-root"
+
+  # Ključevi stoje ovdje, a ne u Netlify sučelju.
+  #
+  # Prije je pisalo da se postavljaju u sučelju — i nisu bili postavljeni
+  # nigdje. Projekt webadminvhmrkzrinjski nije imao nijednu varijablu, pa bi
+  # prvi build iz gita dao admin koji se ne može spojiti na bazu. Postavka
+  # koja živi samo u sučelju izgubi se čim projekt netko ponovno napravi.
+  #
+  # Anon ključ je javan po dizajnu — isporučuje se u svakom klijentu, već
+  # stoji u eas.json i u deploy/spectator/netlify.toml. Zaštita su RLS
+  # politike, ne skrivanje ključa. Service-role ključ ovdje NE SMIJE doći.
+  VITE_SUPABASE_URL = "https://iymdqfxltwhvngfxkjfy.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5bWRxZnhsdHdodm5nZnhramZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3NDkyNzgsImV4cCI6MjA5NzMyNTI3OH0.FcoKqxH-APXffBuBbyAdtO5qmfQrsCYuLFVHANrU7NA"
 
 # SPA routing — /prijava, /moja-ekipa i ostale rute moraju vraćati index.html,
 # inače Netlify traži datoteku tog imena i vraća 404 kod osvježavanja stranice.
