@@ -4,8 +4,10 @@ import type { Gender, RegistrationPlayer, Tournament } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import {
   fetchActiveTournament,
+  fetchRegistrationSlots,
   RegistrationSubmissionError,
   submitRegistration,
+  type RegistrationSlots,
 } from '../lib/data';
 import { Button } from '../components/ui';
 import { ClubCrest } from '../components/ClubCrest';
@@ -32,6 +34,13 @@ export function PublicRegistration() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  // Koliko je mjesta ostalo po konkurenciji. null = turnir nema ograničenje
+  // ili se brojevi još učitavaju — u oba slučaja obrazac izgleda kao i dosad.
+  const [slots, setSlots] = useState<RegistrationSlots | null>(null);
+  // Ishod slanja: je li prijava ušla u red za odluku ili na listu čekanja.
+  const [outcome, setOutcome] = useState<{ status: 'pending' | 'waitlist'; position: number | null } | null>(
+    null
+  );
 
   useEffect(() => {
     let active = true;
@@ -40,6 +49,13 @@ export function PublicRegistration() {
         if (!active) return;
         setTournament(value);
         setStatusError(!value);
+        // Mjesta se dohvaćaju tek kad znamo turnir. Ako ovo padne, obrazac i
+        // dalje radi — popunjenost se ionako presuđuje na serveru.
+        if (value) {
+          void fetchRegistrationSlots(value.id)
+            .then((s) => active && setSlots(s))
+            .catch(() => undefined);
+        }
       })
       .catch(() => {
         if (active) setStatusError(true);
@@ -76,7 +92,7 @@ export function PublicRegistration() {
       const roster = players
         .filter((p) => p.name.trim())
         .map((p) => ({ name: p.name.trim(), number: p.number }));
-      await submitRegistration({
+      const ishod = await submitRegistration({
         team_name: teamName.trim(),
         gender,
         rep_name: repName.trim(),
@@ -84,6 +100,7 @@ export function PublicRegistration() {
         player_count: roster.length || null,
         players: roster,
       });
+      setOutcome(ishod);
       setDone(true);
     } catch (submissionError) {
       if (submissionError instanceof RegistrationSubmissionError) {
@@ -111,6 +128,7 @@ export function PublicRegistration() {
   }
 
   function resetForm() {
+    setOutcome(null);
     setTeamName('');
     setRepName('');
     setRepEmail('');
@@ -163,8 +181,21 @@ export function PublicRegistration() {
           </div>
         ) : done ? (
           <div className="regform__success">
-            <div className="regform__success-title">{t('regform.successTitle')}</div>
-            <p className="regform__success-body">{t('regform.successBody')}</p>
+            {outcome?.status === 'waitlist' ? (
+              <>
+                <div className="regform__success-title">{t('regform.waitTitle')}</div>
+                <p className="regform__success-body">
+                  {outcome.position
+                    ? t('regform.waitBodyPos', { n: String(outcome.position) })
+                    : t('regform.waitBody')}
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="regform__success-title">{t('regform.successTitle')}</div>
+                <p className="regform__success-body">{t('regform.successBody')}</p>
+              </>
+            )}
             <Button variant="secondary" block onClick={resetForm}>
               {t('regform.another')}
             </Button>
@@ -198,6 +229,7 @@ export function PublicRegistration() {
                   onClick={() => setGender('m')}
                 >
                   {t('regform.men')}
+                  {slots?.m.free === 0 && <span className="regform__gfull">{t('regform.full')}</span>}
                 </button>
                 <button
                   type="button"
@@ -205,8 +237,21 @@ export function PublicRegistration() {
                   onClick={() => setGender('z')}
                 >
                   {t('regform.women')}
+                  {slots?.z.free === 0 && <span className="regform__gfull">{t('regform.full')}</span>}
                 </button>
               </div>
+              {/* Popunjena konkurencija se NE zaključava — prijava i dalje ide,
+                  samo na listu čekanja. Ovdje piše što će se dogoditi, da klub
+                  to sazna prije nego upiše sastav, a ne poslije. */}
+              {slots && slots[gender].cap !== null && (
+                <p className={`regform__slots ${slots[gender].free === 0 ? 'is-full' : ''}`}>
+                  {slots[gender].free === 0
+                    ? slots[gender].waiting > 0
+                      ? t('regform.slotsFullWaiting', { n: String(slots[gender].waiting) })
+                      : t('regform.slotsFull')
+                    : t('regform.slotsFree', { n: String(slots[gender].free) })}
+                </p>
+              )}
             </div>
 
             <div>

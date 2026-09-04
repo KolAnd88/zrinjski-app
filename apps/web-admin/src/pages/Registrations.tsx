@@ -317,6 +317,42 @@ export function Registrations() {
         </div>
       )}
 
+      {/* Lista čekanja — prijave stigle kad je konkurencija već bila puna.
+          Prikazuje se samo kad ih ima; turnir bez ograničenja je nikad nema.
+          Redoslijed je redoslijed dolaska i to je jedino pošteno mjerilo. */}
+      {data.waitlist.length > 0 && (
+        <>
+          <div className="regs__head" style={{ marginTop: 'var(--sp-lg)' }}>
+            <h2 className="section-label">{t('reg.waitTitle')}</h2>
+            <span className="regs__count">{data.waitlist.length}</span>
+          </div>
+          <p className="regs__hint">{t('reg.waitHint')}</p>
+          <div className="regs__wait">
+            {data.waitlist.map((r, i) => (
+              <div key={r.id} className="wait-row">
+                <span className="wait-row__pos">{i + 1}.</span>
+                <div className="wait-row__main">
+                  <span className="wait-row__name">{r.team_name}</span>
+                  <span className="wait-row__meta">
+                    {r.gender === 'm' ? t('regform.men') : t('regform.women')} · {r.rep_name} ·{' '}
+                    {/* Adresa je poveznica jer obavijest o oslobođenom mjestu
+                        organizator šalje ručno — aplikacija ne šalje e-poštu. */}
+                    <a href={`mailto:${r.rep_email}`}>{r.rep_email}</a>
+                  </span>
+                </div>
+                <button
+                  className="btn btn--secondary"
+                  disabled={data.processingId === r.id}
+                  onClick={() => void data.promote(r.id)}
+                >
+                  {data.processingId === r.id ? t('reg.processing') : t('reg.waitPromote')}
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
       <h2 className="section-label" style={{ marginTop: 'var(--sp-lg)' }}>
         {t('reg.approvedTitle')}
       </h2>

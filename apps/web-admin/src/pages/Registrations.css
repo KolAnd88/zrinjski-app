@@ -264,3 +264,79 @@
   width: 64px;
   flex: none;
 }
+
+/* ── Lista čekanja ─────────────────────────────────────────────────────────
+   Redak je namjerno mirniji od kartice prijave: ovo nisu odluke koje se sada
+   donose, nego red koji čeka da se mjesto oslobodi. Broj sprijeda je jedina
+   stvar koja se ističe, jer redoslijed je ovdje cijela informacija. */
+
+.regs__hint {
+  color: var(--sub);
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin: 0 0 var(--sp-md);
+  max-width: 68ch;
+}
+
+.regs__wait {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--line-sub, var(--line));
+  border: 1px solid var(--line-sub, var(--line));
+  border-radius: var(--r-card);
+  overflow: hidden;
+}
+
+.wait-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  background: var(--card);
+  padding: var(--sp-md);
+}
+
+.wait-row__pos {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--mut);
+  min-width: 26px;
+  font-variant-numeric: tabular-nums;
+}
+
+.wait-row__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.wait-row__name {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--txt);
+}
+
+/* Ime, predstavnik i adresa u jednom retku — kad ih ima nekoliko, sve stane
+   na ekran bez skrolanja. Preduga adresa se lomi umjesto da razvuče redak. */
+.wait-row__meta {
+  font-size: 13px;
+  color: var(--sub);
+  overflow-wrap: anywhere;
+}
+
+.wait-row__meta a {
+  color: var(--blue);
+}
+
+@media (max-width: 620px) {
+  .wait-row {
+    flex-wrap: wrap;
+  }
+  .wait-row .btn {
+    margin-left: auto;
+  }
+}

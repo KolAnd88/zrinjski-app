@@ -1219,11 +1219,42 @@ export type PublicRegistrationInput = {
   players: RegistrationPlayer[];
 };
 
+/** Stanje mjesta u jednoj konkurenciji. `cap`/`free` su null kad nema granice. */
+export type GenderSlots = {
+  cap: number | null;
+  /** Ekipe u turniru + prijave koje čekaju odluku. */
+  taken: number;
+  /** Koliko ih je na listi čekanja. */
+  waiting: number;
+  free: number | null;
+};
+export type RegistrationSlots = Record<Gender, GenderSlots>;
+
+/**
+ * Koliko je mjesta ostalo po konkurenciji.
+ *
+ * Ide kroz RPC jer anonimni korisnik ne smije čitati `registration` — ondje su
+ * tuđa imena i adrese. Funkcija vraća isključivo brojeve.
+ */
+export async function fetchRegistrationSlots(tournamentId: string): Promise<RegistrationSlots | null> {
+  if (DEMO) return null;
+  const { data, error } = await client().rpc('registration_slots', { p_tournament_id: tournamentId });
+  if (error) throw error;
+  return (data as RegistrationSlots) ?? null;
+}
+
+/** Ishod prijave — je li ušla u red za odluku ili na listu čekanja. */
+export type RegistrationOutcome = {
+  status: 'pending' | 'waitlist';
+  /** Mjesto u redu čekanja, samo kad je `status === 'waitlist'`. */
+  position: number | null;
+};
+
 /**
  * Javna prijava bez logina. Upis ide kroz RPC koji na serveru provjerava
- * otvorenost prijava, rok, duplikate, sadržaj i osnovni rate-limit.
+ * otvorenost prijava, rok, duplikate, sadržaj, rate-limit i popunjenost.
  */
-export async function submitRegistration(input: PublicRegistrationInput): Promise<void> {
+export async function submitRegistration(input: PublicRegistrationInput): Promise<RegistrationOutcome> {
   const t = await fetchActiveTournament();
   if (!t) throw new RegistrationSubmissionError('unavailable');
   if (DEMO) {
@@ -1254,9 +1285,9 @@ export async function submitRegistration(input: PublicRegistrationInput): Promis
       processed_by: null,
       created_at: new Date().toISOString(),
     });
-    return;
+    return { status: 'pending', position: null };
   }
-  const { error } = await client().rpc('submit_registration', {
+  const { data, error } = await client().rpc('submit_registration', {
     p_tournament_id: t.id,
     p_team_name: input.team_name,
     p_gender: input.gender,
@@ -1265,7 +1296,13 @@ export async function submitRegistration(input: PublicRegistrationInput): Promis
     p_player_count: input.player_count,
     p_players: input.players,
   });
-  if (!error) return;
+  if (!error) {
+    const out = data as { status?: string; position?: number | null } | null;
+    return {
+      status: out?.status === 'waitlist' ? 'waitlist' : 'pending',
+      position: out?.position ?? null,
+    };
+  }
 
   const message = error.message.toLowerCase();
   if (message.includes('registration_closed')) throw new RegistrationSubmissionError('closed');
@@ -1353,6 +1390,24 @@ export async function rejectRegistration(id: string): Promise<void> {
     return;
   }
   const { error } = await client().rpc('reject_registration', { p_registration_id: id });
+  if (error) throw error;
+}
+
+/**
+ * Prijava s liste čekanja ulazi u red za odluku.
+ *
+ * Namjerno NE odobrava odmah: odobrenje stvara ekipu i prepisuje sastav, pa
+ * ostaje zaseban korak koji organizator radi svjesno.
+ */
+export async function waitlistToPending(id: string): Promise<void> {
+  if (DEMO) {
+    const reg = db.registrations.find((r) => r.id === id);
+    if (!reg) throw new Error('Prijava nije pronađena.');
+    if (reg.status !== 'waitlist') throw new Error('Prijava nije na listi čekanja.');
+    patch(db.registrations, id, { status: 'pending' });
+    return;
+  }
+  const { error } = await client().rpc('waitlist_to_pending', { p_registration_id: id });
   if (error) throw error;
 }
 

@@ -196,6 +196,13 @@ export const strings = {
     'tournament.draw': 'Neriješeno',
     'tournament.loss': 'Poraz',
     'tournament.advance': 'Prolaze iz grupe',
+    // Granica broja ekipa. Turnir se igra na jednom terenu, pa broj ekipa
+    // odreduje satnicu — nije zelja nego racunica.
+    'tournament.caps': 'Najviše ekipa',
+    'tournament.capM': 'Muška konkurencija',
+    'tournament.capZ': 'Ženska konkurencija',
+    'tournament.capsHint':
+      'Ostavi prazno za neograničeno. Kad se konkurencija popuni, prijave se i dalje primaju, ali idu na listu čekanja — mjesto se broji svaki put iznova, pa odbijanjem prijave odmah oslobodiš mjesto.',
     'tournament.days': 'Dani turnira',
     'tournament.startPerDay': 'početak po danu',
     'tournament.firstMatch': 'prva utakmica',
@@ -566,6 +573,18 @@ export const strings = {
     'regform.successBody':
       'Hvala! Organizator će pregledati prijavu i javiti se na navedeni e-mail.',
     'regform.another': 'Prijavi još jednu ekipu',
+    // Popunjenost i lista čekanja. Broj mjesta se piše prije nego klub upiše
+    // sastav — da ne uloži trud pa tek onda dozna da mjesta nema.
+    'regform.full': 'popunjeno',
+    'regform.slotsFree': 'Preostalo mjesta: {n}',
+    'regform.slotsFull': 'Konkurencija je popunjena — prijava ide na listu čekanja.',
+    'regform.slotsFullWaiting':
+      'Konkurencija je popunjena — prijava ide na listu čekanja, na kojoj je već {n}.',
+    'regform.waitTitle': 'Na listi ste čekanja ⏳',
+    'regform.waitBody':
+      'Konkurencija je popunjena, pa je prijava zaprimljena na listu čekanja. Javit ćemo se ako se mjesto oslobodi. Sastav ne moraš upisivati sada.',
+    'regform.waitBodyPos':
+      'Konkurencija je popunjena, pa je prijava zaprimljena kao {n}. na listi čekanja. Javit ćemo se ako se mjesto oslobodi. Sastav ne moraš upisivati sada.',
     'regform.errRequired': 'Ispuni naziv ekipe, ime predstavnika i e-mail.',
     'regform.errEmail': 'E-mail adresa ne izgleda ispravno.',
     'regform.errSend': 'Slanje nije uspjelo — pokušaj ponovno.',
@@ -586,6 +605,11 @@ export const strings = {
     // Prijave
     'reg.pendingTitle': 'Čekaju odobrenje',
     'reg.approvedTitle': 'Odobrene ekipe',
+    // Lista cekanja: prijave koje su stigle kad je konkurencija vec bila puna.
+    'reg.waitTitle': 'Lista čekanja',
+    'reg.waitHint':
+      'Prijave stigle kad je konkurencija bila popunjena, redom kojim su stigle. Kad se mjesto oslobodi, prebaci prvu u red za odluku — i javi klubu na njegovu adresu.',
+    'reg.waitPromote': 'Prebaci u prijave',
     'reg.players': 'igrača',
     'reg.rosterEmpty': 'Klub nije upisao nijednog igrača. Možeš ih dodati ovdje.',
     'reg.addPlayer': '+ Dodaj',
@@ -821,6 +845,11 @@ export const strings = {
     'tournament.draw': 'Draw',
     'tournament.loss': 'Loss',
     'tournament.advance': 'Advance per group',
+    'tournament.caps': 'Team limit',
+    'tournament.capM': "Men's category",
+    'tournament.capZ': "Women's category",
+    'tournament.capsHint':
+      'Leave empty for no limit. Once a category is full, entries are still accepted but go on the waiting list — places are counted live, so rejecting an entry frees a place immediately.',
     'tournament.days': 'Tournament days',
     'tournament.startPerDay': 'start per day',
     'tournament.firstMatch': 'first match',
@@ -1168,6 +1197,16 @@ export const strings = {
     'regform.successTitle': 'Registration received! 🤝',
     'regform.successBody': 'Thank you! The organizer will review it and reply to the given e-mail.',
     'regform.another': 'Register another team',
+    'regform.full': 'full',
+    'regform.slotsFree': 'Places left: {n}',
+    'regform.slotsFull': 'This category is full — your entry goes on the waiting list.',
+    'regform.slotsFullWaiting':
+      'This category is full — your entry goes on the waiting list, where {n} are already waiting.',
+    'regform.waitTitle': "You're on the waiting list ⏳",
+    'regform.waitBody':
+      'The category is full, so your entry was added to the waiting list. We will get in touch if a place opens up. No need to enter the roster now.',
+    'regform.waitBodyPos':
+      'The category is full, so your entry was added as number {n} on the waiting list. We will get in touch if a place opens up. No need to enter the roster now.',
     'regform.errRequired': 'Fill in team name, representative name and e-mail.',
     'regform.errEmail': 'The e-mail address does not look valid.',
     'regform.errSend': 'Sending failed — please try again.',
@@ -1188,6 +1227,10 @@ export const strings = {
 
     'reg.pendingTitle': 'Awaiting approval',
     'reg.approvedTitle': 'Approved teams',
+    'reg.waitTitle': 'Waiting list',
+    'reg.waitHint':
+      'Entries received while the category was full, in arrival order. When a place opens up, move the first one into the decision queue — and let the club know at their address.',
+    'reg.waitPromote': 'Move to entries',
     'reg.players': 'players',
     'reg.rosterEmpty': 'The club submitted no players. You can add them here.',
     'reg.addPlayer': '+ Add',

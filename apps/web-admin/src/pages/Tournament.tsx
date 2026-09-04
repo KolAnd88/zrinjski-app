@@ -18,6 +18,9 @@ type SettingsDraft = {
   points_draw: number;
   points_loss: number;
   advance_per_group: number;
+  /** null = bez ograničenja broja ekipa. */
+  max_teams_m: number | null;
+  max_teams_z: number | null;
   rules: string;
   format: string;
   about_club: string;
@@ -69,6 +72,56 @@ function NumberField({
         />
         {suffix && <span className="input-affix">{suffix}</span>}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Broj koji smije biti i prazan.
+ *
+ * `NumberField` iznad uvijek vraća broj, pa se njime ne može izraziti „bez
+ * ograničenja" — a upravo to je zadana postavka za najveći broj ekipa. Prazno
+ * polje ovdje znači `null`, i to je smisleno stanje, ne greška.
+ */
+function OptionalNumberField({
+  label,
+  hint,
+  value,
+  min = 1,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  value: number | null;
+  min?: number;
+  onChange: (v: number | null) => void;
+}) {
+  const [local, setLocal] = useState(value === null ? '' : String(value));
+  useEffect(() => setLocal(value === null ? '' : String(value)), [value]);
+
+  return (
+    <div className="numfield">
+      <label className="field-label">{label}</label>
+      <div className="input-wrap">
+        <input
+          className="input numfield__input"
+          type="number"
+          min={min}
+          value={local}
+          onChange={(e) => {
+            const raw = e.target.value;
+            setLocal(raw);
+            if (raw.trim() === '') {
+              onChange(null);
+              return;
+            }
+            const n = Number(raw);
+            if (Number.isFinite(n) && n >= min) onChange(n);
+          }}
+          onBlur={() => setLocal(value === null ? '' : String(value))}
+        />
+      </div>
+      {hint && <p className="tour__hint">{hint}</p>}
     </div>
   );
 }
@@ -196,6 +249,8 @@ function SettingsForm({
       points_draw: tr.points_draw,
       points_loss: tr.points_loss,
       advance_per_group: tr.advance_per_group,
+      max_teams_m: tr.max_teams_m,
+      max_teams_z: tr.max_teams_z,
       rules: tr.rules ?? '',
       format: tr.format ?? '',
       about_club: tr.about_club ?? '',
@@ -310,6 +365,25 @@ function SettingsForm({
             onChange={(v) => draft.set('advance_per_group', v)}
           />
         </div>
+      </Card>
+
+      <Card>
+        <h2 className="section-label" style={{ marginBottom: 'var(--sp-md)' }}>
+          {t('tournament.caps')}
+        </h2>
+        <div className="grid-2">
+          <OptionalNumberField
+            label={t('tournament.capM')}
+            value={draft.value.max_teams_m}
+            onChange={(v) => draft.set('max_teams_m', v)}
+          />
+          <OptionalNumberField
+            label={t('tournament.capZ')}
+            value={draft.value.max_teams_z}
+            onChange={(v) => draft.set('max_teams_z', v)}
+          />
+        </div>
+        <p className="tour__hint">{t('tournament.capsHint')}</p>
       </Card>
 
       <Card>

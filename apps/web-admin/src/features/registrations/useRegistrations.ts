@@ -6,6 +6,7 @@ import {
   fetchRegistrations,
   rejectRegistration,
   updateRegistrationPlayers,
+  waitlistToPending,
 } from '../../lib/data';
 import { autoShortCode } from '../../lib/crest';
 
@@ -15,10 +16,14 @@ export type RegistrationsData = {
   error: string | null;
   pending: Registration[];
   approved: Registration[];
+  /** Prijave stigle kad je konkurencija bila puna, redom kojim su stigle. */
+  waitlist: Registration[];
   processingId: string | null;
   /** Odobri prijavu atomski: ekipa + igrači + status u jednoj transakciji. */
   approve: (reg: Registration) => Promise<void>;
   reject: (id: string) => Promise<void>;
+  /** S liste čekanja u red za odluku. Odobrenje ostaje zaseban, svjestan korak. */
+  promote: (id: string) => Promise<void>;
   /** Promijeni sastav u prijavi koja jos ceka odobrenje. */
   saveRoster: (id: string, players: RegistrationPlayer[]) => Promise<void>;
 };
@@ -94,6 +99,19 @@ export function useRegistrations(tournamentId: string | null): RegistrationsData
     }
   }, []);
 
+  const promote = useCallback(async (id: string) => {
+    setProcessingId(id);
+    setError(null);
+    try {
+      await waitlistToPending(id);
+      setItems((xs) => xs.map((r) => (r.id === id ? { ...r, status: 'pending' } : r)));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setProcessingId(null);
+    }
+  }, []);
+
   const saveRoster = useCallback(async (id: string, players: RegistrationPlayer[]) => {
     await updateRegistrationPlayers(id, players);
     setItems((xs) =>
@@ -107,9 +125,14 @@ export function useRegistrations(tournamentId: string | null): RegistrationsData
     error,
     pending: items.filter((r) => r.status === 'pending'),
     approved: items.filter((r) => r.status === 'approved'),
+    // Red je bitan: tko je prije stigao, prvi je na redu kad se mjesto oslobodi.
+    waitlist: items
+      .filter((r) => r.status === 'waitlist')
+      .sort((a, b) => a.created_at.localeCompare(b.created_at)),
     processingId,
     approve,
     reject,
+    promote,
     saveRoster,
   };
 }

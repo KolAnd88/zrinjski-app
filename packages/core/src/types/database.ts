@@ -20,7 +20,11 @@ export type MatchStatus = 'scheduled' | 'live' | 'finished';
 export type EventType = 'goal' | 'save' | 'red_card' | 'suspension_2min';
 export type SponsorTier = 'gold' | 'silver' | 'bronze' | 'partner';
 export type LocationType = 'hall' | 'tent' | 'dinner' | 'hotel' | 'other';
-export type RegistrationStatus = 'pending' | 'approved' | 'rejected';
+/**
+ * `waitlist` — konkurencija je bila popunjena kad je prijava stigla. Čeka da se
+ * mjesto oslobodi; organizator je prebacuje u `pending` ručno.
+ */
+export type RegistrationStatus = 'pending' | 'approved' | 'rejected' | 'waitlist';
 export type NotificationType =
   | 'team_playing_soon'
   | 'team_goal'
@@ -63,6 +67,9 @@ export type Database = {
           points_draw: number;
           points_loss: number;
           advance_per_group: number;
+          /** Najviše ekipa po konkurenciji; null = bez ograničenja. */
+          max_teams_m: number | null;
+          max_teams_z: number | null;
           reminder_prefs: ReminderPrefs;
           registration_open: boolean;
           registration_deadline: string | null;
@@ -92,6 +99,8 @@ export type Database = {
           points_draw?: number;
           points_loss?: number;
           advance_per_group?: number;
+          max_teams_m?: number | null;
+          max_teams_z?: number | null;
           reminder_prefs?: ReminderPrefs;
           registration_open?: boolean;
           registration_deadline?: string | null;
@@ -534,7 +543,20 @@ export type Database = {
           p_player_count?: number | null;
           p_players?: RegistrationPlayer[];
         };
-        Returns: string;
+        /** { id, status: 'pending' | 'waitlist', position: number | null } */
+        Returns: { id: string; status: string; position: number | null };
+      };
+      /** Slobodna mjesta po konkurenciji. Vraća samo brojeve — bez tuđih podataka. */
+      registration_slots: {
+        Args: { p_tournament_id: string };
+        Returns: Record<
+          Gender,
+          { cap: number | null; taken: number; waiting: number; free: number | null }
+        >;
+      };
+      waitlist_to_pending: {
+        Args: { p_registration_id: string };
+        Returns: void;
       };
       approve_registration: {
         Args: { p_registration_id: string; p_short_code?: string | null };

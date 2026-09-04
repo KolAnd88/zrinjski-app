@@ -38,6 +38,33 @@
   color: #fff;
 }
 
+/* Oznaka „popunjeno" u samom gumbu konkurencije. Gumb ostaje pritisnut —
+   prijava se prima i dalje, samo na listu čekanja. */
+.regform__gfull {
+  display: block;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  opacity: 0.75;
+  margin-top: 2px;
+}
+
+/* Brojač mjesta ispod odabira konkurencije. */
+.regform__slots {
+  margin: var(--sp-sm) 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--sub);
+}
+/* Kad je puno, poruka nosi informaciju koja mijenja odluku — pa se vidi. */
+.regform__slots.is-full {
+  color: var(--txt);
+  border-left: 2px solid var(--red);
+  padding-left: 10px;
+}
+
 .regform__count {
   max-width: 180px;
 }
