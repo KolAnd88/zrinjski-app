@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { useT } from '../i18n/I18nProvider';
 import { Button } from '../components/ui';
+import { ClubCrest } from '../components/ClubCrest';
 import './Login.css';
 
 /**
@@ -46,7 +47,7 @@ export function Signup() {
       <div className="login">
         <div className="login__card">
           <div className="login__brand">
-            <span className="crest login__crest">ZRI</span>
+            <ClubCrest className="login__crest" />
             <span className="login__brandname">{t('appName')}</span>
           </div>
           <h1 className="login__title">{t('signup.checkMailTitle')}</h1>
@@ -63,7 +64,7 @@ export function Signup() {
     <div className="login">
       <div className="login__card">
         <div className="login__brand">
-          <span className="crest login__crest">ZRI</span>
+          <ClubCrest className="login__crest" />
           <span className="login__brandname">{t('appName')}</span>
         </div>
 

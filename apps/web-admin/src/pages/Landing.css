@@ -17,17 +17,11 @@
   gap: var(--sp-md);
 }
 
+/* Grb kluba — vidi ClubCrest.tsx. Crveni gradijent je otpao s kraticom. */
 .landing__logo {
-  width: 56px;
-  height: 56px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  background: linear-gradient(135deg, var(--red-dk, #9c0c18), var(--red));
-  color: #fff;
-  font-family: var(--font-head);
-  font-size: 18px;
-  letter-spacing: 1px;
+  width: 62px;
+  height: 62px;
+  flex: none;
 }
 
 .landing__name {

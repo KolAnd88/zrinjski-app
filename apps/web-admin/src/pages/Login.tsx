@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthProvider';
 import { useT } from '../i18n/I18nProvider';
 import { DEMO } from '../lib/supabase';
 import { Button } from '../components/ui';
+import { ClubCrest } from '../components/ClubCrest';
 import './Login.css';
 
 /**
@@ -58,7 +59,7 @@ export function Login({ mode = 'staff' }: { mode?: 'staff' | 'club' }) {
     <div className="login">
       <form className="login__box" onSubmit={handleSubmit}>
         <div className="login__brand">
-          <div className="login__logo">ZRI</div>
+          <ClubCrest className="login__logo" />
           <div className="login__title">{t('appName')}</div>
           <div className="login__subtitle">{t(club ? 'login.clubTitle' : 'login.title')}</div>
         </div>

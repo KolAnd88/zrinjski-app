@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import { fetchEnterableMatches } from '../lib/data';
 import { useLiveMatch } from '../features/live/useLiveMatch';
 import { Crest } from '../components/ui';
+import { ClubCrest } from '../components/ClubCrest';
 import { isoToLocalHHMM } from '../lib/timeFormat';
 import './Tv.css';
 
@@ -108,7 +109,7 @@ export function Tv() {
       {/* Zaglavlje */}
       <header className="tv__top">
         <div className="tv__brand">
-          <div className="tv__logo">ZC</div>
+          <ClubCrest className="tv__logo" />
           {/* Tvrdi razmak dok se naziv učitava: prazan div se skupi na nultu
               visinu i podnaslov poskoči. Velika slova radi CSS, pa naziv
               izgleda isto kako god ga tko upiše u adminu. */}

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useT } from '../i18n/I18nProvider';
+import { ClubCrest } from '../components/ClubCrest';
 import './Landing.css';
 
 /**
@@ -16,7 +17,7 @@ export function Landing() {
   return (
     <div className="landing">
       <div className="landing__brand">
-        <div className="landing__logo">ZRI</div>
+        <ClubCrest className="landing__logo" />
         <div>
           <div className="landing__name">{t('appName')}</div>
           <div className="landing__sub">{t('landing.subtitle')}</div>

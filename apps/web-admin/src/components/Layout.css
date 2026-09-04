@@ -21,17 +21,13 @@
   gap: var(--sp-md);
   padding: var(--sp-sm) var(--sp-sm) var(--sp-lg);
 }
+/* Grb kluba umjesto crvenog kvadratića s kraticom — vidi ClubCrest.tsx.
+   Malo veći od prijašnjih 36 px jer grb ima vlastiti unutarnji rub, pa bi
+   na istoj mjeri djelovao sitnije od teksta koji je zamijenio. */
 .sidebar__logo {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--r-chip);
-  background: var(--red);
-  display: grid;
-  place-items: center;
-  font-family: var(--font-head);
-  font-weight: 700;
-  color: #fff;
-  font-size: 13px;
+  width: 42px;
+  height: 42px;
+  flex: none;
 }
 .sidebar__name {
   font-family: var(--font-head);

@@ -53,18 +53,30 @@
   text-align: center;
   margin-bottom: var(--sp-sm);
 }
+/* Grb, ne kvadratić s kraticom. Podloga, zaobljenje i slova su otpali s
+   tekstom "ZRI" — grb je prozirni PNG i sam nosi oblik i boju. Ostaje samo
+   okvir u koji se uklapa. Vidi components/ClubCrest.tsx. */
 .login__logo {
-  width: 84px;
-  height: 84px;
-  border-radius: 18px;
-  background: var(--red);
-  display: grid;
-  place-items: center;
+  width: 92px;
+  height: 92px;
   margin: 0 auto var(--sp-md);
-  font-family: var(--font-head);
-  font-weight: 700;
-  color: #fff;
-  font-size: 26px;
+}
+
+/* Grb u redu s nazivom (registracija predstavnika) — manji, uz tekst.
+   Prije je ovdje stajao razred `.crest`, koji nema svoju veličinu: sa
+   slikom umjesto slova okvir bi se skupio na ništa.
+
+   Dva razreda u selektoru nisu slučajna: `.login__brand` je ovdje običan
+   blok s `text-align: center`, pa se grb i naziv slažu u isti redak samo
+   dok je grb u tekstualnom toku. `.grb` ga postavlja na `block` (što treba
+   svugdje drugdje), a ovo mora nadjačati — s jednim razredom bi ovisilo o
+   redoslijedu učitavanja CSS-a. */
+.grb.login__crest {
+  display: inline-block;
+  vertical-align: middle;
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
 }
 .login__title {
   font-family: var(--font-head);

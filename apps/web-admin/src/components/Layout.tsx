@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { useT } from '../i18n/I18nProvider';
 import type { StringKey } from '../i18n/strings';
+import { ClubCrest } from './ClubCrest';
 import './Layout.css';
 
 const NAV: { to: string; key: StringKey }[] = [
@@ -48,7 +49,7 @@ export function Layout({ title }: { title: StringKey }) {
     <div className="shell">
       <aside className="sidebar">
         <div className="sidebar__brand">
-          <div className="sidebar__logo">ZRI</div>
+          <ClubCrest className="sidebar__logo" />
           <div>
             <div className="sidebar__name">{t('appName')}</div>
             <div className="sidebar__sub">{t('webAdmin')}</div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Image, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useT } from '../i18n/I18nProvider';
@@ -68,9 +68,9 @@ export function AdminLoginScreen() {
   return (
     <Screen>
       <View style={styles.brand}>
-        <View style={styles.logo}>
-          <Txt style={styles.logoTxt}>ZRI</Txt>
-        </View>
+        {/* Grb kluba, isti kao na početnom zaslonu — prije je ovdje bio
+            crveni kvadratić s kraticom "ZRI". */}
+        <Image source={require('../../assets/crest.png')} style={styles.logo} resizeMode="contain" />
         <Txt variant="h1" style={{ textAlign: 'center' }}>
           {t('appName')}
         </Txt>
@@ -143,16 +143,10 @@ export function AdminLoginScreen() {
 
 const styles = StyleSheet.create({
   brand: { alignItems: 'center', marginTop: S.xl, marginBottom: S.xl },
-  logo: {
-    width: 76,
-    height: 76,
-    borderRadius: 18,
-    backgroundColor: C.red,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: S.md,
-  },
-  logoTxt: { fontFamily: F.head, color: '#fff', fontSize: 24 },
+  // Grb sam nosi oblik i boju: podloga, zaobljenje i slova otpali su s
+  // kraticom. Mrvicu veći od prijašnjih 76 jer grb ima vlastiti unutarnji
+  // rub, pa bi na istoj mjeri djelovao sitnije.
+  logo: { width: 86, height: 86, marginBottom: S.md },
   lbl: { marginBottom: S.sm, marginTop: S.md },
   link: { minHeight: 44, justifyContent: 'center', marginTop: 4 },
   errBox: {

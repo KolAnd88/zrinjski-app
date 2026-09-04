@@ -8,6 +8,7 @@ import {
   submitRegistration,
 } from '../lib/data';
 import { Button } from '../components/ui';
+import { ClubCrest } from '../components/ClubCrest';
 import './Login.css';
 import './PublicRegistration.css';
 
@@ -137,7 +138,7 @@ export function PublicRegistration() {
     <div className="login regform">
       <div className="login__box">
         <div className="login__brand">
-          <div className="login__logo">ZRI</div>
+          <ClubCrest className="login__logo" />
           <div className="login__title">{t('regform.title')}</div>
           {/* Naziv turnira dolazi IZ BAZE, ne iz prijevoda. Ovdje je stajalo
               zakucano "VHMRK Zrinjski Cup", a turnir se zove "Ponos

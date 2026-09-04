@@ -1,0 +1,14 @@
+/* ClubCrest.css — grb se uklapa u okvir koji mu zada mjesto uporabe.
+   `width`/`height` u atributima drže omjer dok se slika učitava, pa naslov
+   pored njega ne poskoči; `contain` jamči da se grb nikad ne obreže. */
+
+.grb {
+  display: block;
+  object-fit: contain;
+  /* Bez ovoga bi atributi width/height 256 nadjačali veličinu iz razreda. */
+  width: 100%;
+  height: 100%;
+  /* Grb je prozirni PNG na tamnoj podlozi — bez podloge, bez ruba, bez
+     zaobljenja. Sve to je nosio stari crveni kvadratić s kraticom. */
+  user-select: none;
+}

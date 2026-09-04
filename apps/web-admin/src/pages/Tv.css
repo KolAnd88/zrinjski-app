@@ -42,18 +42,13 @@
   gap: 0.94vw;
 }
 
+/* Grb kluba — vidi ClubCrest.tsx. Ovdje je stajao crveni kvadratić s "ZC",
+   od starog imena turnira; crvena sjena pod grbom izgleda kao greška, pa je
+   otpala zajedno s podlogom. */
 .tv__logo {
-  width: 3.33vw;
-  height: 3.33vw;
-  border-radius: 0.83vw;
-  background: linear-gradient(150deg, var(--red), var(--red-dk));
-  display: grid;
-  place-items: center;
-  font-family: var(--font-head);
-  font-weight: 700;
-  font-size: 1.25vw;
-  color: #fff;
-  box-shadow: 0 10px 30px -8px rgba(225, 29, 42, 0.6);
+  width: 4.2vw;
+  height: 4.2vw;
+  flex: none;
 }
 
 .tv__cup {
