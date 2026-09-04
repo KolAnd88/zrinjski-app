@@ -77,7 +77,7 @@ export function TeamScreen() {
         // Ranije su ovdje stajali samo odigrano i pobjede, pa se iz kartice
         // nije vidjelo kako je ekipa dosla do bodova.
         { value: String(standing.wins), label: t('standings.w'), color: standing.wins ? C.green : C.mut },
-        { value: String(standing.draws), label: t('standings.d'), color: standing.draws ? C.goldTxt : C.mut },
+        { value: String(standing.draws), label: t('standings.d'), color: standing.draws ? C.txt2 : C.mut },
         { value: String(standing.losses), label: t('standings.l'), color: standing.losses ? C.redLt : C.mut },
         {
           value: standing.goalDiff > 0 ? `+${standing.goalDiff}` : String(standing.goalDiff),

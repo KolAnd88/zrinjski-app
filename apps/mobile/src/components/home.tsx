@@ -5,6 +5,7 @@ import { Animated, Easing, Image, Platform, StyleSheet, View } from 'react-nativ
 import { LENTA } from '@zrinjski/ui-tokens';
 import { C, F, R, SP } from '../theme';
 import { Txt } from './base';
+import { useAppFrame } from './WebFrame';
 import { Lenta } from './lenta';
 
 /**
@@ -94,13 +95,23 @@ export function SponsorMarquee({
 }) {
   const x = useRef(new Animated.Value(0)).current;
   const { w, h, border } = MARQUEE_SIZE[tier];
+  const okvir = useAppFrame();
   // Širinu jedne kopije znamo unaprijed. Mjerenje kroz onLayout vraćalo je
   // širinu spremnika (koji je uži od sadržaja), pa se traka pomicala
   // premalo ili nikako.
   const half = sponsors.length * (w + TILE_GAP);
 
+  /**
+   * Vrti se samo ako ima sto kliziti.
+   *
+   * S jednim sponzorom se traka i dalje pomicala, a kako se popis udvostrucuje
+   * radi neprekinutog kruga, isti logo se vidio DVAPUT. Izgledalo je kao greska
+   * u podacima. Kad sve stane u sirinu, prikaz je miran i bez kopije.
+   */
+  const staje = half > 0 && half <= okvir.w;
+
   useEffect(() => {
-    if (half <= 0) return;
+    if (half <= 0 || staje) return;
     x.setValue(0);
     const loop = Animated.loop(
       Animated.timing(x, {
@@ -113,15 +124,21 @@ export function SponsorMarquee({
     );
     loop.start();
     return () => loop.stop();
-  }, [half, x]);
+  }, [half, staje, x]);
 
   if (sponsors.length === 0) return null;
-  const doubled = [...sponsors, ...sponsors];
+  // Druga kopija sluzi samo neprekinutom krugu; kad se ne vrti, nije potrebna.
+  const doubled = staje ? sponsors : [...sponsors, ...sponsors];
 
   return (
     <View style={styles.mqMask}>
       <Animated.View
-        style={[styles.mqTrack, { width: half * 2, transform: [{ translateX: x }] }]}
+        style={[
+          styles.mqTrack,
+          staje
+            ? { justifyContent: 'center' }
+            : { width: half * 2, transform: [{ translateX: x }] },
+        ]}
       >
         {doubled.map((sp, i) => (
           <View

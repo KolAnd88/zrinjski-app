@@ -145,7 +145,10 @@ export function StandingsScreen() {
                     odigrano i gol-razliku, pa se iz nje nije vidjelo KAKO je
                     ekipa dosla do bodova. */}
                 <Txt style={[styles.hCell, styles.cWdl, { color: C.green }]}>{t('standings.w')}</Txt>
-                <Txt style={[styles.hCell, styles.cWdl, { color: C.goldTxt }]}>{t('standings.d')}</Txt>
+                {/* Nerijeseno je NEUTRALNO, ne zlatno: DIZAJN.md cuva zlatnu za
+                    finale i zlatnog sponzora. Sivo je i tocnije — nerijeseno
+                    nije ni pobjeda ni poraz. */}
+                <Txt style={[styles.hCell, styles.cWdl, { color: C.sub }]}>{t('standings.d')}</Txt>
                 <Txt style={[styles.hCell, styles.cWdl, { color: C.redLt }]}>{t('standings.l')}</Txt>
                 <Txt style={[styles.hCell, styles.cGd]}>{t('standings.gd')}</Txt>
                 <Txt style={[styles.hCell, styles.cPts, { color: C.sub }]}>{t('standings.pts')}</Txt>
@@ -181,7 +184,7 @@ export function StandingsScreen() {
                     {/* Nula se prigusuje: tablica se cita brze kad se vide samo
                         brojevi koji postoje. */}
                     <Txt style={[styles.num, styles.cWdl, { color: r.wins ? C.green : C.navOff }]}>{r.wins}</Txt>
-                    <Txt style={[styles.num, styles.cWdl, { color: r.draws ? C.goldTxt : C.navOff }]}>{r.draws}</Txt>
+                    <Txt style={[styles.num, styles.cWdl, { color: r.draws ? C.txt2 : C.navOff }]}>{r.draws}</Txt>
                     <Txt style={[styles.num, styles.cWdl, { color: r.losses ? C.redLt : C.navOff }]}>{r.losses}</Txt>
                     <View style={styles.cGd}>
                       <Txt style={[styles.gdChip, gdStyle(r.goalDiff)]}>
