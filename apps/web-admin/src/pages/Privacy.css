@@ -1,0 +1,84 @@
+/* Privacy.css — javna stranica s politikom privatnosti.
+   Dokument, ne sučelje: širina reda ograničena radi čitanja, bez ukrasa. */
+
+.priv {
+  min-height: 100vh;
+  padding: var(--sp-xl) var(--sp-lg);
+  display: flex;
+  justify-content: center;
+}
+
+.priv__box {
+  width: 100%;
+  max-width: 720px;
+}
+
+.priv__h1 {
+  font-family: var(--font-head);
+  font-size: 30px;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.priv__meta {
+  color: var(--mut);
+  font-size: 13px;
+  margin: 6px 0 var(--sp-xl);
+}
+
+/* Uvod nosi ono najvažnije — bez oglasa, bez praćenja — pa je istaknut. */
+.priv__lead {
+  color: var(--txt);
+  font-size: 15px;
+  line-height: 1.7;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--red);
+  border-radius: var(--r-card);
+  padding: var(--sp-lg);
+  margin: 0 0 var(--sp-xl);
+}
+
+.priv__sec {
+  margin-bottom: var(--sp-xl);
+}
+
+.priv__h2 {
+  font-family: var(--font-head);
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--sub);
+  margin: 0 0 var(--sp-sm);
+}
+
+/* Namjerno između --txt i --sub: ovo je dug tekst za čitanje, a puna bjelina
+   na crnoj podlozi u dugim odlomcima zamara. Nije token jer ga koristi samo
+   ova stranica — jedina u adminu koja je dokument, a ne sučelje. */
+.priv__sec p,
+.priv__sec li {
+  color: #d6d7db;
+  font-size: 14.5px;
+  line-height: 1.75;
+}
+
+.priv__sec p {
+  margin: 0 0 var(--sp-md);
+}
+
+.priv__sec ul {
+  margin: 0 0 var(--sp-md);
+  padding-left: 20px;
+}
+
+.priv__sec li {
+  margin-bottom: 6px;
+}
+
+.priv__sec strong {
+  color: var(--txt);
+}
+
+.priv__sec a {
+  color: var(--blue);
+}

@@ -5,6 +5,7 @@ import { Layout } from './components/Layout';
 import { Landing } from './pages/Landing';
 import { Login } from './pages/Login';
 import { PublicRegistration } from './pages/PublicRegistration';
+import { Privacy } from './pages/Privacy';
 import { Signup } from './pages/Signup';
 import { RepPortal } from './pages/RepPortal';
 import { Dashboard } from './pages/Dashboard';
@@ -66,6 +67,9 @@ function AppRoutes() {
         <Route path="/registracija" element={<Signup />} />
         {/* Javna prijava ekipe — dostupna bez prijave */}
         <Route path="/prijava" element={<PublicRegistration />} />
+        {/* Politika privatnosti je javna i mora vrijediti u svakoj grani —
+            Google Play trazi stalnu poveznicu koja radi bez prijave. */}
+        <Route path="/privatnost" element={<Privacy />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
@@ -81,6 +85,9 @@ function AppRoutes() {
     return (
       <Routes>
         <Route path="/prijava" element={<PublicRegistration />} />
+        {/* Politika privatnosti je javna i mora vrijediti u svakoj grani —
+            Google Play trazi stalnu poveznicu koja radi bez prijave. */}
+        <Route path="/privatnost" element={<Privacy />} />
         <Route path="/moja-ekipa" element={<RepPortal />} />
         <Route path="*" element={<Navigate to="/moja-ekipa" replace />} />
       </Routes>
@@ -95,6 +102,7 @@ function AppRoutes() {
       <Route path="/zapisnik" element={<MatchReport />} />
       {/* Javna prijava ekipe (radi i dok je admin prijavljen — za dijeljenje linka) */}
       <Route path="/prijava" element={<PublicRegistration />} />
+      <Route path="/privatnost" element={<Privacy />} />
 
       <Route element={<Layout title="dash.title" />}>
         <Route index element={<Dashboard />} />
