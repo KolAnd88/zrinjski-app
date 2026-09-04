@@ -27,7 +27,14 @@
   # Prazan $CACHED_COMMIT_REF (projekt bez ijedne objave) inače prevari
   # usporedbu i preskoči prvu objavu — vidi objašnjenje u korijenskom
   # netlify.toml.
-  ignore = "if [ -z \"$CACHED_COMMIT_REF\" ]; then exit 1; fi; git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- apps/mobile packages package.json package-lock.json deploy/spectator"
+  #
+  # `:/` ispred svake putanje NIJE ukras. Netlify ignore naredbu pokreće u
+  # base directoryju, dakle u deploy/spectator, a git putanje bez prefiksa
+  # tumači u odnosu na trenutnu mapu — tražio je deploy/spectator/apps/mobile
+  # i slično, ništa nije našao, zaključio "nema promjene" i preskočio objavu.
+  # Izmjereno: iz deploy/spectator ista naredba vraća 0, s `:/` vraća 1.
+  # `:/` znači "od korijena repozitorija, bez obzira gdje stojiš".
+  ignore = "if [ -z \"$CACHED_COMMIT_REF\" ]; then exit 1; fi; git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- :/apps/mobile :/packages :/package.json :/package-lock.json :/deploy/spectator"
 
 [build.environment]
   NODE_VERSION = "20"
