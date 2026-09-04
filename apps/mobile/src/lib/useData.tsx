@@ -4,7 +4,7 @@
 //    a admin mutatori pišu u bazu (DB trigger sam diže rezultat na gol).
 //  • DEMO (bez .env): lokalni demo podaci u stanju (offline pregled).
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Alert, Platform } from 'react-native';
+import { Alert, AppState, Platform } from 'react-native';
 import type {
   Day,
   EventType,
@@ -114,12 +114,26 @@ type AllData = {
 
 async function loadAll(): Promise<AllData> {
   const sb = supabase!;
-  const { data: tournament } = await sb
+  /**
+   * Kljucni upit koji NE SMIJE tiho pasti.
+   *
+   * Ranije je svaki odgovor citan kao `.data ?? []`, pa je pad mreze izgledao
+   * kao turnir bez ijedne utakmice — gledatelj bi vidio prazan raspored i
+   * pomislio da nista nije uneseno. Sada se greska baca, a `reload` je hvata i
+   * prikazuje "Pokusaj ponovno".
+   */
+  const nuzno = <T,>(r: { data: T[] | null; error: { message: string } | null }, sto: string): T[] => {
+    if (r.error) throw new Error(`${sto}: ${r.error.message}`);
+    return r.data ?? [];
+  };
+
+  const { data: tournament, error: turnirErr } = await sb
     .from('tournament')
     .select('*')
     .order('created_at', { ascending: true })
     .limit(1)
     .maybeSingle();
+  if (turnirErr) throw new Error(`turnir: ${turnirErr.message}`);
 
   const empty: AllData = {
     tournament: tournament ?? null,
@@ -153,12 +167,12 @@ async function loadAll(): Promise<AllData> {
 
   return {
     tournament,
-    days: days.data ?? [],
-    groups: groups.data ?? [],
-    teams: teams.data ?? [],
-    players: (players.data ?? []) as Player[],
-    matches: matches.data ?? [],
-    events: (events.data ?? []) as MatchEvent[],
+    days: nuzno(days, 'dani'),
+    groups: nuzno(groups, 'grupe'),
+    teams: nuzno(teams, 'ekipe'),
+    players: nuzno(players as { data: Player[] | null; error: { message: string } | null }, 'igraci'),
+    matches: nuzno(matches, 'utakmice'),
+    events: nuzno(events as { data: MatchEvent[] | null; error: { message: string } | null }, 'dogadaji'),
     sponsors: sponsors.data ?? [],
     locations: locations.data ?? [],
     program: program.data ?? [],
@@ -197,9 +211,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // Zadnje stanje dostupno unutar realtime rukovatelja, bez ponovne pretplate.
   const dataRef = useRef(data);
-  useEffect(() => {
-    dataRef.current = data;
-  }, [data]);
+
+  /**
+   * Postavi podatke i ODMAH osvjezi `dataRef`.
+   *
+   * Ranije se ref osvjezavao tek u useEffectu, dakle nakon iscrtavanja. Dvije
+   * realtime poruke koje stignu u istom trenutku (dva gola u sekundi, ili gol
+   * plus promjena rezultata) citale bi isto staro stanje — druga bi pregazila
+   * prvu i jedan gol bi nestao s ekrana do sljedeceg osvjezavanja.
+   */
+  const postavi = useCallback((sljedece: AllData | ((d: AllData) => AllData)) => {
+    const v = typeof sljedece === 'function' ? (sljedece as (d: AllData) => AllData)(dataRef.current) : sljedece;
+    dataRef.current = v;
+    setData(v);
+  }, []);
 
   // Ponovno povuci utakmice + događaje iz baze (realtime osvježenje i oporavak od greške).
   const refreshMatchesEvents = useCallback(async () => {
@@ -213,7 +238,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const ev = matchIds.length
         ? await sb.from('match_event').select('*').in('match_id', matchIds).order('created_at')
         : { data: [] };
-      setData((d) => ({ ...d, matches: ms.data ?? d.matches, events: (ev.data ?? []) as MatchEvent[] }));
+      postavi((d) => ({ ...d, matches: ms.data ?? d.matches, events: (ev.data ?? []) as MatchEvent[] }));
     } catch {
       /* mrežna greška — sljedeći realtime event ili ručni refresh pokušava ponovno */
     }
@@ -239,7 +264,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       // pregazili akcije koje još nisu poslane.
       await flushOutbox();
       const all = await loadAll();
-      setData(all);
+      postavi(all);
       setLoadError(false);
     } catch {
       setLoadError(true);
@@ -275,7 +300,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         void refreshMatchesEvents();
         return;
       }
-      setData((d) =>
+      postavi((d) =>
         kljuc === 'matches'
           ? { ...d, matches: ishod.rows as Match[] }
           : { ...d, events: ishod.rows as MatchEvent[] }
@@ -313,8 +338,23 @@ export function DataProvider({ children }: { children: ReactNode }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'day' }, () => void reload())
       .subscribe();
 
+    /**
+     * Povratak iz pozadine.
+     *
+     * Dok aplikacija spava, sustav prekida websocket i realtime poruke se NE
+     * cuvaju — gol koji je pao u meduvremenu jednostavno nije stigao. Bez ovoga
+     * bi gledatelj vratio aplikaciju i vidio stari rezultat dok sam ne povuce
+     * prstom, a upravo je taj trenutak (vracanje na utakmicu) najvazniji.
+     *
+     * Povlaci se PUNI popis, ne razlika: ne znamo sto je propusteno.
+     */
+    const pretplata = AppState.addEventListener('change', (stanje) => {
+      if (stanje === 'active') void reload();
+    });
+
     return () => {
       void sb.removeChannel(ch);
+      pretplata.remove();
     };
   }, [reload, refreshMatchesEvents, primijeni]);
 
@@ -324,7 +364,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const sb = supabase;
 
     const patchMatchLocal = (id: string, patch: Partial<Match>) =>
-      setData((d) => ({ ...d, matches: d.matches.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
+      postavi((d) => ({ ...d, matches: d.matches.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
 
     // Provjeri je li upis stvarno prošao. VAŽNO: RLS blokada na UPDATE/DELETE ne
     // vraća grešku nego "uspjeh" s 0 redova — zato upiti nose .select('id') pa
@@ -387,7 +427,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addEvent: (matchId, teamId, playerId, type, minute) => {
         // Optimistično lokalno (gol diže rezultat); u živo modu DB trigger radi isto na serveru.
         const ev: MatchEvent = { id: newId(), match_id: matchId, team_id: teamId, player_id: playerId, type, minute, created_at: new Date().toISOString() };
-        setData((d) => {
+        postavi((d) => {
           const matchesNext =
             type === 'goal'
               ? d.matches.map((m) => {
@@ -416,7 +456,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         const matchEvents = events.filter((e) => e.match_id === matchId);
         const last = matchEvents[matchEvents.length - 1];
         if (!last) return;
-        setData((d) => {
+        postavi((d) => {
           const matchesNext =
             last.type === 'goal'
               ? d.matches.map((m) => {
@@ -432,7 +472,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         if (LIVE && sb) enqueue({ kind: 'event.delete', id: last.id });
       },
     };
-  }, [data, loading, loadError, reloading, reload, notifyWriteError]);
+  }, [data, loading, loadError, reloading, reload, notifyWriteError, postavi]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }
