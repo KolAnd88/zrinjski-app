@@ -67,6 +67,8 @@ export type Database = {
           points_draw: number;
           points_loss: number;
           advance_per_group: number;
+          /** Koliko minuta traje isključenje. Pravila 2; veterani često 1. */
+          suspension_min: number;
           /** Najviše ekipa po konkurenciji; null = bez ograničenja. */
           max_teams_m: number | null;
           max_teams_z: number | null;
@@ -99,6 +101,7 @@ export type Database = {
           points_draw?: number;
           points_loss?: number;
           advance_per_group?: number;
+          suspension_min?: number;
           max_teams_m?: number | null;
           max_teams_z?: number | null;
           reminder_prefs?: ReminderPrefs;

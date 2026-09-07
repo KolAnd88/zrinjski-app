@@ -198,6 +198,9 @@ export const strings = {
     'tournament.advance': 'Prolaze iz grupe',
     // Granica broja ekipa. Turnir se igra na jednom terenu, pa broj ekipa
     // odreduje satnicu — nije zelja nego racunica.
+    'tournament.suspension': 'Isključenje',
+    'tournament.suspensionHint':
+      'Pravila kažu 2 minute. Veteranski turniri često igraju 1 — koliko ovdje upišeš, toliko piše i na unosu uživo, u tijeku utakmice i u zapisniku.',
     'tournament.caps': 'Najviše ekipa',
     'tournament.capM': 'Muška konkurencija',
     'tournament.capZ': 'Ženska konkurencija',
@@ -845,6 +848,9 @@ export const strings = {
     'tournament.draw': 'Draw',
     'tournament.loss': 'Loss',
     'tournament.advance': 'Advance per group',
+    'tournament.suspension': 'Suspension',
+    'tournament.suspensionHint':
+      'The rules say 2 minutes. Veterans tournaments often play 1 — whatever you set here is what shows in live entry, the match feed and the printed report.',
     'tournament.caps': 'Team limit',
     'tournament.capM': "Men's category",
     'tournament.capZ': "Women's category",

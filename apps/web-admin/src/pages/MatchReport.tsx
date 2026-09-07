@@ -20,12 +20,24 @@ const STAGE: Record<string, string> = {
   final: 'Finale',
 };
 
-const EVENT_LABEL: Record<string, string> = {
-  goal: 'Gol',
-  save: 'Obrana',
-  suspension_2min: "Isključenje 2'",
-  red_card: 'Crveni karton',
-};
+/**
+ * Naziv događaja. Minuta isključenja NIJE zakucana — dolazi iz postavki
+ * turnira, jer veteranski turniri često igraju 1 minutu umjesto 2.
+ */
+function eventLabel(type: string, suspensionMin: number): string {
+  switch (type) {
+    case 'goal':
+      return 'Gol';
+    case 'save':
+      return 'Obrana';
+    case 'suspension_2min':
+      return `Isključenje ${suspensionMin}'`;
+    case 'red_card':
+      return 'Crveni karton';
+    default:
+      return type;
+  }
+}
 
 type Side = { team: Team | null; players: Player[] };
 
@@ -214,7 +226,7 @@ export function MatchReport() {
                   <tr key={e.id}>
                     <td className="c-num">{e.minute}'</td>
                     <td className="c-num">{teamShort(e.team_id)}</td>
-                    <td>{EVENT_LABEL[e.type] ?? e.type}</td>
+                    <td>{eventLabel(e.type, tournament?.suspension_min ?? 2)}</td>
                     <td>{playerName(e.player_id)}</td>
                   </tr>
                 ))}

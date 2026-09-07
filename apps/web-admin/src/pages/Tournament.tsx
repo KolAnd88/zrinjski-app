@@ -18,6 +18,7 @@ type SettingsDraft = {
   points_draw: number;
   points_loss: number;
   advance_per_group: number;
+  suspension_min: number;
   /** null = bez ograničenja broja ekipa. */
   max_teams_m: number | null;
   max_teams_z: number | null;
@@ -249,6 +250,7 @@ function SettingsForm({
       points_draw: tr.points_draw,
       points_loss: tr.points_loss,
       advance_per_group: tr.advance_per_group,
+      suspension_min: tr.suspension_min,
       max_teams_m: tr.max_teams_m,
       max_teams_z: tr.max_teams_z,
       rules: tr.rules ?? '',
@@ -335,7 +337,17 @@ function SettingsForm({
             min={0}
             onChange={(v) => draft.set('gap_min', v)}
           />
+          {/* Isključenje stoji uz trajanje i razmak jer je i ono mjera vremena.
+              Pravila kažu 2 minute; veteranski turniri često igraju 1. */}
+          <NumberField
+            label={t('tournament.suspension')}
+            suffix={t('tournament.min')}
+            value={draft.value.suspension_min}
+            min={1}
+            onChange={(v) => draft.set('suspension_min', v)}
+          />
         </div>
+        <p className="tour__hint">{t('tournament.suspensionHint')}</p>
       </Card>
 
       <Card>

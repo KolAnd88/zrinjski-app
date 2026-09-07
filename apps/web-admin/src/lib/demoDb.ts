@@ -40,6 +40,7 @@ const tournament: Tournament = {
   points_draw: 1,
   points_loss: 0,
   advance_per_group: 2,
+  suspension_min: 2,
   max_teams_m: null,
   max_teams_z: null,
   reminder_prefs: { day_before_18: true, thirty_min_before: true, schedule_change: true },

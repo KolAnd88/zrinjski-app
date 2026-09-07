@@ -230,6 +230,7 @@ export function LiveScreen() {
                 isHome={e.team_id === m.home_team_id}
                 chip={crestGradientFor(e.team_id === m.home_team_id ? crests[0] : crests[1])[0]}
                 playerName={d.players.find((p) => p.id === e.player_id)?.name ?? null}
+                suspensionMin={d.tournament?.suspension_min ?? 2}
               />
             ))
           )}
@@ -291,12 +292,15 @@ function FeedRow({
   isHome,
   chip,
   playerName,
+  suspensionMin,
 }: {
   e: MatchEvent;
   score: string | null;
   isHome: boolean;
   chip: string;
   playerName: string | null;
+  /** Minuta isključenja iz postavki turnira — natpis je {n} u prijevodu. */
+  suspensionMin: number;
 }) {
   const { t } = useT();
   const meta = EV[e.type];
@@ -309,9 +313,9 @@ function FeedRow({
       </View>
       <View style={[styles.evBody, !isHome && { alignItems: 'flex-end' }]}>
         <Txt style={styles.evPlayer} numberOfLines={1}>
-          {playerName ?? t(meta.label)}
+          {playerName ?? t(meta.label, { n: suspensionMin })}
         </Txt>
-        <Txt style={styles.evNote}>{t(meta.label)}</Txt>
+        <Txt style={styles.evNote}>{t(meta.label, { n: suspensionMin })}</Txt>
       </View>
       <Txt style={[styles.evScore, !score && { color: C.mut }]}>{score ?? ''}</Txt>
     </View>

@@ -36,6 +36,8 @@ export function AdminLiveScreen() {
   const { isAdmin } = useAuth();
   const { width } = useWindowDimensions();
   const m = d.matchById(params.matchId);
+  // Minuta isključenja dolazi iz postavki turnira; prijevod je "Isključenje {n}'".
+  const isklj = d.tournament?.suspension_min ?? 2;
 
   // Tablet u landscapeu dobiva tri stupca; na užem ekranu se slaže okomito.
   const wide = width >= 900;
@@ -128,7 +130,7 @@ export function AdminLiveScreen() {
                 <View style={styles.actIcon}>
                   <Ionicons name={act.icon} size={20} color="#fff" />
                 </View>
-                <Txt style={styles.actLabel}>{t(act.label).toUpperCase()}</Txt>
+                <Txt style={styles.actLabel}>{t(act.label, { n: isklj }).toUpperCase()}</Txt>
                 <Txt style={styles.actSubOn}>{t(act.sub)}</Txt>
               </LinearGradient>
             </Pressable>
@@ -142,7 +144,7 @@ export function AdminLiveScreen() {
               <View style={styles.actIconDim}>
                 <Ionicons name={act.icon} size={20} color={C.txt} />
               </View>
-              <Txt style={styles.actLabel}>{t(act.label).toUpperCase()}</Txt>
+              <Txt style={styles.actLabel}>{t(act.label, { n: isklj }).toUpperCase()}</Txt>
               <Txt style={styles.actSub}>{t(act.sub)}</Txt>
             </Pressable>
           )
@@ -271,7 +273,7 @@ export function AdminLiveScreen() {
                       ]}
                     />
                     <Txt style={styles.feedTxt} numberOfLines={1}>
-                      {t(ACTIONS.find((x) => x.type === e.type)?.label ?? 'live.type.goal')}
+                      {t(ACTIONS.find((x) => x.type === e.type)?.label ?? 'live.type.goal', { n: isklj })}
                       {player ? ` · ${player.name}` : ''}
                       {tm?.short_code ? ` (${tm.short_code})` : ''}
                     </Txt>
@@ -298,7 +300,7 @@ export function AdminLiveScreen() {
                 size={40}
               />
               <Txt style={styles.sheetTitle} numberOfLines={1}>
-                {picker ? t(ACTIONS.find((x) => x.type === picker.type)!.label).toUpperCase() : ''}
+                {picker ? t(ACTIONS.find((x) => x.type === picker.type)!.label, { n: isklj }).toUpperCase() : ''}
               </Txt>
               <Txt style={styles.sheetSub}>— {t('admin.pickPlayer')}</Txt>
               <View style={{ flex: 1 }} />
