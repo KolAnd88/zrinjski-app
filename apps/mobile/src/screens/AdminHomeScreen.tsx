@@ -27,14 +27,29 @@ export function AdminHomeScreen() {
           </Txt>
           <Txt variant="h1">{t('admin.dashboard').toUpperCase()}</Txt>
         </View>
-        <Pressable
-          onPress={() => {
-            void supabase?.auth.signOut();
-            nav.reset({ index: 0, routes: [{ name: 'Tabs' }] });
-          }}
-        >
-          <Txt style={{ color: C.red, fontFamily: F.headSemi }}>{t('admin.logout')}</Txt>
-        </Pressable>
+        {/* Dva izlaza, i to namjerno.
+            Do sada je postojala samo Odjava, pa je nadzorna ploča bila
+            slijepa ulica: organizator koji se htio vratiti u aplikaciju
+            morao se odjaviti. To nije bila samo nezgodna navigacija — odjava
+            briše oznaku uređaja za obavijesti organizatoru (migracija 0032),
+            pa je izlazak s ovog ekrana gasio ono zbog čega se prijavio. */}
+        <View style={styles.izlazi}>
+          <Pressable
+            onPress={() => nav.reset({ index: 0, routes: [{ name: 'Tabs' }] })}
+            hitSlop={8}
+          >
+            <Txt style={{ color: C.sub, fontFamily: F.headSemi }}>{t('admin.backToApp')}</Txt>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              void supabase?.auth.signOut();
+              nav.reset({ index: 0, routes: [{ name: 'Tabs' }] });
+            }}
+            hitSlop={8}
+          >
+            <Txt style={{ color: C.red, fontFamily: F.headSemi }}>{t('admin.logout')}</Txt>
+          </Pressable>
+        </View>
       </View>
 
       <Txt variant="label" style={{ marginBottom: S.sm }}>
@@ -66,4 +81,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: S.lg,
   },
+  // Povratak je prigušen, odjava crvena — dvije radnje različite težine ne
+  // smiju izgledati jednako vrijedno.
+  izlazi: { alignItems: 'flex-end', gap: S.sm },
 });
