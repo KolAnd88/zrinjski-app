@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NotificationPrefs } from '@zrinjski/core';
 import { getPushToken, registerDevice } from './push';
+import { useAuth } from './useAuth';
 import { useT } from '../i18n/I18nProvider';
 
 const FOLLOW_KEY = 'zrinjski.followed';
@@ -31,6 +32,13 @@ const Ctx = createContext<FollowCtx | null>(null);
 
 export function FollowProvider({ children }: { children: ReactNode }) {
   const { locale } = useT();
+  // Uređaj pamti je li na njemu prijavljen organizator (migracija 0032) — to
+  // odlučuje baza iz `auth.uid()`, klijent ne šalje ništa. Ali odluka se donosi
+  // U TRENUTKU REGISTRACIJE, pa se prijava i odjava moraju ovdje vidjeti:
+  // inače bi organizator koji se prijavio nakon pokretanja aplikacije ostao
+  // zapisan kao obični gledatelj i ne bi dobivao obavijesti o prijavama.
+  const { session } = useAuth();
+  const authId = session?.user?.id ?? null;
   const [followed, setFollowed] = useState<string[]>([]);
   const [prefs, setPrefs] = useState<NotificationPrefs>(defaultPrefs);
   const [master, setMasterState] = useState(true);
@@ -67,7 +75,7 @@ export function FollowProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!token || !loaded.current) return;
     void registerDevice({ token, language: locale, followed, prefs, enabled: master });
-  }, [token, followed, prefs, master, locale]);
+  }, [token, followed, prefs, master, locale, authId]);
 
   const value = useMemo<FollowCtx>(
     () => ({

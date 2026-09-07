@@ -64,22 +64,41 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   );
 
+  /**
+   * Drugi ulaz: okidač iz baze.
+   *
+   * Obavijest o novoj prijavi ekipe ne šalje čovjek nego baza, a baza nema
+   * korisnički token — provjera ispod bi je odbila. Zato zaseban put s
+   * dijeljenom tajnom, koja se postavlja kao tajna funkcije u Supabaseu i
+   * NIKAD ne stoji u repozitoriju.
+   *
+   * Ako tajna nije postavljena, ovaj ulaz ne postoji: prazan `HOOK_SECRET`
+   * ne smije značiti "svatko smije".
+   */
+  const hookSecret = Deno.env.get('HOOK_SECRET') ?? '';
+  const hookHeader = req.headers.get('x-hook-secret') ?? '';
+  const jeHook = hookSecret.length > 0 && hookHeader === hookSecret;
+
   // ── Samo organizatori smiju slati ─────────────────────────────────────────
   const authHeader = req.headers.get('Authorization') ?? '';
   const jwt = authHeader.replace('Bearer ', '');
-  if (!jwt) return json({ error: 'unauthorized' }, 401);
+  if (!jeHook && !jwt) return json({ error: 'unauthorized' }, 401);
 
-  const { data: caller } = await admin.auth.getUser(jwt);
+  const { data: caller } = jeHook
+    ? { data: null }
+    : await admin.auth.getUser(jwt);
   const callerId = caller?.user?.id;
-  if (!callerId) return json({ error: 'unauthorized' }, 401);
+  if (!jeHook) {
+    if (!callerId) return json({ error: 'unauthorized' }, 401);
 
-  const { data: me } = await admin
-    .from('app_user')
-    .select('role')
-    .eq('id', callerId)
-    .maybeSingle();
-  if (!me || !['admin', 'delegate'].includes(me.role)) {
-    return json({ error: 'forbidden' }, 403);
+    const { data: me } = await admin
+      .from('app_user')
+      .select('role')
+      .eq('id', callerId)
+      .maybeSingle();
+    if (!me || !['admin', 'delegate'].includes(me.role)) {
+      return json({ error: 'forbidden' }, 403);
+    }
   }
 
   /**
@@ -143,11 +162,35 @@ Deno.serve(async (req) => {
   // Expo potvrde brise nakon 24 sata, a inace se obraduju tek sljedecim slanjem.
   if (payload.receiptsOnly) return json({ receiptsOnly: true });
 
+  /**
+   * Okidač iz baze šalje redak, ne poruku.
+   *
+   * Supabaseov "Database Webhook" pošalje `{type, table, record}`, pa se tekst
+   * obavijesti slaže ovdje. Namjerno ne piše ime predstavnika ni adresu —
+   * obavijest se vidi na zaključanom zaslonu, a to su tuđi podaci.
+   */
+  function izOkidaca(p: Record<string, unknown>) {
+    const r = (p.record ?? {}) as Record<string, unknown>;
+    if (p.type !== 'INSERT' || p.table !== 'registration') return null;
+    const ekipa = String(r.team_name ?? '').trim() || 'Nepoznata ekipa';
+    const konkurencija = r.gender === 'z' ? 'ženska' : 'muška';
+    const naLista = r.status === 'waitlist';
+    return {
+      audience: 'staff',
+      title: naLista ? 'Nova prijava — lista čekanja' : 'Nova prijava ekipe',
+      body: `${ekipa} · ${konkurencija} konkurencija`,
+      type: '',
+    };
+  }
+
   // ── Ulaz ──────────────────────────────────────────────────────────────────
-  const audience = String(payload.audience ?? 'all');
-  const title = String(payload.title ?? '').trim();
-  const body = payload.body ? String(payload.body) : undefined;
-  const type = String(payload.type ?? '');
+  const izvor = jeHook ? izOkidaca(payload) : null;
+  if (jeHook && !izvor) return json({ ignored: true });
+
+  const audience = String(izvor?.audience ?? payload.audience ?? 'all');
+  const title = String(izvor?.title ?? payload.title ?? '').trim();
+  const body = izvor?.body ?? (payload.body ? String(payload.body) : undefined);
+  const type = String(izvor?.type ?? payload.type ?? '');
   if (!title) return json({ error: 'title_required' }, 400);
 
   // ── Odaberi uređaje ───────────────────────────────────────────────────────
@@ -160,6 +203,13 @@ Deno.serve(async (req) => {
   const teamMatch = audience.match(/^(?:team|followers):(.+)$/);
   if (teamMatch) {
     q = q.contains('followed_team_ids', [teamMatch[1]]);
+  }
+
+  // Samo organizatori. Uređaj pamti tko je bio prijavljen kad se registrirao
+  // (migracija 0032), pa je ovo jedini način da obavijest o novoj prijavi ne
+  // ode i svim gledateljima.
+  if (audience === 'staff') {
+    q = q.not('staff_user_id', 'is', null);
   }
 
   const { data: devices, error } = await q;
