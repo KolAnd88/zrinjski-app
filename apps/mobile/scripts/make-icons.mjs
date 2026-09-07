@@ -19,22 +19,82 @@ function readPng(file) {
   return PNG.sync.read(fs.readFileSync(file));
 }
 
-/** Okvir oko sadržaja: bijeli obrub izvorne slike nas ne zanima. */
+/**
+ * Okvir oko sadržaja: bijeli obrub izvorne slike nas ne zanima.
+ *
+ * MRLJICE SE IGNORIRAJU, i to nije sitnica. Izvorni grb ima uz sebe 597
+ * odvojenih točkica ukupne površine 3030 piksela — prašina sa skena. Najveća
+ * ima 75 px, a sam grb 883 421 px, dakle jedan povezan komad.
+ *
+ * Dok se okvir računao od svakog obojenog piksela, te su ga točkice razvlačile
+ * i to NESIMETRICNO: 77 px u širinu, 83 px u visinu, sve na jednu stranu. Grb
+ * se zatim uredno centrirao — ali centrirao se okvir, a ne grb, pa je na ikoni
+ * ispao pomaknut 24 px ulijevo i 25 px prema dolje.
+ *
+ * Zato se traže povezani dijelovi i odbacuje sve ispod pola postotka najvećeg.
+ * Grb koji bi bio u više komada (npr. natpis odvojen od štita) i dalje prolazi;
+ * prolazi i sve iznad 4400 px, a najveća mrljica ima 75.
+ */
 function contentBox(img) {
-  let x0 = img.width, y0 = img.height, x1 = -1, y1 = -1;
-  for (let y = 0; y < img.height; y++) {
-    for (let x = 0; x < img.width; x++) {
-      const i = (img.width * y + x) * 4;
+  const { width: W, height: H } = img;
+  const ink = new Uint8Array(W * H);
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const i = (W * y + x) * 4;
       const [r, g, b, a] = [img.data[i], img.data[i + 1], img.data[i + 2], img.data[i + 3]];
       const isBg = a < 16 || (255 - r < NEAR_WHITE && 255 - g < NEAR_WHITE && 255 - b < NEAR_WHITE);
-      if (isBg) continue;
-      if (x < x0) x0 = x;
-      if (y < y0) y0 = y;
-      if (x > x1) x1 = x;
-      if (y > y1) y1 = y;
+      if (!isBg) ink[W * y + x] = 1;
     }
   }
-  return x1 < 0 ? { x: 0, y: 0, w: img.width, h: img.height } : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+
+  // Povezani dijelovi (8 susjeda), iterativno — rekurzija bi na 1536x1536 pukla.
+  const seen = new Uint8Array(W * H);
+  const stack = new Int32Array(W * H);
+  const parts = [];
+  for (let s = 0; s < W * H; s++) {
+    if (!ink[s] || seen[s]) continue;
+    let sp = 0;
+    stack[sp++] = s;
+    seen[s] = 1;
+    let n = 0, x0 = W, y0 = H, x1 = -1, y1 = -1;
+    while (sp > 0) {
+      const p = stack[--sp];
+      const x = p % W, y = (p / W) | 0;
+      n++;
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+      if (y < y0) y0 = y;
+      if (y > y1) y1 = y;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = x + dx, ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+          const q = W * ny + nx;
+          if (ink[q] && !seen[q]) {
+            seen[q] = 1;
+            stack[sp++] = q;
+          }
+        }
+      }
+    }
+    parts.push({ n, x0, y0, x1, y1 });
+  }
+
+  if (parts.length === 0) return { x: 0, y: 0, w: W, h: H };
+
+  const najveci = parts.reduce((a, b) => (b.n > a.n ? b : a)).n;
+  const prag = Math.max(64, najveci * 0.005);
+  const drzimo = parts.filter((p) => p.n >= prag);
+  const odbaceno = parts.length - drzimo.length;
+  if (odbaceno > 0) {
+    console.log(`  zanemareno ${odbaceno} mrljica (prag ${Math.round(prag)} px)`);
+  }
+
+  const x0 = Math.min(...drzimo.map((p) => p.x0));
+  const y0 = Math.min(...drzimo.map((p) => p.y0));
+  const x1 = Math.max(...drzimo.map((p) => p.x1));
+  const y1 = Math.max(...drzimo.map((p) => p.y1));
+  return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
 }
 
 function sample(img, x, y) {
@@ -215,7 +275,7 @@ function znak(size, inset) {
 // iOS + zadana ikona: MORA biti neprozirna, inače prozirno ispadne crno.
 // Ovdje nema maske osim zaobljenih kutova, pa grb ide gotovo do ruba.
 const icon = canvas(1024, BG);
-const iconFit = znak(1024, 0.04);
+const iconFit = znak(1024, 0.10);
 draw(icon, iconFit.img, iconFit.x, iconFit.y);
 write('icon.png', icon);
 
@@ -241,7 +301,7 @@ write('icon.png', icon);
  * Ako zatreba manje: 0.12 daje 389 (gubi 9%), 0.16 daje 348 (gubi 1.5%).
  */
 const fg = canvas(512, CLEAR);
-const fgFit = znak(512, 0.08);
+const fgFit = znak(512, 0.12);
 draw(fg, fgFit.img, fgFit.x, fgFit.y);
 write('android-icon-foreground.png', fg);
 
@@ -249,7 +309,7 @@ write('android-icon-background.png', canvas(512, BG));
 write('android-icon-monochrome.png', monochrome(fg));
 
 const fav = canvas(48, BG);
-const favFit = znak(48, 0.04);
+const favFit = znak(48, 0.10);
 draw(fav, favFit.img, favFit.x, favFit.y);
 write('favicon.png', fav);
 
