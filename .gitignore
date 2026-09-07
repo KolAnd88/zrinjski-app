@@ -35,3 +35,10 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Upute za druge AI alate (Codex cita AGENTS.md, kao sto Claude cita CLAUDE.md).
+# Sadrzaj je gotovo identican CLAUDE.md-u — razlikuju se samo ime alata u
+# naslovu i u primjeru prve poruke. Drzati dvije iste datoteke usklađenima je
+# posao koji se ne isplati: prije ili kasnije se raziđu i onda dva alata rade
+# po razlicitim pravilima. Zato ostaje lokalna.
+AGENTS.md
