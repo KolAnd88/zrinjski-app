@@ -44,11 +44,28 @@ export function AdminLoginScreen() {
         return;
       }
       // Provjeri ovlasti (RLS dopušta čitanje vlastitog app_user reda).
-      const { data: me } = await supabase
-        .from('app_user')
-        .select('role')
-        .eq('id', data.user.id)
-        .maybeSingle();
+      // `sb` jer TypeScript unutar zatvaranja gubi provjeru da klijent postoji.
+      const sb = supabase;
+      const procitaj = () =>
+        sb.from('app_user').select('role').eq('id', data.user.id).maybeSingle();
+
+      let { data: me } = await procitaj();
+
+      /**
+       * Račun bez profila NIJE račun bez ovlasti.
+       *
+       * Predstavnik koji je sam otvorio račun dobiva redak u `app_user` tek
+       * kad ga stvori `ensure_my_profile` (vidi migraciju 0012). Tu funkciju
+       * zove `useAuth`, ali neovisno o ovom ekranu — pa je ovdje redak još
+       * mogao biti prazan i prijava je padala u granu za organizatore:
+       * korisnik bi bio odjavljen uz poruku da nema organizatorske ovlasti.
+       *
+       * Ista pričuva već postoji u web adminu; nedostajala je samo ovdje.
+       */
+      if (!me) {
+        await sb.rpc('ensure_my_profile');
+        ({ data: me } = await procitaj());
+      }
       // Predstavnik ide u svoj portal, organizacija u zapisnik.
       if (me?.role === 'rep') {
         nav.replace('MyTeam');
