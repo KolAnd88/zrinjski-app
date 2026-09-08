@@ -11,6 +11,7 @@ import { useT } from '../i18n/I18nProvider';
 import type { StringKey } from '../i18n/strings';
 import { useData } from '../lib/useData';
 import { useAuth } from '../lib/useAuth';
+import { useMatchSquad } from '../lib/matchSquad';
 import { subscribeOutbox } from '../lib/outbox';
 import { C, F, R, SP } from '../theme';
 import { Crest, Txt } from '../components/base';
@@ -43,6 +44,10 @@ export function AdminLiveScreen() {
   const wide = width >= 900;
 
   const [picker, setPicker] = useState<{ team: Team; type: EventType } | null>(null);
+  // Slaganje sastava: koja ekipa je otvorena i tko je u njoj zakvačen.
+  const [sastavZa, setSastavZa] = useState<Team | null>(null);
+  const [odabir, setOdabir] = useState<string[]>([]);
+  const squad = useMatchSquad(params.matchId);
   // Koliko akcija još nije stiglo u bazu — zapisničar mora znati stoji li nešto.
   const [sync, setSync] = useState({ pending: 0, failing: false });
   useEffect(() => subscribeOutbox(setSync), []);
@@ -113,11 +118,52 @@ export function AdminLiveScreen() {
     setPicker(null);
   };
 
+  /**
+   * Sastav se slaže samo dok utakmica čeka. Nakon zvižduka ga baza odbija
+   * mijenjati, pa ga ni ekran ne nudi — gumb koji vraća grešku je gori od
+   * gumba kojeg nema.
+   */
+  const mozeSastav = m.status === 'scheduled';
+
+  const otvoriSastav = (team: Team) => {
+    const svi = d.playersOf(team.id);
+    const u = new Set(squad.squad);
+    const vec = svi.filter((p) => u.has(p.id));
+    // Kad sastav još nije složen, sve je zakvačeno: zapisnik bi ionako
+    // ispisao cijelu ekipu, pa ekran pokazuje isto to. Delegat onda samo
+    // odznači one koji ne igraju umjesto da kvači dvanaest imena.
+    setOdabir((vec.length > 0 ? vec : svi).map((p) => p.id));
+    setSastavZa(team);
+  };
+
+  const spremiSastav = async () => {
+    if (!sastavZa) return;
+    const svi = d.playersOf(sastavZa.id).map((p) => p.id);
+    const ok = await squad.spremi(sastavZa.id, odabir, svi);
+    if (ok) setSastavZa(null);
+  };
+
   const Controls = ({ team, side }: { team: Team | undefined; side: 0 | 1 }) => {
     if (!team) return null;
     const g = crestGradientFor(crests[side]!);
+    const uSastavu = new Set(squad.squad);
+    const naZapisniku = d.playersOf(team.id).filter((p) => uSastavu.has(p.id)).length;
     return (
       <View style={[styles.controls, wide && { flex: 1 }]}>
+        {/* Sastav stoji iznad akcija i samo prije početka. Tada je stupac
+            ionako zaključan za unos, pa ovo ispuni jedino što se u tom
+            trenutku može napraviti. */}
+        {mozeSastav && (
+          <Pressable style={styles.squadBtn} onPress={() => otvoriSastav(team)}>
+            <Ionicons name="people-outline" size={18} color={C.sub} />
+            <Txt style={styles.squadBtnTxt}>{t('admin.squad').toUpperCase()}</Txt>
+            <Txt style={styles.squadBtnSub}>
+              {naZapisniku > 0
+                ? t('admin.squadCount', { n: naZapisniku })
+                : t('admin.squadAll').toLowerCase()}
+            </Txt>
+          </Pressable>
+        )}
         {ACTIONS.map((act) =>
           act.primary ? (
             <Pressable key={act.type} onPress={() => setPicker({ team, type: act.type })} disabled={!canEnter}>
@@ -311,8 +357,10 @@ export function AdminLiveScreen() {
             </View>
 
             <ScrollView contentContainerStyle={styles.sheetGrid}>
+              {/* Samo igrači s ovog zapisnika. Kad sastav nije složen, to je
+                  cijela ekipa — kao i dosad. */}
               {picker &&
-                d.playersOf(picker.team.id).map((p) => (
+                squad.igraciZaUnos(d.playersOf(picker.team.id)).map((p) => (
                   <Pressable key={p.id} style={styles.pCard} onPress={() => pick(p.id)}>
                     <Txt style={styles.pNum}>{p.number ?? '–'}</Txt>
                     <Txt style={styles.pName} numberOfLines={1}>
@@ -326,6 +374,92 @@ export function AdminLiveScreen() {
                 <Txt style={[styles.pName, { color: C.sub }]}>{t('admin.noPlayer')}</Txt>
               </Pressable>
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Slaganje sastava */}
+      <Modal visible={!!sastavZa} transparent animationType="fade" onRequestClose={() => setSastavZa(null)}>
+        <View style={styles.overlay}>
+          <View style={styles.sheet}>
+            <View style={styles.sheetHead}>
+              <Crest
+                code={sastavZa?.short_code}
+                index={sastavZa?.id === home?.id ? crests[0] : crests[1]}
+                logoUrl={sastavZa?.logo_url}
+                size={40}
+              />
+              <Txt style={styles.sheetTitle} numberOfLines={1}>
+                {t('admin.squadTitle')}
+              </Txt>
+              <Txt style={styles.sheetSub}>— {t('admin.squadHint')}</Txt>
+              <View style={{ flex: 1 }} />
+              <Pressable style={styles.chipBtn} onPress={() => setSastavZa(null)}>
+                <Ionicons name="close" size={14} color={C.sub} />
+                <Txt style={styles.chipTxt}>{t('common.cancel')}</Txt>
+              </Pressable>
+            </View>
+
+            {/* Sve / Nitko — dvanaest dodira svede na jedan kad dođe cijela
+                ekipa ili kad se kreće od nule. */}
+            <View style={styles.squadTools}>
+              <Pressable
+                style={styles.chipBtn}
+                onPress={() => setOdabir(sastavZa ? d.playersOf(sastavZa.id).map((p) => p.id) : [])}
+              >
+                <Txt style={styles.chipTxt}>{t('admin.squadAll')}</Txt>
+              </Pressable>
+              <Pressable style={styles.chipBtn} onPress={() => setOdabir([])}>
+                <Txt style={styles.chipTxt}>{t('admin.squadNone')}</Txt>
+              </Pressable>
+              <View style={{ flex: 1 }} />
+              <Txt style={styles.sheetSub}>
+                {odabir.length > 0 ? t('admin.squadCount', { n: odabir.length }) : t('admin.squadEmpty')}
+              </Txt>
+            </View>
+
+            <ScrollView contentContainerStyle={styles.sheetGrid}>
+              {sastavZa &&
+                d.playersOf(sastavZa.id).map((p) => {
+                  const igra = odabir.includes(p.id);
+                  return (
+                    <Pressable
+                      key={p.id}
+                      style={[styles.pCard, igra ? styles.pCardOn : styles.pCardOff]}
+                      onPress={() =>
+                        setOdabir((prev) =>
+                          prev.includes(p.id) ? prev.filter((x) => x !== p.id) : [...prev, p.id]
+                        )
+                      }
+                    >
+                      <Ionicons
+                        name={igra ? 'checkbox' : 'square-outline'}
+                        size={20}
+                        color={igra ? C.green : C.mut}
+                      />
+                      <Txt style={styles.pNum}>{p.number ?? '–'}</Txt>
+                      <Txt style={[styles.pName, !igra && { color: C.sub }]} numberOfLines={1}>
+                        {p.name}
+                      </Txt>
+                    </Pressable>
+                  );
+                })}
+            </ScrollView>
+
+            {squad.error && (
+              <Txt style={styles.squadErr}>
+                {squad.error === 'locked' ? t('admin.squadLocked') : t('admin.squadError')}
+              </Txt>
+            )}
+
+            <Pressable
+              style={[styles.squadSave, squad.busy && styles.actOff]}
+              disabled={squad.busy}
+              onPress={() => void spremiSastav()}
+            >
+              <Ionicons name="checkmark" size={18} color="#fff" />
+              <Txt style={styles.squadSaveTxt}>{t('admin.squadSave')}</Txt>
+            </Pressable>
           </View>
         </View>
       </Modal>
@@ -540,4 +674,36 @@ const styles = StyleSheet.create({
   pCardAnon: { borderStyle: 'dashed' },
   pNum: { width: 30, textAlign: 'center', fontFamily: F.head, fontSize: 21, color: C.sub },
   pName: { flex: 1, fontFamily: F.bodySemi, fontSize: 14, color: C.txt },
+
+  // Sastav
+  squadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SP.cardGap,
+    paddingHorizontal: 22,
+    minHeight: 48,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: C.line,
+    borderStyle: 'dashed',
+  },
+  squadBtnTxt: { fontFamily: F.headSemi, fontSize: 14, letterSpacing: 1.2, color: C.sub },
+  squadBtnSub: { marginLeft: 'auto', fontFamily: F.body, fontSize: 12, color: C.mut },
+  squadTools: { flexDirection: 'row', alignItems: 'center', gap: SP.gap, marginBottom: SP.cardGap },
+  // Odabrani je istaknut rubom, neodabrani prigušen — razlika se mora vidjeti
+  // iz ruke, u dvorani, bez čitanja.
+  pCardOn: { borderColor: 'rgba(45,190,110,.45)' },
+  pCardOff: { opacity: 0.55 },
+  squadErr: { fontFamily: F.body, fontSize: 13, color: C.redLt, marginTop: SP.cardGap },
+  squadSave: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SP.gap,
+    marginTop: SP.cardGap,
+    minHeight: 48,
+    borderRadius: 13,
+    backgroundColor: C.red,
+  },
+  squadSaveTxt: { fontFamily: F.headSemi, fontSize: 15, letterSpacing: 0.6, color: '#fff' },
 });

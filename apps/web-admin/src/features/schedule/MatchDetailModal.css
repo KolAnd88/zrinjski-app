@@ -136,6 +136,46 @@
   font-size: 11px;
 }
 
+/* Sastav: kvačica zauzima cijeli redak, da se pogađa mišem bez ciljanja. */
+.mdet__pick {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  padding: 3px 0;
+}
+
+.mdet__pick input {
+  accent-color: var(--red);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Odznačeni ostaje vidljiv, samo prigušen — mora se vidjeti da je izostavljen,
+   a ne da ga nema. */
+.mdet__roster li.is-out .mdet__pname,
+.mdet__roster li.is-out .mdet__num {
+  color: var(--mut);
+  text-decoration: line-through;
+}
+
+.mdet__squadhint {
+  margin: var(--sp-sm) 0 0;
+  color: var(--sub);
+  font-size: 12px;
+}
+
+.mdet__squadbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  flex-wrap: wrap;
+  margin-top: var(--sp-md);
+}
+
 /* Broj golova — jedini brojčani podatak u sastavu, pa nosi akcent. */
 .mdet__goals {
   min-width: 20px;

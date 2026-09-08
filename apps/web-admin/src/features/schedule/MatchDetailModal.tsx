@@ -5,7 +5,7 @@ import { useT } from '../../i18n/I18nProvider';
 import type { StringKey } from '../../i18n/strings';
 import { formatDayLabel } from '../../i18n/dateLabels';
 import { Button, Crest } from '../../components/ui';
-import { fetchEvents, fetchPlayersByTeams } from '../../lib/data';
+import { fetchEvents, fetchMatchSquad, fetchPlayersByTeams, setMatchSquad } from '../../lib/data';
 import { isoToLocalHHMM } from '../../lib/timeFormat';
 import type { TeamLite } from './useScheduleMatches';
 import { buildShareCard, downloadCardPng } from './shareResult';
@@ -52,6 +52,12 @@ export function MatchDetailModal({
   const [players, setPlayers] = useState<Player[]>([]);
   const [sharing, setSharing] = useState(false);
   const [shareErr, setShareErr] = useState(false);
+  /** Tko je na zapisniku za ovu utakmicu. Prazno = cijela ekipa. */
+  const [squad, setSquad] = useState<string[]>([]);
+  /** Radna verzija po ekipi — sprema se tek na gumb, po jednu ekipu. */
+  const [odabir, setOdabir] = useState<Record<string, string[]>>({});
+  const [spremam, setSpremam] = useState<string | null>(null);
+  const [poruka, setPoruka] = useState<{ team: string; key: StringKey } | null>(null);
 
   const home = m.home_team_id ? teamsById.get(m.home_team_id) : undefined;
   const away = m.away_team_id ? teamsById.get(m.away_team_id) : undefined;
@@ -60,13 +66,26 @@ export function MatchDetailModal({
     let alive = true;
     void (async () => {
       const teamIds = [m.home_team_id, m.away_team_id].filter((x): x is string => !!x);
-      const [ev, ps] = await Promise.all([
+      const [ev, ps, sq] = await Promise.all([
         fetchEvents(m.id),
         teamIds.length ? fetchPlayersByTeams(teamIds) : Promise.resolve([] as Player[]),
+        fetchMatchSquad(m.id),
       ]);
       if (!alive) return;
       setEvents(ev);
       setPlayers(ps);
+      setSquad(sq);
+      // Kad sastav još nije složen, kvačice kreću sve upaljene: zapisnik bi
+      // ionako ispisao cijelu ekipu, pa ekran pokazuje isto to. Posao je onda
+      // odznačiti dvojicu, a ne označiti dvanaestoricu.
+      const u = new Set(sq);
+      const start: Record<string, string[]> = {};
+      for (const id of teamIds) {
+        const svi = ps.filter((p) => p.team_id === id);
+        const vec = svi.filter((p) => u.has(p.id));
+        start[id] = (vec.length > 0 ? vec : svi).map((p) => p.id);
+      }
+      setOdabir(start);
     })();
     return () => {
       alive = false;
@@ -103,8 +122,54 @@ export function MatchDetailModal({
   const goalsOf = (playerId: string) =>
     ordered.filter((e) => e.type === 'goal' && e.player_id === playerId).length;
 
-  const roster = (teamId: string | null | undefined) =>
-    teamId ? players.filter((p) => p.team_id === teamId) : [];
+  /**
+   * Sastav se slaže samo dok utakmica čeka. Nakon zvižduka ga baza odbija
+   * mijenjati, pa se ovdje prikazuje kao gotov popis.
+   */
+  const uredivo = m.status === 'scheduled';
+
+  /**
+   * Popis igrača te ekipe. Dok se sastav slaže to je cijela ekipa, jer se s
+   * nje kvači; poslije je to sastav te utakmice — isto što ispisuje zapisnik.
+   */
+  const roster = (teamId: string | null | undefined) => {
+    if (!teamId) return [];
+    const svi = players.filter((p) => p.team_id === teamId);
+    if (uredivo) return svi;
+    const u = new Set(squad);
+    const moji = svi.filter((p) => u.has(p.id));
+    return moji.length > 0 ? moji : svi;
+  };
+
+  const prekvaci = (teamId: string, playerId: string) =>
+    setOdabir((prev) => {
+      const sad = prev[teamId] ?? [];
+      return {
+        ...prev,
+        [teamId]: sad.includes(playerId) ? sad.filter((x) => x !== playerId) : [...sad, playerId],
+      };
+    });
+
+  async function spremiSastav(teamId: string) {
+    setSpremam(teamId);
+    setPoruka(null);
+    try {
+      const izbor = odabir[teamId] ?? [];
+      await setMatchSquad(m.id, teamId, izbor);
+      // Zamijeni samo igrače te ekipe; protivnikov sastav ostaje kakav je bio.
+      const njeni = new Set(players.filter((p) => p.team_id === teamId).map((p) => p.id));
+      setSquad((prev) => [...prev.filter((id) => !njeni.has(id)), ...izbor]);
+      setPoruka({ team: teamId, key: 'mdet.squadSaved' });
+    } catch (e) {
+      const tekst = e instanceof Error ? e.message : String(e);
+      setPoruka({
+        team: teamId,
+        key: tekst.includes('squad_locked') ? 'mdet.squadLocked' : 'mdet.squadError',
+      });
+    } finally {
+      setSpremam(null);
+    }
+  }
 
   /** Sastavi sliku rezultata i preuzmi je kao PNG spreman za objavu. */
   async function share() {
@@ -176,6 +241,10 @@ export function MatchDetailModal({
           <p className="mdet__empty">{t('common.loading')}</p>
         ) : (
           <>
+            {/* Uputa stoji jednom, iznad obje ekipe — dva puta ista rečenica
+                samo zauzima prostor koji treba popisu igrača. */}
+            {uredivo && <p className="mdet__squadhint">{t('mdet.squadHint')}</p>}
+
             <div className="mdet__cols">
               {[
                 { team: home, id: m.home_team_id },
@@ -189,18 +258,47 @@ export function MatchDetailModal({
                     <ul className="mdet__roster">
                       {roster(s.id).map((p) => {
                         const g = goalsOf(p.id);
-                        return (
-                          <li key={p.id}>
+                        const igra = !s.id || (odabir[s.id] ?? []).includes(p.id);
+                        const redak = (
+                          <>
                             <span className="mdet__num">{p.number ?? '–'}</span>
                             <span className="mdet__pname">
                               {p.name}
                               {p.is_captain && <em> (K)</em>}
                             </span>
                             {g > 0 && <span className="mdet__goals">{g}</span>}
+                          </>
+                        );
+                        // Prije početka je redak kvačica; poslije je običan
+                        // popis, jer se sastav više ne mijenja.
+                        return uredivo && s.id ? (
+                          <li key={p.id} className={igra ? '' : 'is-out'}>
+                            <label className="mdet__pick">
+                              <input
+                                type="checkbox"
+                                checked={igra}
+                                onChange={() => prekvaci(s.id!, p.id)}
+                              />
+                              {redak}
+                            </label>
                           </li>
+                        ) : (
+                          <li key={p.id}>{redak}</li>
                         );
                       })}
                     </ul>
+                  )}
+
+                  {uredivo && s.id && roster(s.id).length > 0 && (
+                    <div className="mdet__squadbar">
+                      <Button
+                        disabled={spremam === s.id}
+                        onClick={() => void spremiSastav(s.id!)}
+                      >
+                        {spremam === s.id ? t('mdet.squadSaving') : t('mdet.squadSave')}
+                      </Button>
+                      {poruka?.team === s.id && <span className="mdet__hint">{t(poruka.key)}</span>}
+                    </div>
                   )}
                 </section>
               ))}
