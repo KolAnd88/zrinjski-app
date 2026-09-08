@@ -240,6 +240,10 @@ export const strings = {
 
     // Obavijesti-postavke
     'notif.title': 'Obavijesti',
+    'notif.notReadyTitle': 'Obavijesti nisu aktivne na ovom uređaju',
+    'notif.notReadyBody':
+      'Prekidač je uključen, ali uređaj nije prijavljen za obavijesti. Najčešće je dopuštenje odbijeno — provjeri u postavkama telefona, pod Aplikacije → VHMRK Zrinjski → Obavijesti.',
+    'notif.retry': 'Pokušaj ponovno',
     'notif.master': 'Sve obavijesti',
     'notif.teamSoon': 'Moja ekipa igra za X min',
     'notif.teamGoal': 'Gol moje ekipe',
@@ -548,6 +552,10 @@ export const strings = {
     'search.noResults': 'No results.',
 
     'notif.title': 'Notifications',
+    'notif.notReadyTitle': 'Notifications are not active on this device',
+    'notif.notReadyBody':
+      'The switch is on, but this device is not registered for notifications. Usually the permission was denied — check your phone settings under Apps → VHMRK Zrinjski → Notifications.',
+    'notif.retry': 'Try again',
     'notif.master': 'All notifications',
     'notif.teamSoon': 'My team plays in X min',
     'notif.teamGoal': 'My team scores',

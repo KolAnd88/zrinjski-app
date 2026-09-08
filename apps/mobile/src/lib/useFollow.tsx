@@ -26,6 +26,17 @@ type FollowCtx = {
   setPref: (key: keyof NotificationPrefs, val: boolean) => void;
   master: boolean;
   setMaster: (val: boolean) => void;
+  /**
+   * Je li uređaj stvarno registriran za obavijesti.
+   *
+   * Prekidač `master` govori samo što korisnik ŽELI. Token može izostati na
+   * četiri načina — odbijeno dopuštenje, emulator, nedostaje projectId, Expo
+   * ne odgovara — i svaki od njih je dosad prolazio nijemo: prekidač piše
+   * "uključeno", a uređaj nije nigdje upisan i obavijesti ne stižu.
+   */
+  pushSpreman: boolean;
+  /** Novi pokušaj dobivanja tokena, nakon što korisnik popravi dopuštenje. */
+  pokusajPonovno: () => void;
 };
 
 const Ctx = createContext<FollowCtx | null>(null);
@@ -63,12 +74,19 @@ export function FollowProvider({ children }: { children: ReactNode }) {
 
   // Token tražimo tek kad su obavijesti uključene — da dopuštenje ne iskoči
   // korisniku koji ih ne želi. Jednom dobiven, token ostaje za cijelu sesiju.
+  // `pokusaj` postoji da se dobivanje tokena može ponoviti na zahtjev.
+  // Bez toga je jedan neuspjeh trajao do sljedećeg pokretanja aplikacije:
+  // efekt se ponavlja samo kad se promijene `master` ili `token`, a nakon
+  // neuspjeha token ostaje null — dakle ništa se ne mijenja i ništa se ne
+  // pokušava. Korisnik popravi dopuštenje u postavkama i ne dogodi se ništa.
+  const [pokusaj, setPokusaj] = useState(0);
+
   useEffect(() => {
     if (!master || token) return;
     void getPushToken().then((t) => {
       if (t) setToken(t);
     });
-  }, [master, token]);
+  }, [master, token, pokusaj]);
 
   // Svaka promjena (praćene ekipe, vrste obavijesti, prekidač, jezik) ide u bazu,
   // jer slanje se odlučuje na serveru — uređaj mora imati točno stanje.
@@ -101,8 +119,10 @@ export function FollowProvider({ children }: { children: ReactNode }) {
         setMasterState(val);
         void AsyncStorage.setItem(MASTER_KEY, val ? '1' : '0');
       },
+      pushSpreman: token !== null,
+      pokusajPonovno: () => setPokusaj((n) => n + 1),
     }),
-    [followed, prefs, master]
+    [followed, prefs, master, token]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

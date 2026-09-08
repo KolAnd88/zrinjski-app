@@ -21,7 +21,8 @@ export function NotifSettingsScreen() {
   const { t } = useT();
   const nav = useNavigation();
   const d = useData();
-  const { prefs, setPref, master, setMaster, followed, toggleFollow } = useFollow();
+  const { prefs, setPref, master, setMaster, followed, toggleFollow, pushSpreman, pokusajPonovno } =
+    useFollow();
 
   useLayoutEffect(() => {
     nav.setOptions({ title: t('notif.title') });
@@ -39,6 +40,19 @@ export function NotifSettingsScreen() {
           thumbColor="#fff"
         />
       </View>
+
+      {/* Uređaj nije registriran, a prekidač je uključen.
+          Ovo je dosad prolazilo nijemo: korisnik vidi "uključeno", uređaja
+          nema u bazi i obavijesti ne stižu — a nigdje ne piše zašto. */}
+      {master && !pushSpreman && (
+        <View style={styles.upozorenje}>
+          <Txt style={styles.upozorenjeNaslov}>{t('notif.notReadyTitle')}</Txt>
+          <Txt style={styles.upozorenjeTekst}>{t('notif.notReadyBody')}</Txt>
+          <Pressable onPress={pokusajPonovno} style={styles.upozorenjeGumb} hitSlop={8}>
+            <Txt style={styles.upozorenjeGumbTxt}>{t('notif.retry')}</Txt>
+          </Pressable>
+        </View>
+      )}
 
       {/* Po tipu */}
       <View style={{ opacity: master ? 1 : 0.45 }}>
@@ -80,6 +94,21 @@ export function NotifSettingsScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.bg },
+  // Crveni rub, ne cijela crvena ploha: ovo je stanje koje treba popraviti,
+  // ne greška zbog koje je nešto propalo.
+  upozorenje: {
+    backgroundColor: C.card,
+    borderWidth: 1,
+    borderColor: C.red,
+    borderRadius: R.chip,
+    padding: S.lg,
+    marginTop: S.md,
+    gap: 6,
+  },
+  upozorenjeNaslov: { fontFamily: F.headSemi, fontSize: 15, color: C.txt },
+  upozorenjeTekst: { fontSize: 13.5, lineHeight: 19, color: C.txt2 },
+  upozorenjeGumb: { minHeight: 44, justifyContent: 'center' },
+  upozorenjeGumbTxt: { fontFamily: F.headSemi, fontSize: 14, color: C.redLt },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
