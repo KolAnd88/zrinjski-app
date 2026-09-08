@@ -6,6 +6,7 @@ import { Landing } from './pages/Landing';
 import { Login } from './pages/Login';
 import { PublicRegistration } from './pages/PublicRegistration';
 import { Privacy } from './pages/Privacy';
+import { DeleteAccount } from './pages/DeleteAccount';
 import { Signup } from './pages/Signup';
 import { RepPortal } from './pages/RepPortal';
 import { Dashboard } from './pages/Dashboard';
@@ -70,6 +71,9 @@ function AppRoutes() {
         {/* Politika privatnosti je javna i mora vrijediti u svakoj grani —
             Google Play trazi stalnu poveznicu koja radi bez prijave. */}
         <Route path="/privatnost" element={<Privacy />} />
+        {/* Google Play trazi javnu adresu za zahtjev za brisanje racuna,
+            dostupnu bez aplikacije i bez prijave — kao i politiku privatnosti. */}
+        <Route path="/brisanje-racuna" element={<DeleteAccount />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
@@ -88,6 +92,9 @@ function AppRoutes() {
         {/* Politika privatnosti je javna i mora vrijediti u svakoj grani —
             Google Play trazi stalnu poveznicu koja radi bez prijave. */}
         <Route path="/privatnost" element={<Privacy />} />
+        {/* Google Play trazi javnu adresu za zahtjev za brisanje racuna,
+            dostupnu bez aplikacije i bez prijave — kao i politiku privatnosti. */}
+        <Route path="/brisanje-racuna" element={<DeleteAccount />} />
         <Route path="/moja-ekipa" element={<RepPortal />} />
         <Route path="*" element={<Navigate to="/moja-ekipa" replace />} />
       </Routes>
@@ -103,6 +110,9 @@ function AppRoutes() {
       {/* Javna prijava ekipe (radi i dok je admin prijavljen — za dijeljenje linka) */}
       <Route path="/prijava" element={<PublicRegistration />} />
       <Route path="/privatnost" element={<Privacy />} />
+        {/* Google Play trazi javnu adresu za zahtjev za brisanje racuna,
+            dostupnu bez aplikacije i bez prijave — kao i politiku privatnosti. */}
+        <Route path="/brisanje-racuna" element={<DeleteAccount />} />
 
       <Route element={<Layout title="dash.title" />}>
         <Route index element={<Dashboard />} />

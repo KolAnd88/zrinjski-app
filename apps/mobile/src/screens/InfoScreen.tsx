@@ -216,6 +216,31 @@ export function InfoScreen() {
           <Ionicons name="chevron-forward" size={18} color={C.mut} />
         </Pressable>
 
+        {/* Privatnost i brisanje računa.
+            Google Play trazi oboje DOSTUPNO IZ APLIKACIJE, ne samo na webu —
+            aplikacija u kojoj se moze otvoriti racun bez toga ne prolazi
+            provjeru. Otvaraju se u pregledniku jer su to dokumenti koji moraju
+            biti dostupni i onome tko aplikaciju obrise. */}
+        <View style={styles.pravno}>
+          <Pressable
+            onPress={() => void Linking.openURL('https://admin.ponoshercegovine.com/privatnost')}
+            style={styles.pravnoRed}
+            hitSlop={6}
+          >
+            <Txt style={styles.pravnoTxt}>{t('info.privacy')}</Txt>
+          </Pressable>
+          <Txt style={styles.pravnoTocka}>·</Txt>
+          <Pressable
+            onPress={() =>
+              void Linking.openURL('https://admin.ponoshercegovine.com/brisanje-racuna')
+            }
+            style={styles.pravnoRed}
+            hitSlop={6}
+          >
+            <Txt style={styles.pravnoTxt}>{t('info.deleteAccount')}</Txt>
+          </Pressable>
+        </View>
+
         {/* Skriveni ulaz za organizatore */}
         <Pressable
           onPress={() => nav.navigate('AdminLogin', { mode: 'staff' })}
@@ -310,6 +335,11 @@ const styles = StyleSheet.create({
     marginTop: SP.section,
   },
   repTitle: { fontFamily: F.bodySemi, fontSize: 14, color: C.txt },
+  // Sitno i na dnu — obavezno je, ali nije ono zbog cega se otvara Info.
+  pravno: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, paddingTop: SP.screenX },
+  pravnoRed: { minHeight: 44, justifyContent: 'center' },
+  pravnoTxt: { fontFamily: F.body, fontSize: 12.5, color: C.sub, textDecorationLine: 'underline' },
+  pravnoTocka: { color: C.mut, fontSize: 12.5 },
   adminLink: { alignItems: 'center', paddingVertical: SP.screenX },
   adminTxt: { fontFamily: F.body, fontSize: 12, color: C.mut },
 });

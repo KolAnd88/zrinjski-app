@@ -224,6 +224,8 @@ export const strings = {
     'info.dTeams': 'Ekipa',
     'info.dFormat': 'Format',
     'info.dFormatValue': 'Grupe → završnica · prve {n} prolaze',
+    'info.privacy': 'Politika privatnosti',
+    'info.deleteAccount': 'Brisanje računa',
     'info.organizer': 'Organizator: VHMRK Zrinjski Mostar\n Bijeli Brijeg, 88000 Mostar',
     'info.rulesBody':
       'Utakmica traje jedno poluvrijeme (15 min). Neriješeno u grupi se boduje; u završnici se razbija prema pravilniku turnira.',
@@ -545,6 +547,8 @@ export const strings = {
     'info.dTeams': 'Teams',
     'info.dFormat': 'Format',
     'info.dFormatValue': 'Groups → knockout · top {n} advance',
+    'info.privacy': 'Privacy policy',
+    'info.deleteAccount': 'Delete account',
     'info.organizer': 'Organiser: VHMRK Zrinjski Mostar\n Bijeli Brijeg, 88000 Mostar',
     'info.rulesBody':
       'A match is one half (15 min). Group draws score points; knockout ties are broken per the tournament rules.',
