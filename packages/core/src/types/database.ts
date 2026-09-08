@@ -264,6 +264,16 @@ export type Database = {
         Update: Partial<Database['public']['Tables']['match']['Insert']>;
         Relationships: [];
       };
+      /**
+       * Tko je na zapisniku za tu utakmicu. Prazno = cijela ekipa.
+       * Zakljucava se u bazi cim utakmica nije vise `scheduled`.
+       */
+      match_player: {
+        Row: { match_id: string; player_id: string };
+        Insert: { match_id: string; player_id: string };
+        Update: Partial<Database['public']['Tables']['match_player']['Insert']>;
+        Relationships: [];
+      };
       match_event: {
         Row: {
           id: string;
@@ -556,6 +566,11 @@ export type Database = {
           Gender,
           { cap: number | null; taken: number; waiting: number; free: number | null }
         >;
+      };
+      /** Zamijeni sastav jedne ekipe za jednu utakmicu, u jednoj transakciji. */
+      set_match_squad: {
+        Args: { p_match_id: string; p_team_id: string; p_player_ids: string[] };
+        Returns: void;
       };
       waitlist_to_pending: {
         Args: { p_registration_id: string };

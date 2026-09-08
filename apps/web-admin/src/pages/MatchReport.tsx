@@ -6,6 +6,7 @@ import {
   fetchActiveTournament,
   fetchEvents,
   fetchMatch,
+  fetchMatchSquad,
   fetchPlayers,
   fetchTeam,
 } from '../lib/data';
@@ -80,13 +81,29 @@ export function MatchReport() {
           m.away_team_id ? fetchTeam(m.away_team_id) : Promise.resolve(null),
           fetchEvents(matchId),
         ]);
-        const [hp, ap] = await Promise.all([
+        const [hp, ap, sastav] = await Promise.all([
           m.home_team_id ? fetchPlayers(m.home_team_id) : Promise.resolve([]),
           m.away_team_id ? fetchPlayers(m.away_team_id) : Promise.resolve([]),
+          fetchMatchSquad(matchId),
         ]);
         if (!active) return;
-        setHome({ team: ht, players: hp });
-        setAway({ team: at, players: ap });
+        /**
+         * Zapisnik ispisuje SASTAV te utakmice, ne cijelu ekipu.
+         *
+         * Na turniru se to razilazi već drugi dan: netko se ozlijedi, netko
+         * dođe tek u subotu. Prazan sastav znači "nitko ga nije složio" i
+         * tada se ispisuje cijela ekipa — kako je i bilo prije.
+         *
+         * Filtrira se po ekipi zasebno, jer sastav jedne ekipe može biti
+         * složen a druge ne.
+         */
+        const uSastavu = new Set(sastav);
+        const probrano = (svi: Player[]) => {
+          const moji = svi.filter((p) => uSastavu.has(p.id));
+          return moji.length > 0 ? moji : svi;
+        };
+        setHome({ team: ht, players: probrano(hp) });
+        setAway({ team: at, players: probrano(ap) });
         setEvents(ev);
       } finally {
         if (active) setLoading(false);

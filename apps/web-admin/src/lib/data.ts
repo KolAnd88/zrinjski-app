@@ -846,6 +846,52 @@ export async function fetchFinishedMatches(tournamentId: string): Promise<Match[
   return data ?? [];
 }
 
+// ── Sastav za utakmicu ─────────────────────────────────────────────────────
+//
+// Igrači pripadaju ekipi, ali tko je na zapisniku odlučuje se po utakmici:
+// netko se ozlijedi, netko stigne tek u subotu. Prazan sastav znači "cijela
+// ekipa" — tako zapisnik radi i kad ga nitko ne posloži.
+
+/**
+ * ID-evi igrača na zapisniku te utakmice. Prazno = sastav nije određen.
+ *
+ * Greška se namjerno guta i vraća prazno. Sastav je dopuna, a "prazno" ionako
+ * znači "cijela ekipa" — pa zapisnik radi i dok migracija 0035 nije pokrenuta,
+ * i ako čitanje padne. Zapisnik se ispisuje i potpisuje uz teren; ne smije
+ * ostati prazan zato što dodatak nije dostupan.
+ */
+export async function fetchMatchSquad(matchId: string): Promise<string[]> {
+  if (DEMO) return [];
+  const { data, error } = await client()
+    .from('match_player')
+    .select('player_id')
+    .eq('match_id', matchId);
+  if (error) return [];
+  return (data ?? []).map((r) => r.player_id as string);
+}
+
+/**
+ * Zamijeni sastav jedne ekipe za jednu utakmicu.
+ *
+ * Ide kroz RPC, ne kroz pojedinačne upise: delegat to radi s telefona u
+ * dvorani, gdje veza zna pasti nasred posla — polovično spremljen sastav bio
+ * bi gori od nikakvog. Baza usput provjerava i da igrač pripada toj ekipi te
+ * da utakmica još nije počela.
+ */
+export async function setMatchSquad(
+  matchId: string,
+  teamId: string,
+  playerIds: string[]
+): Promise<void> {
+  if (DEMO) return;
+  const { error } = await client().rpc('set_match_squad', {
+    p_match_id: matchId,
+    p_team_id: teamId,
+    p_player_ids: playerIds,
+  });
+  if (error) throw error;
+}
+
 export async function fetchPlayersByTeams(teamIds: string[]): Promise<Player[]> {
   if (teamIds.length === 0) return [];
   if (DEMO) return db.players.filter((p) => teamIds.includes(p.team_id)).sort((a, b) => a.sort_order - b.sort_order);
