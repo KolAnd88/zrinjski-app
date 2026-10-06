@@ -14,7 +14,7 @@
     },
     "android": {
       "package": "ba.vhmrkzrinjski.app",
-      "versionCode": 6,
+      "versionCode": 7,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",

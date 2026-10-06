@@ -1,0 +1,50 @@
+=== APP NAME (max 30 characters) ===
+Ponos Hercegovine 2026
+
+=== SHORT DESCRIPTION (max 80 characters) ===
+Schedule, live scores and alerts from the veterans tournament in Mostar
+
+=== FULL DESCRIPTION (max 4000 characters) ===
+The official app of the international veterans handball tournament "Ponos Hercegovine", played in Mostar from 5 to 8 November 2026.
+
+The tournament brings together women's and men's veteran teams from several countries. The app keeps you on top of who is playing, where, and how it ended — without digging through group chats and printed sheets.
+
+WHAT THE APP OFFERS
+
+Daily schedule
+Time, opponent and venue for every match. If the timetable shifts, you see the new time straight away.
+
+Live scores
+The scoreboard updates while the match is being played, with nothing to refresh.
+
+Match timeline
+Goals, saves and suspensions, minute by minute.
+
+Standings and finals
+Group tables and the road to the semi-finals and the final.
+
+Statistics
+Top scorers and best goalkeepers of the tournament.
+
+Teams and squads
+Players, shirt numbers and captains for every team.
+
+Notifications you choose yourself
+Follow the teams you care about and switch on only what matters to you: upcoming match, goal by your team, final whistle, schedule change, social programme and dinners.
+
+Venue and accommodation
+Addresses of the sports hall, hotels and evening events, with navigation one tap away.
+
+Gallery
+Photos from the tournament.
+
+Croatian and English
+The language can be changed inside the app at any time.
+
+NO SIGN-UP NEEDED
+
+Spectators do not need an account. Open the app and everything is there. Accounts exist only for team representatives, who register their players, and for the organisers, who run the matches.
+
+ABOUT THE ORGANISER
+
+The tournament is organised by VHMRK Zrinjski Mostar, a club that brings together former players and friends of handball, continues the handball tradition of Zrinjski and connects generations through veterans sport.

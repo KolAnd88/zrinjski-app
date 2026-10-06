@@ -1,0 +1,50 @@
+=== NAZIV APLIKACIJE (najviše 30 znakova) ===
+Ponos Hercegovine 2026
+
+=== KRATKI OPIS (najviše 80 znakova) ===
+Raspored, rezultati uživo i obavijesti s veteranskog turnira u Mostaru
+
+=== PUNI OPIS (najviše 4000 znakova) ===
+Službena aplikacija međunarodnog veteranskog rukometnog turnira "Ponos Hercegovine", koji se od 5. do 8. studenoga 2026. igra u Mostaru.
+
+Turnir okuplja veteranke i veterane iz više zemalja. Aplikacija je tu da u svakom trenutku znaš tko igra, gdje se igra i kako je završilo — bez traženja po porukama i papirima.
+
+ŠTO APLIKACIJA NUDI
+
+Raspored po danima
+Vrijeme, protivnik i dvorana za svaku utakmicu. Ako se satnica pomakne, novo vrijeme vidiš odmah.
+
+Rezultati uživo
+Semafor se mijenja dok utakmica traje, bez osvježavanja.
+
+Tijek utakmice
+Golovi, obrane i isključenja, minutu po minutu.
+
+Ljestvice i završnica
+Poredak u skupinama i put do polufinala i finala.
+
+Statistika
+Najbolji strijelci i najbolji vratari turnira.
+
+Ekipe i sastavi
+Igrači, brojevi dresova i kapetani svake ekipe.
+
+Obavijesti koje biraš sam
+Odaberi ekipe koje pratiš i uključi samo ono što te zanima: najava utakmice, gol tvoje ekipe, kraj utakmice, promjena satnice, program i večere.
+
+Dvorana i smještaj
+Adrese dvorane, hotela i večernjih događanja, s navigacijom u jedan dodir.
+
+Galerija
+Fotografije s turnira.
+
+Hrvatski i engleski
+Jezik se mijenja u aplikaciji, u svakom trenutku.
+
+BEZ REGISTRACIJE
+
+Gledateljima račun ne treba. Otvoriš aplikaciju i sve je tu. Račune imaju samo predstavnici ekipa, koji prijavljuju svoje igrače, i organizatori, koji vode utakmice.
+
+O ORGANIZATORU
+
+Turnir organizira VHMRK Zrinjski Mostar, klub koji okuplja bivše igrače i prijatelje rukometa, nastavlja rukometnu tradiciju Zrinjskog i povezuje generacije kroz veteranski sport.
