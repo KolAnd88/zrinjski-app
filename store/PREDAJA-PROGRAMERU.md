@@ -20,6 +20,24 @@ osobne račune.
 | Tekstovi za trgovinu | `store/play-listing-hr.txt` (i `-en.txt`) |
 | Odgovori o podacima | `store/sigurnost-podataka.md` |
 
+### Mjere i format — provjereno u samim datotekama
+
+Play odbija učitavanje ako format ne odgovara, pa je svaka datoteka
+provjerena čitanjem PNG zaglavlja, ne na oko.
+
+| Datoteka | Traži se | Jest |
+|---|---|---|
+| Ikona | 512×512, **32-bitni PNG s alfom**, do 1024 KB | 512×512, RGBA, 235 KB ✔ |
+| Naslovna | 1024×500, **24-bitni PNG bez alfe** | 1024×500, RGB ✔ |
+| Snimke telefon | bez alfe, strana 320–3840 px | 1125×2001, RGB ✔ |
+| Snimke 7" | isto | 1200×1920, RGB ✔ |
+| Snimke 10" | isto | 1600×2560, RGB ✔ |
+
+> **Omjer je zamka.** Google traži da duža strana snimke **ne bude više od
+> dvostruke kraće**. Gornje snimke su 16:9 i 16:10, pa prolaze. Ali sirova
+> snimka s današnjeg telefona često je 1080×2400 (20:9 = 2,22:1) i Play je
+> **odbija** — takvu treba obrezati na najviše 1080×2160.
+
 ## 2. Podaci o paketu
 
 Provjereno čitanjem manifesta iz same `.aab` datoteke, ne iz konfiguracije.
@@ -133,32 +151,47 @@ Ako recenzent pita, ovo su dozvole i čemu služe:
 ## 6. Snimke zaslona — pročitati prije nego se učitaju
 
 U `store/snimke` stoje slike u tri mjere (telefon 1125×2001, 7" 1200×1920,
-10" 1600×2560), sve u omjeru koji Play prihvaća. **Ali nisu dobre.**
-
-Dva razloga, oba pošteno rečena:
+10" 1600×2560), sve u omjeru koji Play prihvaća. **Ali su samo zamjena za
+prave**, iz dva razloga, oba pošteno rečena:
 
 1. **Glavni ekrani su prazni.** Satnica još nije unesena, pa „Raspored" i
    „Statistika" pokazuju poruku da podataka nema, a početna pokazuje 0
    utakmica i 0 golova. Upotrebljivi su samo „Poredak" (6 prijavljenih ekipa
    s grbovima) i „Info".
-2. **Natpisi u donjoj traci su odrezani** pri dnu. To je razlika u prikazu
-   web verzije iz koje su slike snimljene; na pravom telefonu natpisi su
-   cijeli.
+2. **Natpisi u donjoj traci su odrezani** pri dnu. Slike su snimljene iz web
+   verzije aplikacije, a odrezivanje je razlika u njezinu prikazu; na pravom
+   telefonu natpisi su cijeli.
 
-**Preporuka:** učitati za sada „Poredak" i „Info" (Play traži najmanje dvije
-snimke), a prave napraviti **s telefona tijekom turnira**, kad teče utakmica
-uživo i kad se puni poredak i statistika. Snimke se u konzoli mijenjaju
-kasnije bez nove objave aplikacije.
+**Prave snimke se rade s telefona**, ne iz web verzije — tako nestaju oba
+problema. Potrebno je najmanje dvije, Play dopušta do osam. Tablet snimke
+nisu obavezne; bez njih Play samo upiše napomenu u listu zadataka.
 
-## 7. Što predlažem za objavu
+Snimke se u konzoli **mijenjaju kad se želi, bez nove objave aplikacije** i
+bez novog pregleda. Zato one ne smiju zadržati predaju: učitaju se ove, a
+zamijene se čim postoje bolje.
 
-Turnir je 5. – 8. studenoga. Pregled nove aplikacije na Playu zna trajati od
-nekoliko dana do tjedan dana.
+## 7. Dodatna polja koja se lako preskoče
 
-- **Ako se ide odmah u produkciju:** učitati sada, sa slabijim snimkama, pa
-  ih zamijeniti nakon turnira.
-- **Ako se ne žuri:** objaviti nakon turnira, s pravim snimkama. Aplikacija
-  se za sam turnir ionako dijeli preko poveznice:
-  `https://github.com/KolAnd88/zrinjski-app/releases/latest/download/app.apk`
+| Polje | Vrijednost |
+|---|---|
+| Države i regije (u produkcijskoj objavi) | **Bosna i Hercegovina, Hrvatska** — po želji sve države. Ako se ništa ne označi, aplikacija nije dostupna nigdje. |
+| Bilješke o izdanju (Release notes, `hr-HR`) | *Prva verzija. Raspored, rezultati uživo, poredak, statistika, sastavi i obavijesti s turnira Ponos Hercegovine 2026.* |
+| Oblik objave | **Produkcija** (ne zatvoreno testiranje) — publika je šira javnost. |
 
-Odluka je na klubu, nije tehnička.
+## 8. Redoslijed u konzoli
+
+Play ne pušta objavu dok svaki zadatak s popisa nije zelen. Redom:
+
+1. Postavke trgovine — kategorija, kontakt, politika privatnosti
+2. Glavni unos u trgovini — naziv, opisi, ikona, naslovna, snimke
+3. Sigurnost podataka (`store/sigurnost-podataka.md`)
+4. Ocjena sadržaja — upitnik
+5. Ciljana publika i sadržaj
+6. Pristup aplikaciji — **račun za recenzenta** (poglavlje 4a)
+7. Oglasi — „Ne"
+8. Nova objava u produkciji — `.aab`, države, bilješke o izdanju
+9. Pošalji na pregled
+
+Aplikacija se u međuvremenu dijeli preko poveznice, pa turnir ne ovisi o
+Playu:
+`https://github.com/KolAnd88/zrinjski-app/releases/latest/download/app.apk`
