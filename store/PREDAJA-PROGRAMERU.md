@@ -130,6 +130,12 @@ uputa: „Prijava kroz Ekipa → Prijava predstavnika."
 Račun neka ne bude ničiji stvarni — neka bude zaseban, napravljen samo za
 pregled.
 
+> **Lozinka tog računa ne smije doći u ovu datoteku.** Repozitorij
+> `KolAnd88/zrinjski-app` je **javan**, pa bi je vidio svatko, a povijest
+> gita pamti i ono što se poslije izbriše. Lozinka ide samo na dva mjesta:
+> u polje *App access* u Play konzoli i u `zrinjski-tajne.txt` izvan
+> repozitorija. Programeru se šalje porukom, ne kroz git.
+
 ### b) Naziv paketa je konačan
 
 `ba.vhmrkzrinjski.app` se nakon prve objave **više ne može promijeniti**.
