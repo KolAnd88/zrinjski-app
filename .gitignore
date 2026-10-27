@@ -42,3 +42,6 @@ Thumbs.db
 # posao koji se ne isplati: prije ili kasnije se raziđu i onda dva alata rade
 # po razlicitim pravilima. Zato ostaje lokalna.
 AGENTS.md
+
+# Snimke zaslona iz web verzije — privremene, prave se rade s telefona.
+store/snimke/
