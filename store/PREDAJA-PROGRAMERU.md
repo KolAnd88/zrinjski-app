@@ -174,9 +174,18 @@ zamijene se čim postoje bolje.
 
 | Polje | Vrijednost |
 |---|---|
-| Države i regije (u produkcijskoj objavi) | **Bosna i Hercegovina, Hrvatska** — po želji sve države. Ako se ništa ne označi, aplikacija nije dostupna nigdje. |
+| Države i regije (u produkcijskoj objavi) | **Bosna i Hercegovina, Hrvatska, Srbija.** Ako se ništa ne označi, aplikacija nije dostupna nigdje. Dostupnost ne košta ništa, pa se smije označiti i **sve države** — vidi napomenu niže. |
 | Bilješke o izdanju (Release notes, `hr-HR`) | *Prva verzija. Raspored, rezultati uživo, poredak, statistika, sastavi i obavijesti s turnira Ponos Hercegovine 2026.* |
 | Oblik objave | **Produkcija** (ne zatvoreno testiranje) — publika je šira javnost. |
+
+> **Napomena o državama.** Igrači i navijači veteranskog rukometa imaju rodbinu
+> u Njemačkoj, Austriji, Švicarskoj, Švedskoj. Ako aplikacija nije dostupna u
+> njihovoj državi, oni je **ne mogu ni pronaći ni skinuti**, a turnir bi
+> pratili. Dodavanje država je besplatno i ne zahtijeva novi pregled, ali ako
+> se označe sve odmah, nema nikoga koga smo propustili.
+>
+> Dostupnost nije isto što i jezik: aplikacija je na hrvatskom i engleskom i
+> takva ostaje gdje god bila dostupna.
 
 ## 8. Redoslijed u konzoli
 
