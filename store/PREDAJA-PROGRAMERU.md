@@ -13,7 +13,7 @@ osobne račune.
 
 | Što | Gdje |
 |---|---|
-| Paket za objavu | `ponos-hercegovine-1.1.4.aab` |
+| Paket za objavu | `ponos-hercegovine-1.1.4-build8.aab` |
 | Ikona 512×512 | `store/play-ikona-512.png` |
 | Naslovna 1024×500 | `store/play-naslovna-1024x500.png` |
 | Snimke zaslona | `store/snimke/telefon`, `/tablet-7`, `/tablet-10` |
@@ -27,6 +27,7 @@ provjerena čitanjem PNG zaglavlja, ne na oko.
 
 | Datoteka | Traži se | Jest |
 |---|---|---|
+| Paket `.aab` | valjan, nije odrezan pri prijenosu | zip završetak na mjestu, 63 857 481 B ✔ |
 | Ikona | 512×512, **32-bitni PNG s alfom**, do 1024 KB | 512×512, RGBA, 235 KB ✔ |
 | Naslovna | 1024×500, **24-bitni PNG bez alfe** | 1024×500, RGB ✔ |
 | Snimke telefon | bez alfe, strana 320–3840 px | 1125×2001, RGB ✔ |
@@ -46,18 +47,26 @@ Provjereno čitanjem manifesta iz same `.aab` datoteke, ne iz konfiguracije.
 |---|---|
 | Naziv paketa | `ba.vhmrkzrinjski.app` |
 | Verzija | `1.1.4` |
-| Broj verzije (versionCode) | `7` |
+| Broj verzije (versionCode) | `8` |
 | Minimalni Android | prema Expo SDK 57 |
-| Veličina | 63 857 467 bajta |
+| Veličina | 63 857 481 bajta |
 | Reklamni identifikator (AD_ID) | **nema ga** — u manifestu ne postoji |
+
+> versionCode je **8**, a ne 7. Verzija 7 je već učitana u konzolu i Play taj
+> broj više nikad ne prima, pa je paket ponovno izgrađen. Ime verzije ostaje
+> `1.1.4` — Play traži jedinstven versionCode, ime verzije se smije ponavljati.
 
 ### Potpis
 
-Paket je potpisan ključem koji čuva EAS (Expo). Otisak certifikata:
+Paket je potpisan ključem koji čuva EAS (Expo), iz istih vjerodajnica kao
+verzija 7 (`Build Credentials WkvTriwDfi`). Otisak certifikata:
 
 ```
-SHA-256: CF:C5:65:8F:81:6E:F7:A5:A8:8B:ED:79:76:C2:F1:20:C1:D9:51:3E:35:6F:FF:9B:0F:AE:29:97:87:34:C9:CA
+SHA-256: 8C:21:A6:DC:0E:29:6A:6C:9B:82:2A:CF:5D:47:B6:87:6D:C8:99:ED:C1:B2:DA:0A:98:48:CE:61:83:9B:9D:2D
 ```
+
+Provjereno `openssl`-om iz `META-INF/3C284317.RSA` u obama paketima — otisak
+je identičan, pa Play nadogradnju prima.
 
 Pri prvom učitavanju Play ovo registrira kao **ključ za učitavanje**
 (upload key), a sam potpisuje aplikaciju za korisnike (Play App Signing).
