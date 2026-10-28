@@ -1,8 +1,8 @@
 === APP NAME (max 30 characters) ===
-Ponos Hercegovine 2026
+VHMRK Zrinjski
 
 === SHORT DESCRIPTION (max 80 characters) ===
-Schedule, live scores and alerts from the veterans tournament in Mostar
+Ponos Hercegovine 2026 — schedule, live scores and alerts from the tournament
 
 === FULL DESCRIPTION (max 4000 characters) ===
 The official app of the international veterans handball tournament "Ponos Hercegovine", played in Mostar from 5 to 8 November 2026.

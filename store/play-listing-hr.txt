@@ -1,8 +1,8 @@
 === NAZIV APLIKACIJE (najviše 30 znakova) ===
-Ponos Hercegovine 2026
+VHMRK Zrinjski
 
 === KRATKI OPIS (najviše 80 znakova) ===
-Raspored, rezultati uživo i obavijesti s veteranskog turnira u Mostaru
+Ponos Hercegovine 2026 — raspored, rezultati uživo i obavijesti s turnira
 
 === PUNI OPIS (najviše 4000 znakova) ===
 Službena aplikacija međunarodnog veteranskog rukometnog turnira "Ponos Hercegovine", koji se od 5. do 8. studenoga 2026. igra u Mostaru.

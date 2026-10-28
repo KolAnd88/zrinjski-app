@@ -82,7 +82,7 @@ Pri prvom učitavanju Play ovo registrira kao **ključ za učitavanje**
 
 | Polje | Vrijednost |
 |---|---|
-| Naziv aplikacije | `Ponos Hercegovine 2026` |
+| Naziv aplikacije | `VHMRK Zrinjski` — **mora biti točno ovo**, vidi niže |
 | Zadani jezik | hrvatski (Hrvatska) |
 | Vrsta | Aplikacija (ne igra) |
 | Kategorija | Sport |
@@ -92,7 +92,23 @@ Pri prvom učitavanju Play ovo registrira kao **ključ za učitavanje**
 | Brisanje računa | `https://admin.ponoshercegovine.com/brisanje-racuna` |
 
 Kratki i puni opis su u `store/play-listing-hr.txt`, pripremljeni unutar
-Googleovih ograničenja (naziv 22/30 znakova, kratki opis 70/80, puni 1541/4000).
+Googleovih ograničenja.
+
+> **Zašto naslov nije „Ponos Hercegovine 2026".**
+>
+> Prva predaja odbijena je po pravilu *Misleading Claims — App store listing
+> mismatch*: u trgovini je stajalo „Ponos Hercegovine 2026", a aplikacija se
+> na telefonu zove **VHMRK Zrinjski** (`expo.name` u `app.json`). Google to
+> dvoje uspoređuje i traži da se poklapa.
+>
+> Odlučeno je da se uskladi **naslov u trgovini**, a ne ime u aplikaciji —
+> tako nije potrebna nova gradnja, a ime kluba vrijedi i za sljedeća izdanja
+> turnira. Ime turnira sada nosi kratki opis, da se aplikacija i dalje nađe
+> pretragom.
+>
+> Ako naslov netko kasnije vrati na ime turnira, **aplikacija će opet biti
+> odbijena** — osim ako se istodobno promijeni `expo.name` i izgradi nova
+> verzija.
 
 ### Deklaracije
 
