@@ -13,7 +13,7 @@ osobne račune.
 
 | Što | Gdje |
 |---|---|
-| Paket za objavu | `ponos-hercegovine-1.1.4-build8.aab` |
+| Paket za objavu | `ponos-hercegovine-1.2.0-build9.aab` |
 | Ikona 512×512 | `store/play-ikona-512.png` |
 | Naslovna 1024×500 | `store/play-naslovna-1024x500.png` |
 | Snimke zaslona | `store/snimke/telefon`, `/tablet-7`, `/tablet-10` |
@@ -27,7 +27,7 @@ provjerena čitanjem PNG zaglavlja, ne na oko.
 
 | Datoteka | Traži se | Jest |
 |---|---|---|
-| Paket `.aab` | valjan, nije odrezan pri prijenosu | zip završetak na mjestu, 63 857 481 B ✔ |
+| Paket `.aab` | valjan, nije odrezan pri prijenosu | zip završetak na mjestu, 63 866 315 B ✔ |
 | Ikona | 512×512, **32-bitni PNG s alfom**, do 1024 KB | 512×512, RGBA, 235 KB ✔ |
 | Naslovna | 1024×500, **24-bitni PNG bez alfe** | 1024×500, RGB ✔ |
 | Snimke telefon | bez alfe, strana 320–3840 px | 1125×2001, RGB ✔ |
@@ -46,15 +46,20 @@ Provjereno čitanjem manifesta iz same `.aab` datoteke, ne iz konfiguracije.
 | | |
 |---|---|
 | Naziv paketa | `ba.vhmrkzrinjski.app` |
-| Verzija | `1.1.4` |
-| Broj verzije (versionCode) | `8` |
+| Verzija | `1.2.0` |
+| Broj verzije (versionCode) | `9` |
 | Minimalni Android | prema Expo SDK 57 |
-| Veličina | 63 857 481 bajta |
+| Veličina | 63 866 315 bajta |
 | Reklamni identifikator (AD_ID) | **nema ga** — u manifestu ne postoji |
 
-> versionCode je **8**, a ne 7. Verzija 7 je već učitana u konzolu i Play taj
-> broj više nikad ne prima, pa je paket ponovno izgrađen. Ime verzije ostaje
-> `1.1.4` — Play traži jedinstven versionCode, ime verzije se smije ponavljati.
+> **1.2.0 (versionCode 9)** je nadogradnja: završnica po konkurenciji —
+> ženska završna skupina, prolaz po konkurenciji, pravilo poretka ispod
+> tablica, kraj pauze u rasporedu. Učitava se kao novo izdanje u produkciji,
+> preko verzije 8.
+>
+> Bilješke o izdanju (`hr-HR`): *Završna skupina ženske konkurencije,
+> prolaz iz grupe posebno za muške i ženske, pravilo poretka ispod tablica i
+> kraj pauze u rasporedu.*
 
 ### Potpis
 
