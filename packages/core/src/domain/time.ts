@@ -50,15 +50,47 @@ export function parseIsoDate(isoDate: string): Date {
   return new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
 }
 
+/** Zona turnira. Mostar; ista je i za Hrvatsku i za većinu dijaspore. */
+export const TOURNAMENT_TZ = 'Europe/Sarajevo';
+
 /**
- * Spaja datum + "HH:MM" + offset zone u ISO timestamp (za spremanje u timestamptz).
- * tzOffsetMinutes = pomak zone od UTC (Europe/Sarajevo ljeti = +120, zimi = +60).
- * Default +120 (turnir je ljeti). Vrati npr. "2026-07-10T18:00:00+02:00".
+ * Pomak zone od UTC u minutama za zadani datum i sat u toj zoni
+ * (Europe/Sarajevo ljeti +120, zimi +60).
+ *
+ * Prije je pomak bio zakucan na +120 jer se mislilo da je turnir ljeti. Turnir
+ * je u studenom, kad je pomak +60: utakmica postavljena za 10:00 spremala se
+ * kao 08:00 UTC, a telefoni bi je prikazali u 09:00.
+ */
+export function zoneOffsetMinutes(isoDate: string, time: string, timeZone = TOURNAMENT_TZ): number {
+  const dm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate.trim());
+  if (!dm) throw new Error(`Neispravan datum: "${isoDate}"`);
+  const total = timeToMinutes(time);
+  // Zidni sat protumačen kao da je UTC; razlika do stvarnog zidnog sata u
+  // zoni u tom trenutku je upravo pomak zone.
+  const guess = Date.UTC(Number(dm[1]), Number(dm[2]) - 1, Number(dm[3]), Math.floor(total / 60), total % 60);
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).formatToParts(new Date(guess));
+  const get = (type: string) => Number(parts.find((p) => p.type === type)!.value);
+  const wall = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'));
+  return Math.round((wall - guess) / 60000);
+}
+
+/**
+ * Spaja datum + "HH:MM" + pomak zone u ISO timestamp (za spremanje u timestamptz).
+ * Bez zadanog pomaka uzima se stvarni pomak zone turnira za taj dan.
+ * Vrati npr. "2026-11-06T10:00:00+01:00".
  */
 export function combineDateTime(
   isoDate: string,
   time: string,
-  tzOffsetMinutes = 120
+  tzOffsetMinutes: number = zoneOffsetMinutes(isoDate, time)
 ): string {
   const dm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate.trim());
   if (!dm) throw new Error(`Neispravan datum: "${isoDate}"`);

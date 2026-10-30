@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { dayDurationMinutes, generateDaySchedule, generateSchedule, shiftDaySchedule, type DayInput } from './schedule';
+import {
+  dayDurationMinutes,
+  generateDaySchedule,
+  generateSchedule,
+  shiftDaySchedule,
+  shiftFollowing,
+  slotConflicts,
+  type DayInput,
+} from './schedule';
 
 const params = { matchDurationMin: 15, gapMin: 5 }; // korak = 20 min
 
@@ -55,5 +63,78 @@ describe('dayDurationMinutes', () => {
   it('n utakmica + (n-1) razmaka', () => {
     expect(dayDurationMinutes(day, params)).toBe(3 * 15 + 2 * 5);
     expect(dayDurationMinutes({ ...day, matchIds: [] }, params)).toBe(0);
+  });
+});
+
+describe('pauze', () => {
+  it('generiranje preskače pauzu: utakmica kreće kad pauza završi', () => {
+    const d: DayInput = { ...day, matchIds: ['m1', 'm2', 'm3', 'm4'], pauses: [{ start: '10:45', durationMin: 30 }] };
+    // 10:00, 10:20, 10:40 bi zahvatila pauzu 10:45–11:15 → 11:15, pa 11:35
+    expect(generateDaySchedule(d, params).map((s) => s.time)).toEqual(['10:00', '10:20', '11:15', '11:35']);
+  });
+
+  it('studeni: termin se sprema s +01:00', () => {
+    const out = generateDaySchedule({ ...day, date: '2026-11-06' }, params);
+    expect(out[0]!.scheduledTime).toBe('2026-11-06T10:00:00+01:00');
+  });
+});
+
+describe('slotConflicts (jedan teren)', () => {
+  const others = [
+    { id: 'a', start: '10:00' },
+    { id: 'b', start: '10:20' },
+  ];
+  const pauses = [{ start: '12:00', durationMin: 45, title: 'Otvaranje turnira' }];
+
+  it('bliže od trajanja + razmaka se ne smije', () => {
+    expect(slotConflicts({ matchId: 'x', start: '10:30', others, pauses, params })).toEqual([
+      { kind: 'too_close', otherId: 'b', otherTime: '10:20', minGap: 20 },
+    ]);
+  });
+
+  it('točno na razmaku smije', () => {
+    expect(slotConflicts({ matchId: 'x', start: '10:40', others, pauses, params })).toEqual([]);
+  });
+
+  it('utakmica ne smije zahvatiti pauzu', () => {
+    expect(slotConflicts({ matchId: 'x', start: '11:50', others, pauses, params })).toEqual([
+      { kind: 'in_pause', title: 'Otvaranje turnira', start: '12:00', end: '12:45' },
+    ]);
+    expect(slotConflicts({ matchId: 'x', start: '12:45', others, pauses, params })).toEqual([]);
+  });
+
+  it('vlastiti stari termin se ne računa', () => {
+    expect(slotConflicts({ matchId: 'b', start: '10:25', others: [{ id: 'b', start: '10:20' }], pauses: [], params })).toEqual([]);
+  });
+});
+
+describe('shiftFollowing (pomakni i sve iza)', () => {
+  const dan = [
+    { id: 'a', start: '10:00', movable: true },
+    { id: 'b', start: '10:20', movable: true },
+    { id: 'c', start: '10:40', movable: true },
+    { id: 'd', start: '13:00', movable: true },
+  ];
+
+  it('sve iza se pomakne za isto', () => {
+    expect(shiftFollowing({ day: dan, matchId: 'b', newStart: '10:30', pauses: [], params })).toEqual([
+      { id: 'b', start: '10:30' },
+      { id: 'c', start: '10:50' },
+      { id: 'd', start: '13:10' },
+    ]);
+  });
+
+  it('preko pauze: utakmica koja bi ušla u pauzu ide iza nje', () => {
+    const out = shiftFollowing({ day: dan, matchId: 'b', newStart: '11:00', pauses: [{ start: '11:30', durationMin: 30 }], params });
+    expect(out).toEqual([
+      { id: 'b', start: '11:00' },
+      { id: 'c', start: '12:00' },
+      { id: 'd', start: '13:40' },
+    ]);
+  });
+
+  it('odigrana utakmica prekida lanac', () => {
+    const d2 = dan.map((m) => (m.id === 'c' ? { ...m, movable: false } : m));
+    expect(shiftFollowing({ day: d2, matchId: 'b', newStart: '10:25', pauses: [], params })).toEqual([{ id: 'b', start: '10:25' }]);
   });
 });

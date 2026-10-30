@@ -41,4 +41,11 @@ describe('combineDateTime', () => {
     expect(combineDateTime('2026-06-06', '10:00')).toBe('2026-06-06T10:00:00+02:00');
     expect(combineDateTime('2026-06-06', '10:00', 60)).toBe('2026-06-06T10:00:00+01:00');
   });
+
+  it('u studenom je u Mostaru +01:00, ne +02:00', () => {
+    // Turnir je 5.–8.11.; s fiksnim +02:00 svaka bi utakmica na telefonu
+    // pisala sat ranije.
+    expect(combineDateTime('2026-11-06', '10:00')).toBe('2026-11-06T10:00:00+01:00');
+    expect(new Date(combineDateTime('2026-11-06', '10:00')).toISOString()).toBe('2026-11-06T09:00:00.000Z');
+  });
 });
