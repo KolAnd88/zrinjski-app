@@ -1299,6 +1299,37 @@ export function notifyQuietly(row: TablesInsert<'notification_log'>): void {
   })();
 }
 
+/**
+ * Obavijest o promjeni satnice — svakoj ekipi posebno, samo uređajima koji
+ * je prate. Šalje organizator gumbom kad završi s izmjenama, ne svaki klik:
+ * dok se satnica slaže, svaka izmjena bila bi nova obavijest.
+ *
+ * Za razliku od notifyQuietly ovdje se ČEKA ishod — organizator je kliknuo i
+ * treba znati je li otišlo.
+ */
+export async function notifyScheduleChange(
+  tournamentId: string,
+  items: { teamId: string; title: string; body: string }[]
+): Promise<{ teams: number; sent: number }> {
+  let sent = 0;
+  for (const it of items) {
+    const row: TablesInsert<'notification_log'> = {
+      tournament_id: tournamentId,
+      type: 'schedule_change',
+      audience: `team:${it.teamId}`,
+      title: it.title,
+      body: it.body,
+    };
+    const created = await insertNotification(row);
+    const r = await sendPush({ audience: row.audience!, title: row.title, body: row.body ?? null, type: row.type });
+    sent += r.sent;
+    if (!DEMO) {
+      await client().from('notification_log').update({ push_sent_at: new Date().toISOString() }).eq('id', created.id);
+    }
+  }
+  return { teams: items.length, sent };
+}
+
 export async function insertNotification(row: TablesInsert<'notification_log'>): Promise<NotificationLog> {
   if (DEMO) {
     const n: NotificationLog = {

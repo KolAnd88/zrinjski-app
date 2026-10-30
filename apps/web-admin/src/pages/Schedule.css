@@ -99,7 +99,7 @@
 
 .mrow {
   display: grid;
-  grid-template-columns: 56px 28px 1fr auto 1fr 28px auto;
+  grid-template-columns: 28px 1fr auto 1fr 28px auto;
   align-items: center;
   gap: var(--sp-md);
   background: var(--card);
@@ -122,6 +122,32 @@
 }
 .mrow--final {
   border-color: var(--gold);
+}
+/* Vrijeme kao zaseban gumb: klik otvara promjenu termina i dana. */
+.mrow__timebtn {
+  flex-shrink: 0;
+  width: 64px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--card);
+  color: var(--sub);
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+.mrow__timebtn:hover:not(:disabled) {
+  border-color: var(--red);
+  color: var(--txt);
+}
+.mrow__timebtn:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+.mrow__timebtn:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 .mrow__time {
   font-family: var(--font-head);

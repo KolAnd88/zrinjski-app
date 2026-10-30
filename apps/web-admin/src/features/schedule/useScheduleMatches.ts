@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { Day, Grp, Match, Team, Tournament } from '@zrinjski/core';
+import type { Day, Grp, Match, ProgramItem, Team, Tournament } from '@zrinjski/core';
 import { generateSchedule, swapSlots, swappableNeighbour, type DayInput } from '@zrinjski/core';
 import { HAS_DATA } from '../../lib/supabase';
 import {
@@ -8,6 +8,8 @@ import {
   fetchAllTeams,
   fetchGroups,
   fetchMatchesForSchedule,
+  fetchProgram,
+  setMatchTimes,
 } from '../../lib/data';
 import { toInputTime } from '../../lib/timeFormat';
 
@@ -29,12 +31,18 @@ export type ScheduleMatchesState = {
   /** Pune ekipe i grupe — treba ih postavljanje zavrsnice. */
   teams: Team[];
   groups: Grp[];
+  /** Cijeli program turnira (pauze i obične stavke). */
+  program: ProgramItem[];
+  /** Pauze u dvorani (otvaranje, ručak) — u njima se ne igra. */
+  pauses: ProgramItem[];
   generating: boolean;
   reload: () => Promise<void>;
   /** Zamijeni termin sa susjednom utakmicom istog dana; odbija zaključane. */
   swap: (matchId: string, dir: 'up' | 'down') => Promise<void>;
   /** Generiraj satnicu iz dana + postavki; vrati broj raspoređenih utakmica. */
   generate: (tournament: Tournament, days: Day[]) => Promise<number>;
+  /** Ručni termin i/ili dan; razmak i pauze provjerava i baza. */
+  setTimes: (changes: { id: string; day_id: string | null; scheduled_time: string | null }[]) => Promise<void>;
 };
 
 export function useScheduleMatches(tournamentId: string | null): ScheduleMatchesState {
@@ -43,6 +51,8 @@ export function useScheduleMatches(tournamentId: string | null): ScheduleMatches
   const [teamsById, setTeamsById] = useState<Map<string, TeamLite>>(new Map());
   const [teams, setTeams] = useState<Team[]>([]);
   const [groups, setGroups] = useState<Grp[]>([]);
+  const [program, setProgram] = useState<ProgramItem[]>([]);
+  const pauses = program.filter((p) => p.is_pause && p.duration_min);
   const [generating, setGenerating] = useState(false);
 
   const reload = useCallback(async () => {
@@ -51,18 +61,19 @@ export function useScheduleMatches(tournamentId: string | null): ScheduleMatches
       return;
     }
     setLoading(true);
-    const [ms, allTeams, gm, gz] = await Promise.all([
+    const [ms, allTeams, gm, gz, program] = await Promise.all([
       fetchMatchesForSchedule(tournamentId),
       fetchAllTeams(tournamentId),
       fetchGroups(tournamentId, 'm'),
       fetchGroups(tournamentId, 'z'),
+      fetchProgram(tournamentId),
     ]);
     setMatches(ms);
     setTeams(allTeams);
     setGroups([...gm, ...gz]);
-    const teams = allTeams;
+    setProgram(program);
     const map = new Map<string, TeamLite>();
-    for (const tm of teams) map.set(tm.id, tm);
+    for (const tm of allTeams) map.set(tm.id, tm);
     setTeamsById(map);
     setLoading(false);
   }, [tournamentId]);
@@ -92,6 +103,11 @@ export function useScheduleMatches(tournamentId: string | null): ScheduleMatches
           date: d.date,
           firstMatchTime: toInputTime(d.first_match_time) || null,
           matchIds: byDay.get(d.id) ?? [],
+          // Generiranje preskače pauzu: utakmica koja bi je zahvatila kreće
+          // kad pauza završi.
+          pauses: pauses
+            .filter((p) => p.day_id === d.id)
+            .map((p) => ({ start: toInputTime(p.time), durationMin: p.duration_min ?? 0 })),
         }));
 
         const scheduled = generateSchedule(dayInputs, {
@@ -116,7 +132,7 @@ export function useScheduleMatches(tournamentId: string | null): ScheduleMatches
         setGenerating(false);
       }
     },
-    [matches]
+    [matches, pauses]
   );
 
   /**
@@ -145,5 +161,14 @@ export function useScheduleMatches(tournamentId: string | null): ScheduleMatches
     [matches]
   );
 
-  return { loading, matches, teamsById, teams, groups, generating, reload, generate, swap };
+  const setTimes = useCallback(
+    async (changes: { id: string; day_id: string | null; scheduled_time: string | null }[]) => {
+      await setMatchTimes(changes);
+      // Baza je preslozila redoslijed igranja po satu — povuci ga natrag.
+      await reload();
+    },
+    [reload]
+  );
+
+  return { loading, matches, teamsById, teams, groups, program, pauses, generating, reload, generate, swap, setTimes };
 }

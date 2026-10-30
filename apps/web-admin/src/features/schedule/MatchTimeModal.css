@@ -1,0 +1,50 @@
+/* Ručni termin utakmice. */
+
+.mtime {
+  max-width: 480px;
+}
+
+.mtime__match {
+  margin: 0 0 var(--sp-md);
+  font-weight: 600;
+  color: var(--txt);
+}
+
+.mtime__grid {
+  display: grid;
+  grid-template-columns: 1fr 140px;
+  gap: var(--sp-md);
+  margin-bottom: var(--sp-sm);
+}
+@media (max-width: 480px) {
+  .mtime__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mtime__field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fin__check.is-off {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.mtime__moves ul,
+.mtime__conflicts {
+  margin: var(--sp-sm) 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.mtime__from {
+  color: var(--mut);
+}
+
+/* Sudar s drugom utakmicom ili pauzom — zbog toga se ne može spremiti. */
+.mtime__conflicts {
+  color: var(--red-lt, #ff6b6b);
+}

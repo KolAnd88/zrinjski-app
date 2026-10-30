@@ -1,0 +1,87 @@
+/* Pauze u dvorani — popis, dodavanje, pretvaranje iz programa. */
+
+.pause__list {
+  list-style: none;
+  margin: var(--sp-sm) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.pause__item {
+  border: 1px dashed var(--line);
+  border-radius: var(--r-chip);
+  padding: var(--sp-sm) var(--sp-md);
+}
+.pause__item--conv {
+  border-style: solid;
+}
+
+.pause__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: baseline;
+}
+.pause__when {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--sub);
+}
+.pause__name {
+  font-size: 13px;
+  color: var(--txt);
+}
+
+/* Utakmica u pauzi — upozorenje, ne greška: rješava se pomicanjem. */
+.pause__warn {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--gold);
+}
+
+.pause__actions {
+  display: flex;
+  gap: var(--sp-sm);
+  margin-top: 4px;
+}
+
+.pause__form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-md);
+  margin-top: var(--sp-md);
+}
+.pause__title {
+  grid-column: 1 / -1;
+}
+
+.pause__convhint {
+  margin-top: var(--sp-lg, 24px);
+}
+
+/* Pauza u popisu dana, među utakmicama. */
+.prow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  border: 1px dashed var(--line);
+  border-radius: var(--r-card);
+  padding: var(--sp-sm) var(--sp-md);
+  color: var(--sub);
+  font-size: 13px;
+  min-height: 44px;
+}
+.prow__time {
+  font-family: var(--font-head);
+  font-weight: 600;
+  min-width: 96px;
+}
+.prow__label {
+  font-size: 10px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--mut);
+}
