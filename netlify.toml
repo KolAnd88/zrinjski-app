@@ -39,11 +39,17 @@
   # preuzeta. Razlike nema, izlaz 0, i Netlify preskoči PRVU objavu projekta.
   # Izričit `exit 1` znači: nemam s čim usporediti, gradi.
   #
+  # Isto kad je $CACHED_COMMIT_REF JEDNAK $COMMIT_REF. Netlify ga tako
+  # postavi kad izgubi predmemoriju gradnje ("Failed to fetch cache"): diff
+  # commita sa samim sobom je prazan, pa je pravilo preskakalo SVAKU objavu.
+  # Tako su 27.10. i 30.10. oba projekta ostala na kodu od 8. rujna, a
+  # Netlify je preskakanje pokazivao kao "Failed".
+  #
   # `:/` znači "od korijena repozitorija". Ovdje je base prazan pa razlike
   # nema, ali putanje bez prefiksa git tumači u odnosu na mapu u kojoj se
   # naredba vrti — što je gledateljskom projektu tiho preskočilo objavu.
   # Neka oba pravila budu pisana isto, da se ista zamka ne ponovi.
-  ignore = "if [ -z \"$CACHED_COMMIT_REF\" ]; then exit 1; fi; git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- :/apps/web-admin :/packages :/package.json :/package-lock.json :/netlify.toml"
+  ignore = "if [ -z \"$CACHED_COMMIT_REF\" ] || [ \"$CACHED_COMMIT_REF\" = \"$COMMIT_REF\" ]; then exit 1; fi; git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- :/apps/web-admin :/packages :/package.json :/package-lock.json :/netlify.toml"
 
 [build.environment]
   NODE_VERSION = "20"
