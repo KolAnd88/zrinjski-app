@@ -7,8 +7,7 @@ import { useTournamentData } from '../features/tournament/useTournamentData';
 import { DaysEditor } from '../features/tournament/DaysEditor';
 import { swappableNeighbour } from '@zrinjski/core';
 import { useScheduleMatches, type TeamLite } from '../features/schedule/useScheduleMatches';
-import { KnockoutPanel } from '../features/schedule/KnockoutPanel';
-import { ensureKnockoutMatches, setKnockoutTeams } from '../lib/data';
+import { FinalsPanel } from '../features/schedule/FinalsPanel';
 import { MatchDetailModal } from '../features/schedule/MatchDetailModal';
 import { toInputTime, isoToLocalHHMM } from '../lib/timeFormat';
 import './Schedule.css';
@@ -281,29 +280,16 @@ export function Schedule() {
               </button>
             ))}
           </div>
-          <KnockoutPanel
+          <FinalsPanel
+            tournamentId={tr.id}
             gender={koGender}
             matches={sched.matches}
             teams={sched.teams}
             groups={sched.groups}
-            cfg={{
-              pointsWin: tr.points_win,
-              pointsDraw: tr.points_draw,
-              pointsLoss: tr.points_loss,
-              advancePerGroup: tr.advance_per_group,
-            }}
-            onApply={async (changes) => {
-              await setKnockoutTeams(changes);
-              await sched.reload();
-            }}
-            onCreate={async () => {
-              // Što nedostaje odlučuje BAZA, ne preglednik: dva organizatora
-              // mogu istodobno vidjeti da utakmica nema i obojica ih napraviti.
-              // Zadnji dan turnira je onaj na kojem se igra završnica.
-              const lastDay = [...data.days].reverse().find((d) => !!d.first_match_time);
-              await ensureKnockoutMatches(tr.id, koGender, lastDay?.id ?? null);
-              await sched.reload();
-            }}
+            points={{ pointsWin: tr.points_win, pointsDraw: tr.points_draw, pointsLoss: tr.points_loss }}
+            // Zadnji dan s utakmicama je onaj na kojem se igra završnica.
+            finalsDayId={[...data.days].reverse().find((d) => !!d.first_match_time)?.id ?? null}
+            onChanged={sched.reload}
           />
         </Card>
       </div>

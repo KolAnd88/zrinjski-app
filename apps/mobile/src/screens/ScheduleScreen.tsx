@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { crestPair } from '@zrinjski/ui-tokens';
-import { pickCurrentDayId } from '@zrinjski/core';
+import { addMinutesToTime, pickCurrentDayId } from '@zrinjski/core';
 import type { Match, ProgramItem } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import { useData } from '../lib/useData';
@@ -191,17 +191,22 @@ function ProgramRow({ item }: { item: ProgramItem }) {
   const loc = d.locations.find((l) => l.id === item.location_id);
   // Večera i dodjela su zlatne (svečani dio); ostalo prigušeno.
   const gold = /dodjel|večer|vecer/i.test(item.title);
+  // Pauza u dvorani (otvaranje, ručak) ima kraj — gledatelj zna kad se
+  // nastavlja igrati.
+  const until =
+    item.is_pause && item.duration_min ? addMinutesToTime(timeToHHMM(item.time), item.duration_min) : null;
 
   return (
     <View style={styles.progCard}>
       <Ionicons
-        name={gold ? 'trophy-outline' : 'cafe-outline'}
+        name={gold ? 'trophy-outline' : until ? 'pause-circle-outline' : 'cafe-outline'}
         size={17}
         color={gold ? C.gold : C.sub}
       />
       <Txt style={styles.progTitle} numberOfLines={1}>
         {item.title}
       </Txt>
+      {until && <Txt style={styles.progUntil}>{t('schedule.until', { time: until })}</Txt>}
       {loc?.lat != null && loc.lng != null && (
         <Pressable style={styles.mapBtn} onPress={() => openMaps(loc.lat!, loc.lng!, loc.name)}>
           <Txt style={styles.mapBtnTxt}>{t('common.map')}</Txt>
@@ -212,6 +217,7 @@ function ProgramRow({ item }: { item: ProgramItem }) {
 }
 
 const styles = StyleSheet.create({
+  progUntil: { fontFamily: F.headSemi, fontSize: 11, letterSpacing: 0.6, color: C.sub },
   safe: { flex: 1, backgroundColor: C.bg },
   titleWrap: { paddingHorizontal: SP.headerX, paddingTop: 8, paddingBottom: 6 },
   title: { fontFamily: F.head, fontSize: 28, letterSpacing: 0.6, color: C.txt },

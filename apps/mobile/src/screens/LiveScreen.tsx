@@ -5,6 +5,7 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { EventType, MatchEvent } from '@zrinjski/core';
+import { isFinalGroupMatch } from '@zrinjski/core';
 import { crestGradientFor, crestPair } from '@zrinjski/ui-tokens';
 import { useT } from '../i18n/I18nProvider';
 import type { StringKey } from '../i18n/strings';
@@ -87,8 +88,9 @@ export function LiveScreen() {
   // Kad završi — od početka prema kraju, jer se tada čita kao izvještaj.
   if (m.status !== 'finished') feed.reverse();
 
-  const stageTitle =
-    m.stage === 'group'
+  const stageTitle = isFinalGroupMatch(m)
+    ? t('standings.finalGroup')
+    : m.stage === 'group'
       ? d.groups.find((g) => g.id === m.grp_id)?.name ?? t('team.group')
       : t(STAGE[m.stage]!);
 

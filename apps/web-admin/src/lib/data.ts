@@ -5,6 +5,8 @@ import type {
   AppUser,
   Contact,
   Day,
+  FinalsConfigRow,
+  FinalsSlot,
   GalleryPhoto,
   Gender,
   Grp,
@@ -447,48 +449,124 @@ export async function setTeamContact(teamId: string, email: string | null): Prom
   if (error) throw error;
 }
 
-/**
- * Napravi utakmice zavrsnice koje nedostaju.
- *
- * Odluku donosi BAZA, ne preglednik: dva organizatora mogu istodobno vidjeti
- * da utakmice nedostaju i obojica ih napraviti. Funkcija se zakljucava po
- * turniru i spolu, pa drugi poziv zatekne posao gotovim.
- */
-export async function ensureKnockoutMatches(
+/** Postavke završnice jedne konkurencije; null kad još nisu spremljene. */
+export async function fetchFinalsConfig(tournamentId: string, gender: Gender): Promise<FinalsConfigRow | null> {
+  if (DEMO) {
+    return db.finalsConfig.find((c) => c.tournament_id === tournamentId && c.gender === gender) ?? null;
+  }
+  const { data, error } = await client()
+    .from('finals_config')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .eq('gender', gender)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function saveFinalsConfig(
   tournamentId: string,
   gender: Gender,
-  dayId: string | null
-): Promise<number> {
+  row: Omit<FinalsConfigRow, 'tournament_id' | 'gender' | 'updated_at'>
+): Promise<void> {
   if (DEMO) {
-    // U demou nema istodobnosti; dovoljno je ne duplicirati.
-    const have = (s: string) =>
-      db.matches.filter((m) => m.tournament_id === tournamentId && m.gender === gender && m.stage === s).length;
-    let order = db.matches.reduce((n, m) => Math.max(n, m.sort_order), -1) + 1;
-    let made = 0;
-    const add = (stage: Match['stage'], h: string, a: string) => {
-      db.matches.push({
-        id: genId('m'), tournament_id: tournamentId, day_id: dayId, gender, stage,
-        grp_id: null, home_team_id: null, away_team_id: null,
-        home_placeholder: h, away_placeholder: a, home_score: 0, away_score: 0,
-        scheduled_time: null, status: 'scheduled', sort_order: order++,
-        best_player_id: null, current_minute: null, current_half: null,
-      });
-      made += 1;
-    };
-    const semis = have('semifinal');
-    if (semis < 1) add('semifinal', 'A1', 'B2');
-    if (semis < 2) add('semifinal', 'A2', 'B1');
-    if (have('third_place') < 1) add('third_place', 'Poraženi PF1', 'Poraženi PF2');
-    if (have('final') < 1) add('final', 'Pobjednik PF1', 'Pobjednik PF2');
-    return made;
+    const full = { ...row, tournament_id: tournamentId, gender, updated_at: new Date().toISOString() };
+    const i = db.finalsConfig.findIndex((c) => c.tournament_id === tournamentId && c.gender === gender);
+    if (i >= 0) db.finalsConfig[i] = full;
+    else db.finalsConfig.push(full);
+    return;
   }
-  const { data, error } = await client().rpc('ensure_knockout_matches', {
+  // `select` jer upsert koji RLS odbije ne javlja grešku — vrati prazno.
+  const { data, error } = await client()
+    .from('finals_config')
+    .upsert({ ...row, tournament_id: tournamentId, gender })
+    .select('gender');
+  if (error) throw error;
+  if (!data || data.length === 0) throw new Error('not_authorized');
+}
+
+/**
+ * Uskladi utakmice završnice s postavkama.
+ *
+ * Popis mjesta računa jezgra (ista logika koja ih i prikazuje), a upisuje ih
+ * BAZA pod bravom: dva organizatora istodobno ne mogu napraviti dvostruku
+ * završnicu. Kad je završnica počela, baza odbija.
+ */
+export async function syncFinalsMatches(
+  tournamentId: string,
+  gender: Gender,
+  dayId: string | null,
+  slots: FinalsSlot[]
+): Promise<{ created: number; updated: number; deleted: number }> {
+  const wanted = slots.map((s) => ({ key: s.key, stage: s.stage, home: s.homeLabel, away: s.awayLabel }));
+  if (DEMO) {
+    const mine = (m: Match) => m.tournament_id === tournamentId && m.gender === gender && !!m.finals_slot;
+    if (db.matches.some((m) => mine(m) && m.status !== 'scheduled')) throw new Error('finals_started');
+    const keys = new Set(wanted.map((w) => w.key));
+    const before = db.matches.length;
+    db.matches = db.matches.filter((m) => !mine(m) || keys.has(m.finals_slot!));
+    const deleted = before - db.matches.length;
+    let order = db.matches.reduce((n, m) => Math.max(n, m.sort_order), -1) + 1;
+    let created = 0;
+    let updated = 0;
+    for (const w of wanted) {
+      const m = db.matches.find((x) => mine(x) && x.finals_slot === w.key);
+      if (m) {
+        const changed =
+          m.stage !== w.stage || m.home_placeholder !== w.home || m.away_placeholder !== w.away || m.grp_id;
+        if (!changed) continue;
+        if (m.home_placeholder !== w.home || m.stage !== w.stage) m.home_team_id = null;
+        if (m.away_placeholder !== w.away || m.stage !== w.stage) m.away_team_id = null;
+        Object.assign(m, { stage: w.stage, grp_id: null, home_placeholder: w.home, away_placeholder: w.away });
+        updated += 1;
+      } else {
+        db.matches.push({
+          id: genId('m'), tournament_id: tournamentId, day_id: dayId, gender, stage: w.stage,
+          grp_id: null, finals_slot: w.key, home_team_id: null, away_team_id: null,
+          home_placeholder: w.home, away_placeholder: w.away, home_score: 0, away_score: 0,
+          scheduled_time: null, status: 'scheduled', sort_order: order++,
+          best_player_id: null, current_minute: null, current_half: null,
+        });
+        created += 1;
+      }
+    }
+    return { created, updated, deleted };
+  }
+  const { data, error } = await client().rpc('sync_finals_matches', {
     p_tournament_id: tournamentId,
     p_gender: gender,
     p_day_id: dayId,
+    p_slots: wanted,
   });
   if (error) throw error;
-  return Number(data ?? 0);
+  return (data as { created: number; updated: number; deleted: number }) ?? { created: 0, updated: 0, deleted: 0 };
+}
+
+/**
+ * Ručni termin i/ili dan za više utakmica odjednom ("Pomakni i sve iza").
+ *
+ * Razmak na jednom terenu i pauze provjerava i BAZA, ne samo sučelje: dva
+ * organizatora mogu istodobno staviti dvije utakmice u isti termin.
+ */
+export async function setMatchTimes(
+  changes: { id: string; day_id: string | null; scheduled_time: string | null }[]
+): Promise<void> {
+  if (changes.length === 0) return;
+  if (DEMO) {
+    for (const c of changes) patch(db.matches, c.id, { day_id: c.day_id, scheduled_time: c.scheduled_time });
+    const dayDate = new Map(db.days.map((d) => [d.id, d.date] as const));
+    db.matches
+      .sort(
+        (a, b) =>
+          (dayDate.get(a.day_id ?? '') ?? '9999').localeCompare(dayDate.get(b.day_id ?? '') ?? '9999') ||
+          String(a.scheduled_time ?? '~').localeCompare(String(b.scheduled_time ?? '~')) ||
+          a.sort_order - b.sort_order
+      )
+      .forEach((m, i) => (m.sort_order = i));
+    return;
+  }
+  const { error } = await client().rpc('set_match_times', { p_changes: changes });
+  if (error) throw error;
 }
 
 /**
@@ -797,6 +875,7 @@ export async function insertMatches(rows: TablesInsert<'match'>[]): Promise<numb
         best_player_id: r.best_player_id ?? null,
         current_minute: r.current_minute ?? null,
         current_half: r.current_half ?? null,
+        finals_slot: r.finals_slot ?? null,
       });
     }
     return rows.length;

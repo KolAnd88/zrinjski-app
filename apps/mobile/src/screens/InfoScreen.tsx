@@ -55,7 +55,17 @@ export function InfoScreen() {
     {
       icon: 'trophy-outline',
       label: t('info.dFormat'),
-      value: t('info.dFormatValue', { n: d.tournament?.advance_per_group ?? 2 }),
+      // Svaka konkurencija u svom redu: muški i ženski igraju drukčiju
+      // završnicu, pa jedna rečenica za cijeli turnir ne bi bila točna.
+      value: (['m', 'z'] as const)
+        .filter((g) => d.groups.some((x) => x.gender === g))
+        .map((g) => {
+          const f = d.finalsFor(g);
+          const cut = f.advancePerGroup === 1 ? t('standings.cutOne') : t('standings.cut', { n: f.advancePerGroup });
+          const how = t(f.format === 'group' ? 'info.formatGroup' : 'info.formatBracket');
+          return `${t(g === 'm' ? 'common.men' : 'common.women')}: ${how} · ${cut}`;
+        })
+        .join('\n') || t('info.dFormatValue', { n: d.tournament?.advance_per_group ?? 2 }),
     },
   ];
 

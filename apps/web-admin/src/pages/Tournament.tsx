@@ -370,12 +370,8 @@ function SettingsForm({
             value={draft.value.points_loss}
             onChange={(v) => draft.set('points_loss', v)}
           />
-          <NumberField
-            label={t('tournament.advance')}
-            value={draft.value.advance_per_group}
-            min={1}
-            onChange={(v) => draft.set('advance_per_group', v)}
-          />
+          {/* Koliko prolazi iz grupe postavlja se po konkurenciji, u Rasporedu
+              pod Završnica — dva mjesta za istu stvar bi se razišla. */}
         </div>
       </Card>
 

@@ -5,7 +5,7 @@ import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Match } from '@zrinjski/core';
 import { crestPair } from '@zrinjski/ui-tokens';
-import { pickCurrentDayId } from '@zrinjski/core';
+import { isFinalGroupMatch, pickCurrentDayId } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import { useData } from '../lib/useData';
 import { useFollow } from '../lib/useFollow';
@@ -354,11 +354,11 @@ export function HomeScreen() {
                         size={30}
                       />
                       <Txt style={styles.upName} numberOfLines={1}>
-                        {home?.name}
+                        {home?.name ?? m.home_placeholder}
                       </Txt>
                       <Txt style={styles.upVs}>{t('common.vs')}</Txt>
                       <Txt style={[styles.upName, { textAlign: 'right' }]} numberOfLines={1}>
-                        {away?.name}
+                        {away?.name ?? m.away_placeholder}
                       </Txt>
                       <Crest
                         code={away?.short_code}
@@ -468,7 +468,7 @@ function LiveHero({ match }: { match: Match }) {
           <Pill bg="rgba(225,29,42,.14)" border="rgba(225,29,42,.4)">
             <View style={styles.liveDot} />
             <Txt style={styles.liveLabel}>
-              {t('common.live')} · {(STAGE[match.stage] ?? '').toUpperCase()}
+              {t('common.live')} · {(isFinalGroupMatch(match) ? t('standings.finalGroup') : STAGE[match.stage] ?? '').toUpperCase()}
             </Txt>
           </Pill>
           {match.stage === 'final' && (
@@ -483,7 +483,7 @@ function LiveHero({ match }: { match: Match }) {
           <View style={styles.heroSide}>
             <Crest code={home?.short_code} index={crests[0]} logoUrl={home?.logo_url} size={56} />
             <Txt style={styles.heroTeam} numberOfLines={1}>
-              {home?.name}
+              {home?.name ?? match.home_placeholder}
             </Txt>
           </View>
           <View style={styles.heroScore}>
@@ -494,7 +494,7 @@ function LiveHero({ match }: { match: Match }) {
           <View style={styles.heroSide}>
             <Crest code={away?.short_code} index={crests[1]} logoUrl={away?.logo_url} size={56} />
             <Txt style={styles.heroTeam} numberOfLines={1}>
-              {away?.name}
+              {away?.name ?? match.away_placeholder}
             </Txt>
           </View>
         </View>
@@ -563,21 +563,21 @@ function NextHero({ match, countdown }: { match: Match; countdown: string | null
         <View style={styles.heroSide}>
           <Crest code={home?.short_code} index={crests[0]} logoUrl={home?.logo_url} size={56} />
           <Txt style={styles.heroTeam} numberOfLines={1}>
-            {home?.name}
+            {home?.name ?? match.home_placeholder}
           </Txt>
         </View>
         <Txt style={styles.vsBig}>{t('common.vs')}</Txt>
         <View style={styles.heroSide}>
           <Crest code={away?.short_code} index={crests[1]} logoUrl={away?.logo_url} size={56} />
           <Txt style={styles.heroTeam} numberOfLines={1}>
-            {away?.name}
+            {away?.name ?? match.away_placeholder}
           </Txt>
         </View>
       </View>
 
       <View style={styles.nextFoot}>
         <Txt style={styles.heroFootTxt}>
-          {isoToHHMM(match.scheduled_time)} · {(STAGE[match.stage] ?? '').toUpperCase()}
+          {isoToHHMM(match.scheduled_time)} · {(isFinalGroupMatch(match) ? t('standings.finalGroup') : STAGE[match.stage] ?? '').toUpperCase()}
         </Txt>
         <View style={styles.dotSep} />
         <Pressable onPress={() => nav.navigate('NotifSettings')}>

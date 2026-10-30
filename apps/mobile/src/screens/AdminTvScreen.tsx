@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { Stage } from '@zrinjski/core';
+import { isFinalGroupMatch } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import { useData } from '../lib/useData';
 import { C, F, S } from '../theme';
@@ -14,6 +15,10 @@ const STAGE: Record<Stage, string> = {
   third_place: 'ZA 3. MJESTO',
   final: 'FINALE',
 };
+
+/** Završna skupina je faza 'group', ali bez grupe — ima svoj naziv. */
+const stageOf = (m: { stage: Stage; finals_slot?: string | null }) =>
+  isFinalGroupMatch(m) ? 'ZAVRŠNA SKUPINA' : STAGE[m.stage];
 
 export function AdminTvScreen() {
   const { t } = useT();
@@ -41,7 +46,7 @@ export function AdminTvScreen() {
         <View style={styles.state}>
           {isLive && <LiveDot />}
           <Txt style={styles.stateTxt}>
-            {isLive ? t('admin.live') : m.status === 'finished' ? t('admin.finishedBadge') : ''} · {STAGE[m.stage]}
+            {isLive ? t('admin.live') : m.status === 'finished' ? t('admin.finishedBadge') : ''} · {stageOf(m)}
           </Txt>
         </View>
         <Pressable onPress={() => nav.goBack()}>
@@ -61,7 +66,7 @@ export function AdminTvScreen() {
             {m.home_score} : {m.away_score}
           </Txt>
           <Txt style={styles.meta}>
-            {STAGE[m.stage]}
+            {stageOf(m)}
             {isLive && m.current_minute != null ? ` · ${m.current_minute}'` : ''}
           </Txt>
         </View>

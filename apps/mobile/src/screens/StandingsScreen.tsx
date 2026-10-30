@@ -3,7 +3,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Grp } from '@zrinjski/core';
-import { computeStandings, knockoutView, type StandingRow } from '@zrinjski/core';
+import { computeStandings, finalGroupTable, knockoutView, type StandingRow } from '@zrinjski/core';
 import { crestPair } from '@zrinjski/ui-tokens';
 import { useT } from '../i18n/I18nProvider';
 import { useData } from '../lib/useData';
@@ -24,12 +24,15 @@ export function StandingsScreen() {
   const refreshControl = useRefreshControl();
 
   const groups = d.groups.filter((g) => g.gender === gender);
-  const cfg = {
+  // Koliko prolazi iz grupe postavlja organizator za svaku konkurenciju
+  // posebno — muški prve dvije, ženski samo prva.
+  const finals = d.finalsFor(gender);
+  const points = {
     pointsWin: d.tournament?.points_win ?? 2,
     pointsDraw: d.tournament?.points_draw ?? 1,
     pointsLoss: d.tournament?.points_loss ?? 0,
-    advancePerGroup: d.tournament?.advance_per_group ?? 2,
   };
+  const cfg = { ...points, advancePerGroup: finals.advancePerGroup };
 
   const standingsOf = (g: Grp): StandingRow[] => {
     const teams = d.teams.filter((tm) => tm.group_id === g.id);
@@ -37,8 +40,26 @@ export function StandingsScreen() {
     return computeStandings(teams, matches, cfg);
   };
 
+  const cutText =
+    (finals.advancePerGroup === 1 ? t('standings.cutOne') : t('standings.cut', { n: finals.advancePerGroup })) +
+    (finals.luckyLosers > 0 ? t('standings.cutLucky') : '');
+
   // Završnica dolazi iz baze — vidi komentar uz prikaz niže.
   const bracket = knockoutView(d.matches, gender);
+
+  /**
+   * Završna skupina: ekipa u nju ulazi preko utakmica koje igra, ne preko
+   * polja na ekipi (ono ostaje njezina grupa). Red postoji i prije nego je
+   * ekipa poznata — s oznakom "Pobjednik A".
+   */
+  const finalGroup = finalGroupTable({
+    matches: d.matches.filter((m) => m.gender === gender),
+    teams: d.teams,
+    points,
+    rematchRule: finals.rematchRule,
+  });
+  const champion =
+    finalGroup?.complete && finalGroup.rows[0]?.teamId ? d.teamById(finalGroup.rows[0].teamId) : undefined;
 
   /**
    * Do ždrijeba ovaj ekran nije imao što pokazati — ni jedna grupa nema ekipa,
@@ -60,8 +81,75 @@ export function StandingsScreen() {
    * usred raspoređivanja, a "sve ekipe imaju grupu" je bilo prekruto: jedna
    * probna ili naknadno prijavljena ekipa bez grupe sakrila bi cijeli poredak
    * iako je turnir odavno u tijeku.
+   *
+   * Utakmice završne skupine su također faza 'group', ali ne znače ždrijeb.
    */
-  const drawn = d.matches.some((m) => m.gender === gender && m.stage === 'group');
+  const drawn = d.matches.some((m) => m.gender === gender && m.stage === 'group' && !m.finals_slot);
+
+  /** Jedan red tablice — isti za grupu i za završnu skupinu. */
+  const renderRow = (r: StandingRow & { placeholder?: string | null }, showQual: boolean) => {
+    const team = r.teamId ? d.teamById(r.teamId) : undefined;
+    const mine = !!r.teamId && followed.includes(r.teamId);
+    const qual = showQual && r.qualifies;
+    // Prvo mjesto je zlatno, ostali koji prolaze zeleni, ostatak prigušen.
+    const rankColor = r.rank === 1 && team ? C.gold : qual ? C.green : C.mut;
+    return (
+      <Pressable
+        key={r.teamId || r.teamName}
+        disabled={!team}
+        onPress={() => team && nav.navigate('Team', { teamId: team.id })}
+        style={[styles.trow, qual && styles.trowQual, mine && styles.trowMine]}
+      >
+        <View style={styles.cRank}>
+          {qual && <View style={styles.qualBar} />}
+          <Txt style={[styles.rankTxt, { color: rankColor }]}>{r.rank}</Txt>
+        </View>
+        <Crest
+          code={team?.short_code ?? '?'}
+          index={team?.sort_order ?? 0}
+          logoUrl={team?.logo_url}
+          size={26}
+        />
+        <Txt
+          numberOfLines={1}
+          style={[styles.tName, mine ? styles.tNameMine : null, !team && styles.tNamePh]}
+        >
+          {r.teamName}
+        </Txt>
+        {/* Nula se prigusuje: tablica se cita brze kad se vide samo
+            brojevi koji postoje. */}
+        <Txt style={[styles.num, styles.cWdl, { color: r.wins ? C.green : C.navOff }]}>{r.wins}</Txt>
+        <Txt style={[styles.num, styles.cWdl, { color: r.draws ? C.txt2 : C.navOff }]}>{r.draws}</Txt>
+        <Txt style={[styles.num, styles.cWdl, { color: r.losses ? C.redLt : C.navOff }]}>{r.losses}</Txt>
+        <View style={styles.cGd}>
+          <Txt style={[styles.gdChip, gdStyle(r.goalDiff)]}>
+            {r.goalDiff > 0 ? `+${r.goalDiff}` : r.goalDiff}
+          </Txt>
+        </View>
+        <Txt style={[styles.ptsTxt, styles.cPts]}>{r.points}</Txt>
+      </Pressable>
+    );
+  };
+
+  const tableHead = (
+    <View style={styles.thead}>
+      <Txt style={[styles.hCell, styles.cRank]}>#</Txt>
+      <Txt style={[styles.hCell, { flex: 1 }]}>{t('standings.team')}</Txt>
+      {/* Odigrano se NE prikazuje: to je zbroj P+N+I, pa bi samo
+          trosilo sirinu koja treba nazivu ekipe. */}
+      {/* Pobjede / neriseno / porazi. Tablica je prije imala samo
+          odigrano i gol-razliku, pa se iz nje nije vidjelo KAKO je
+          ekipa dosla do bodova. */}
+      <Txt style={[styles.hCell, styles.cWdl, { color: C.green }]}>{t('standings.w')}</Txt>
+      {/* Nerijeseno je NEUTRALNO, ne zlatno: DIZAJN.md cuva zlatnu za
+          finale i zlatnog sponzora. Sivo je i tocnije — nerijeseno
+          nije ni pobjeda ni poraz. */}
+      <Txt style={[styles.hCell, styles.cWdl, { color: C.sub }]}>{t('standings.d')}</Txt>
+      <Txt style={[styles.hCell, styles.cWdl, { color: C.redLt }]}>{t('standings.l')}</Txt>
+      <Txt style={[styles.hCell, styles.cGd]}>{t('standings.gd')}</Txt>
+      <Txt style={[styles.hCell, styles.cPts, { color: C.sub }]}>{t('standings.pts')}</Txt>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -131,73 +219,37 @@ export function StandingsScreen() {
           <View key={g.id}>
             <View style={styles.groupHead}>
               <Txt style={styles.groupLabel}>{g.name}</Txt>
-              <Txt style={styles.groupNote}>{t('standings.cut', { n: cfg.advancePerGroup })}</Txt>
+              <Txt style={styles.groupNote}>{cutText}</Txt>
             </View>
-
             <View style={styles.table}>
-              {/* Zaglavlje tablice */}
-              <View style={styles.thead}>
-                <Txt style={[styles.hCell, styles.cRank]}>#</Txt>
-                <Txt style={[styles.hCell, { flex: 1 }]}>{t('standings.team')}</Txt>
-                {/* Odigrano se NE prikazuje: to je zbroj P+N+I, pa bi samo
-                    trosilo sirinu koja treba nazivu ekipe. */}
-                {/* Pobjede / neriseno / porazi. Tablica je prije imala samo
-                    odigrano i gol-razliku, pa se iz nje nije vidjelo KAKO je
-                    ekipa dosla do bodova. */}
-                <Txt style={[styles.hCell, styles.cWdl, { color: C.green }]}>{t('standings.w')}</Txt>
-                {/* Nerijeseno je NEUTRALNO, ne zlatno: DIZAJN.md cuva zlatnu za
-                    finale i zlatnog sponzora. Sivo je i tocnije — nerijeseno
-                    nije ni pobjeda ni poraz. */}
-                <Txt style={[styles.hCell, styles.cWdl, { color: C.sub }]}>{t('standings.d')}</Txt>
-                <Txt style={[styles.hCell, styles.cWdl, { color: C.redLt }]}>{t('standings.l')}</Txt>
-                <Txt style={[styles.hCell, styles.cGd]}>{t('standings.gd')}</Txt>
-                <Txt style={[styles.hCell, styles.cPts, { color: C.sub }]}>{t('standings.pts')}</Txt>
-              </View>
-
-              {standingsOf(g).map((r) => {
-                const team = d.teamById(r.teamId);
-                const mine = followed.includes(r.teamId);
-                // Prvo mjesto je zlatno, ostali koji prolaze zeleni, ostatak prigušen.
-                const rankColor = r.rank === 1 ? C.gold : r.qualifies ? C.green : C.mut;
-                return (
-                  <Pressable
-                    key={r.teamId}
-                    onPress={() => nav.navigate('Team', { teamId: r.teamId })}
-                    style={[styles.trow, r.qualifies && styles.trowQual, mine && styles.trowMine]}
-                  >
-                    <View style={styles.cRank}>
-                      {r.qualifies && <View style={styles.qualBar} />}
-                      <Txt style={[styles.rankTxt, { color: rankColor }]}>{r.rank}</Txt>
-                    </View>
-                    <Crest
-                      code={team?.short_code}
-                      index={team?.sort_order ?? 0}
-                      logoUrl={team?.logo_url}
-                      size={26}
-                    />
-                    <Txt
-                      numberOfLines={1}
-                      style={[styles.tName, mine ? styles.tNameMine : null]}
-                    >
-                      {r.teamName}
-                    </Txt>
-                    {/* Nula se prigusuje: tablica se cita brze kad se vide samo
-                        brojevi koji postoje. */}
-                    <Txt style={[styles.num, styles.cWdl, { color: r.wins ? C.green : C.navOff }]}>{r.wins}</Txt>
-                    <Txt style={[styles.num, styles.cWdl, { color: r.draws ? C.txt2 : C.navOff }]}>{r.draws}</Txt>
-                    <Txt style={[styles.num, styles.cWdl, { color: r.losses ? C.redLt : C.navOff }]}>{r.losses}</Txt>
-                    <View style={styles.cGd}>
-                      <Txt style={[styles.gdChip, gdStyle(r.goalDiff)]}>
-                        {r.goalDiff > 0 ? `+${r.goalDiff}` : r.goalDiff}
-                      </Txt>
-                    </View>
-                    <Txt style={[styles.ptsTxt, styles.cPts]}>{r.points}</Txt>
-                  </Pressable>
-                );
-              })}
+              {tableHead}
+              {standingsOf(g).map((r) => renderRow(r, true))}
             </View>
           </View>
         ))}
+
+        {/* ── ZAVRŠNA SKUPINA ─────────────────────────────────────────── */}
+        {drawn && finalGroup && (
+          <View>
+            <View style={styles.groupHead}>
+              <Txt style={[styles.groupLabel, { marginTop: SP.section }]}>{t('standings.finalGroup')}</Txt>
+              <Txt style={styles.groupNoteMut}>
+                {t('standings.finalGroupPlayed', { n: finalGroup.played, m: finalGroup.total })}
+              </Txt>
+            </View>
+            <View style={[styles.table, styles.tableFinal]}>
+              {tableHead}
+              {finalGroup.rows.map((r) => renderRow(r, false))}
+            </View>
+            {champion && (
+              <Txt style={styles.champion}>{t('standings.champion', { team: champion.name })}</Txt>
+            )}
+          </View>
+        )}
+
+        {/* Kako se slaže poredak — pitanje koje se na turniru čuje na svakoj
+            tribini kad dvije ekipe imaju iste bodove. */}
+        {drawn && groups.length > 0 && <Txt style={styles.rule}>{t('standings.rule')}</Txt>}
 
         {/* ── ZAVRŠNICA ────────────────────────────────────────────────── */}
         {/* Čita se iz BAZE, ne računa iz ljestvica. Izračun je bio samo
@@ -378,6 +430,28 @@ const styles = StyleSheet.create({
   rankTxt: { fontFamily: F.head, fontSize: 13 },
   tName: { flex: 1, fontFamily: F.bodyMed, fontSize: 13, color: C.txt2 },
   tNameMine: { fontFamily: F.bodyBold, color: C.txt },
+  /** Mjesto čija ekipa još nije poznata ("Pobjednik A") — prigušeno, kurziv. */
+  tNamePh: { color: C.mut, fontStyle: 'italic' },
+  /** Završna skupina odlučuje prvaka — zlatni rub, kao kartica finala. */
+  tableFinal: { borderColor: 'rgba(217,178,74,.5)' },
+  groupNoteMut: { fontFamily: F.headSemi, fontSize: 10, letterSpacing: 0.8, color: C.sub },
+  champion: {
+    fontFamily: F.headSemi,
+    fontSize: 13,
+    letterSpacing: 0.8,
+    color: C.gold,
+    marginTop: SP.gap,
+    marginHorizontal: SP.hair,
+  },
+  rule: {
+    fontFamily: F.body,
+    fontSize: 12,
+    lineHeight: 18,
+    color: C.mut,
+    marginTop: SP.gap,
+    marginBottom: SP.gap,
+    marginHorizontal: SP.hair,
+  },
   num: { fontFamily: F.body, fontSize: 13, color: C.sub, textAlign: 'center' },
   ptsTxt: { fontFamily: F.head, fontSize: 15, color: C.txt, textAlign: 'center' },
 

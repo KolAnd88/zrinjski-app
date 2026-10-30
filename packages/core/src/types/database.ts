@@ -240,6 +240,8 @@ export type Database = {
           best_player_id: string | null;
           current_minute: number | null;
           current_half: number | null;
+          /** Mjesto u završnici (sf1, sf2, third, final, fg1…); null = obična grupna. */
+          finals_slot: string | null;
         };
         Insert: {
           id?: string;
@@ -248,6 +250,7 @@ export type Database = {
           gender: Gender;
           stage?: Stage;
           grp_id?: string | null;
+          finals_slot?: string | null;
           home_team_id?: string | null;
           away_team_id?: string | null;
           home_placeholder?: string | null;
@@ -351,6 +354,10 @@ export type Database = {
           title: string;
           location_id: string | null;
           sort_order: number;
+          /** Pauza u dvorani — u njoj se ne igra. Obican program ne blokira teren. */
+          is_pause: boolean;
+          /** Trajanje pauze u minutama; null za obican program. */
+          duration_min: number | null;
         };
         Insert: {
           id?: string;
@@ -360,8 +367,37 @@ export type Database = {
           title: string;
           location_id?: string | null;
           sort_order?: number;
+          is_pause?: boolean;
+          duration_min?: number | null;
         };
         Update: Partial<Database['public']['Tables']['program_item']['Insert']>;
+        Relationships: [];
+      };
+      /** Način završnice, jedan redak po konkurenciji. */
+      finals_config: {
+        Row: {
+          tournament_id: string;
+          gender: Gender;
+          format: 'bracket' | 'group';
+          advance_per_group: number;
+          lucky_losers: number;
+          third_place: boolean;
+          bye_rule: 'seed' | 'draw';
+          rematch_rule: 'replay' | 'carry';
+          updated_at: string;
+        };
+        Insert: {
+          tournament_id: string;
+          gender: Gender;
+          format?: 'bracket' | 'group';
+          advance_per_group?: number;
+          lucky_losers?: number;
+          third_place?: boolean;
+          bye_rule?: 'seed' | 'draw';
+          rematch_rule?: 'replay' | 'carry';
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['finals_config']['Insert']>;
         Relationships: [];
       };
       registration: {
@@ -619,6 +655,23 @@ export type Database = {
         };
         Returns: number;
       };
+      /** Uskladi utakmice završnice s postavkama; odbija kad je završnica počela. */
+      sync_finals_matches: {
+        Args: {
+          p_tournament_id: string;
+          p_gender: Gender;
+          p_day_id: string | null;
+          p_slots: { key: string; stage: Stage; home: string; away: string }[];
+        };
+        Returns: { created: number; updated: number; deleted: number };
+      };
+      /** Ručni termin i dan; provjerava razmak na jednom terenu i pauze. */
+      set_match_times: {
+        Args: {
+          p_changes: { id: string; day_id: string | null; scheduled_time: string | null }[];
+        };
+        Returns: number;
+      };
       set_knockout_teams: {
         Args: {
           p_changes: { id: string; home_team_id: string | null; away_team_id: string | null }[];
@@ -675,3 +728,4 @@ export type NotificationLog = Tables<'notification_log'>;
 export type Device = Tables<'device'>;
 export type MvpVote = Tables<'mvp_vote'>;
 export type Contact = Tables<'contact'>;
+export type FinalsConfigRow = Tables<'finals_config'>;

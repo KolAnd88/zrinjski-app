@@ -8,6 +8,7 @@ import type {
   GalleryPhoto,
   Grp,
   LocationRow,
+  FinalsConfigRow,
   Match,
   MatchEvent,
   NotificationLog,
@@ -144,8 +145,9 @@ function match(p: Partial<Match> & Pick<Match, 'id' | 'gender' | 'stage'>): Matc
     best_player_id: null,
     current_minute: null,
     current_half: null,
+    finals_slot: null,
     ...p,
-  };
+  } as Match;
 }
 const matches: Match[] = [
   // Muški — Grupa A (round-robin, dio odigran/uživo)
@@ -159,10 +161,10 @@ const matches: Match[] = [
   match({ id: 'm7', gender: 'm', stage: 'group', grp_id: gMB, home_team_id: 'cap', away_team_id: 'bos', scheduled_time: '2026-06-06T12:00:00+02:00', sort_order: 6 }),
   match({ id: 'm8', gender: 'm', stage: 'group', grp_id: gMB, home_team_id: 'zen', away_team_id: 'sir', scheduled_time: '2026-06-06T12:20:00+02:00', sort_order: 7 }),
   // Završnica (placeholderi)
-  match({ id: 'sf1', gender: 'm', stage: 'semifinal', home_placeholder: 'A1', away_placeholder: 'B2', day_id: D3, scheduled_time: '2026-06-07T17:00:00+02:00', sort_order: 20 }),
-  match({ id: 'sf2', gender: 'm', stage: 'semifinal', home_placeholder: 'A2', away_placeholder: 'B1', day_id: D3, scheduled_time: '2026-06-07T17:30:00+02:00', sort_order: 21 }),
-  match({ id: 'third', gender: 'm', stage: 'third_place', home_placeholder: 'Poraženi PF1', away_placeholder: 'Poraženi PF2', day_id: D3, scheduled_time: '2026-06-07T18:00:00+02:00', sort_order: 22 }),
-  match({ id: 'fin', gender: 'm', stage: 'final', home_placeholder: 'Pobjednik PF1', away_placeholder: 'Pobjednik PF2', day_id: D3, scheduled_time: '2026-06-07T19:00:00+02:00', sort_order: 23 }),
+  match({ id: 'sf1', gender: 'm', stage: 'semifinal', finals_slot: 'sf1', home_placeholder: 'A1', away_placeholder: 'B2', day_id: D3, scheduled_time: '2026-06-07T17:00:00+02:00', sort_order: 20 }),
+  match({ id: 'sf2', gender: 'm', stage: 'semifinal', finals_slot: 'sf2', home_placeholder: 'B1', away_placeholder: 'A2', day_id: D3, scheduled_time: '2026-06-07T17:30:00+02:00', sort_order: 21 }),
+  match({ id: 'third', gender: 'm', stage: 'third_place', finals_slot: 'third', home_placeholder: 'Poraženi PF1', away_placeholder: 'Poraženi PF2', day_id: D3, scheduled_time: '2026-06-07T18:00:00+02:00', sort_order: 22 }),
+  match({ id: 'fin', gender: 'm', stage: 'final', finals_slot: 'final', home_placeholder: 'Pobjednik PF1', away_placeholder: 'Pobjednik PF2', day_id: D3, scheduled_time: '2026-06-07T19:00:00+02:00', sort_order: 23 }),
   // Žene — Grupa A
   match({ id: 'w1', gender: 'z', stage: 'group', grp_id: gZA, home_team_id: 'las', away_team_id: 'nmo', home_score: 1, away_score: 0, status: 'finished', scheduled_time: '2026-06-06T13:00:00+02:00', sort_order: 8 }),
   match({ id: 'w2', gender: 'z', stage: 'group', grp_id: gZA, home_team_id: 'nmo', away_team_id: 'neu', scheduled_time: '2026-06-06T13:20:00+02:00', sort_order: 9 }),
@@ -222,9 +224,9 @@ const locations: LocationRow[] = [
 ];
 
 const program: ProgramItem[] = [
-  { id: 'pr1', tournament_id: T, day_id: 'd1', time: '19:00:00', title: 'Dolazak i registracija', location_id: 'l2', sort_order: 0 },
-  { id: 'pr2', tournament_id: T, day_id: D2, time: '21:00:00', title: 'Druženje uz večeru', location_id: 'l2', sort_order: 0 },
-  { id: 'pr3', tournament_id: T, day_id: D3, time: '20:00:00', title: 'Završna večera i dodjela', location_id: 'l3', sort_order: 0 },
+  { id: 'pr1', tournament_id: T, day_id: 'd1', time: '19:00:00', title: 'Dolazak i registracija', location_id: 'l2', sort_order: 0, is_pause: false, duration_min: null },
+  { id: 'pr2', tournament_id: T, day_id: D2, time: '21:00:00', title: 'Druženje uz večeru', location_id: 'l2', sort_order: 0, is_pause: false, duration_min: null },
+  { id: 'pr3', tournament_id: T, day_id: D3, time: '20:00:00', title: 'Završna večera i dodjela', location_id: 'l3', sort_order: 0, is_pause: false, duration_min: null },
 ];
 
 const registrations: Registration[] = [
@@ -281,8 +283,15 @@ const teamContacts: { team_id: string; rep_email: string | null; updated_at: str
   updated_at: '2026-01-01T00:00:00Z',
 }));
 
+// Završnica: muški kao dosad, ženski tri grupe → završna skupina pobjednica.
+const finalsConfig: FinalsConfigRow[] = [
+  { tournament_id: T, gender: 'm', format: 'bracket', advance_per_group: 2, lucky_losers: 0, third_place: true, bye_rule: 'seed', rematch_rule: 'replay', updated_at: '2026-01-01T00:00:00Z' },
+  { tournament_id: T, gender: 'z', format: 'group', advance_per_group: 1, lucky_losers: 0, third_place: false, bye_rule: 'seed', rematch_rule: 'replay', updated_at: '2026-01-01T00:00:00Z' },
+];
+
 export const db = {
   tournament,
+  finalsConfig,
   days,
   groups,
   teams,

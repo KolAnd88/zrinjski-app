@@ -8,6 +8,9 @@ import { Alert, AppState, Platform } from 'react-native';
 import type {
   Day,
   EventType,
+  FinalsConfig,
+  FinalsConfigRow,
+  Gender,
   Grp,
   LocationRow,
   Match,
@@ -20,7 +23,7 @@ import type {
   Team,
   Tournament,
 } from '@zrinjski/core';
-import { applyChange, type RowChange } from '@zrinjski/core';
+import { applyChange, finalsConfigFromRow, type RowChange } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import { isSupabaseConfigured, supabase } from './supabase';
 import { enqueue, flushOutbox, loadOutbox } from './outbox';
@@ -32,6 +35,7 @@ import {
   demoLocations,
   demoMatches,
   demoContacts,
+  demoFinalsConfig,
   demoMvpResults,
   demoPlayers,
   demoProgram,
@@ -67,6 +71,10 @@ export type DataStore = {
   mvpResults: MvpResult[];
   /** Kontakti organizatora — javni popis za Info tab. */
   contacts: Contact[];
+  /** Način završnice po konkurenciji, kako ga je postavio organizator. */
+  finalsConfig: FinalsConfigRow[];
+  /** Postavke završnice konkurencije; bez retka zadane prema broju grupa. */
+  finalsFor: (gender: Gender) => FinalsConfig;
   teamById: (id: string | null | undefined) => Team | undefined;
   playersOf: (teamId: string) => Player[];
   matchById: (id: string) => Match | undefined;
@@ -110,6 +118,7 @@ type AllData = {
   gallery: GalleryItem[];
   mvpResults: MvpResult[];
   contacts: Contact[];
+  finalsConfig: FinalsConfigRow[];
 };
 
 async function loadAll(): Promise<AllData> {
@@ -139,11 +148,12 @@ async function loadAll(): Promise<AllData> {
     tournament: tournament ?? null,
     days: [], groups: [], teams: [], players: [], matches: [],
     events: [], sponsors: [], locations: [], program: [], gallery: [], mvpResults: [], contacts: [],
+    finalsConfig: [],
   };
   if (!tournament) return empty;
   const tid = tournament.id;
 
-  const [days, groups, teams, matches, sponsors, locations, program, gallery, contacts] = await Promise.all([
+  const [days, groups, teams, matches, sponsors, locations, program, gallery, contacts, finals] = await Promise.all([
     sb.from('day').select('*').eq('tournament_id', tid).order('sort_order'),
     sb.from('grp').select('*').eq('tournament_id', tid).order('sort_order'),
     sb.from('team').select('*').eq('tournament_id', tid).order('name'),
@@ -153,6 +163,8 @@ async function loadAll(): Promise<AllData> {
     sb.from('program_item').select('*').eq('tournament_id', tid).order('sort_order'),
     sb.from('gallery_photo').select('*').eq('tournament_id', tid),
     sb.from('contact').select('*').eq('tournament_id', tid).order('sort_order'),
+    // Nije nuzno: bez njega se uzimaju zadane postavke prema broju grupa.
+    sb.from('finals_config').select('*').eq('tournament_id', tid),
   ]);
 
   // Nagrada za najboljeg igraca: baza sama odlucuje smije li je pokazati.
@@ -178,6 +190,7 @@ async function loadAll(): Promise<AllData> {
     program: program.data ?? [],
     mvpResults: (mvp.data ?? []) as MvpResult[],
     contacts: (contacts.data ?? []) as Contact[],
+    finalsConfig: (finals.data ?? []) as FinalsConfigRow[],
     gallery: (gallery.data ?? []).map((g, i) => ({
       id: g.id,
       day_id: g.day_id ?? '',
@@ -191,7 +204,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(LIVE);
   const [data, setData] = useState<AllData>(() =>
     LIVE
-      ? { tournament: null, days: [], groups: [], teams: [], players: [], matches: [], events: [], sponsors: [], locations: [], program: [], gallery: [], mvpResults: [], contacts: [] }
+      ? { tournament: null, days: [], groups: [], teams: [], players: [], matches: [], events: [], sponsors: [], locations: [], program: [], gallery: [], mvpResults: [], contacts: [], finalsConfig: [] }
       : {
           tournament: demoTournament,
           days: demoDays,
@@ -206,6 +219,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           gallery: demoGallery,
           mvpResults: demoMvpResults,
           contacts: demoContacts,
+          finalsConfig: demoFinalsConfig,
         }
   );
 
@@ -336,6 +350,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
       // Puno ucitavanje je ovdje jeftino jer se dogada nekoliko puta u turniru.
       .on('postgres_changes', { event: '*', schema: 'public', table: 'team' }, () => void reload())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'day' }, () => void reload())
+      // Nacin zavrsnice i pauze u dvorani: organizator ih mijenja rijetko, a
+      // gledatelj ih mora vidjeti bez povlacenja prstom.
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'finals_config' }, () => void reload())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'program_item' }, () => void reload())
       .subscribe();
 
     /**
@@ -385,6 +403,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       reload,
       demo: !LIVE,
       ...data,
+      finalsFor: (g) =>
+        finalsConfigFromRow(
+          data.finalsConfig.find((c) => c.gender === g),
+          data.groups.filter((x) => x.gender === g).length
+        ),
       teamById: (id) => (id ? teamIndex.get(id) : undefined),
       playersOf: (teamId) => players.filter((p) => p.team_id === teamId),
       matchById: (id) => matches.find((mm) => mm.id === id),

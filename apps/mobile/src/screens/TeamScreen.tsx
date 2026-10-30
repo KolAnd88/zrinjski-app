@@ -47,7 +47,8 @@ export function TeamScreen() {
     pointsWin: d.tournament?.points_win ?? 2,
     pointsDraw: d.tournament?.points_draw ?? 1,
     pointsLoss: d.tournament?.points_loss ?? 0,
-    advancePerGroup: d.tournament?.advance_per_group ?? 2,
+    // Po konkurenciji: muški prolaze prve dvije, ženski samo prva.
+    advancePerGroup: d.finalsFor(team.gender).advancePerGroup,
   };
   const groupTeams = d.teams.filter((tm) => tm.group_id === team.group_id);
   const groupMatches = d.matches.filter((m) => m.grp_id === team.group_id);

@@ -1,0 +1,77 @@
+/* Postavke završnice — način, prolaz, lucky loser, 3. mjesto, slobodan prolaz. */
+
+.fin__form {
+  border: 0;
+  margin: var(--sp-md) 0 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+}
+.fin__form:disabled {
+  opacity: 0.55;
+}
+
+.fin__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--sp-md);
+  align-items: end;
+}
+
+.fin__field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fin__check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 13px;
+  color: var(--txt);
+  cursor: pointer;
+}
+.fin__check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--red);
+}
+
+.fin__summary {
+  margin: var(--sp-md) 0 0;
+  font-size: 12px;
+  color: var(--sub);
+}
+
+.fin__sync {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-md);
+  margin-top: var(--sp-md);
+}
+
+.fin__sub {
+  margin: var(--sp-lg, 24px) 0 0;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--sub);
+}
+
+/* Ručno postavljeno drukčije od ljestvice — obavijest, ne greška. */
+.fin__notes {
+  color: var(--sub);
+}
+
+.fin__mrow {
+  flex-wrap: wrap;
+}
+.fin__sel {
+  flex: 1;
+  min-width: 140px;
+}

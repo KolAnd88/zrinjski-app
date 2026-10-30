@@ -3,6 +3,7 @@
 // Strukture prate tipove iz @zrinjski/core.
 import type {
   Day,
+  FinalsConfigRow,
   Grp,
   LocationRow,
   Match,
@@ -192,6 +193,7 @@ function m(
     best_player_id: extra?.best_player_id ?? null,
     current_minute: extra?.current_minute ?? null,
     current_half: extra?.current_half ?? null,
+    finals_slot: extra?.finals_slot ?? null,
   };
 }
 
@@ -313,9 +315,9 @@ export const demoLocations: LocationRow[] = [
 ];
 
 export const demoProgram: ProgramItem[] = [
-  { id: 'pr1', tournament_id: 'T', day_id: 'D1', time: '21:00:00', title: 'Svečano otvorenje + druženje', location_id: 'l2', sort_order: 0 },
-  { id: 'pr2', tournament_id: 'T', day_id: 'D2', time: '21:30:00', title: 'Večera u šatoru', location_id: 'l2', sort_order: 0 },
-  { id: 'pr3', tournament_id: 'T', day_id: 'D3', time: '20:30:00', title: 'Dodjela pehara + završna večera', location_id: 'l3', sort_order: 0 },
+  { id: 'pr1', tournament_id: 'T', day_id: 'D1', time: '21:00:00', title: 'Svečano otvorenje + druženje', location_id: 'l2', sort_order: 0, is_pause: false, duration_min: null },
+  { id: 'pr2', tournament_id: 'T', day_id: 'D2', time: '21:30:00', title: 'Večera u šatoru', location_id: 'l2', sort_order: 0, is_pause: false, duration_min: null },
+  { id: 'pr3', tournament_id: 'T', day_id: 'D3', time: '20:30:00', title: 'Dodjela pehara + završna večera', location_id: 'l3', sort_order: 0, is_pause: false, duration_min: null },
 ];
 
 // Galerija: boje umjesto stvarnih slika (offline demo nema mrežu ni Storage).
@@ -346,3 +348,9 @@ export const demoGallery: { id: string; day_id: string; color: string; url: stri
   { id: 'g5', day_id: 'D2', color: '#C2410C', url: null },
   { id: 'g6', day_id: 'D2', color: '#0D9488', url: null },
 ];
+
+/**
+ * Način završnice u demou: prazno — aplikacija tada uzima zadane postavke
+ * prema broju grupa (dvije grupe → polufinala, tri → završna skupina).
+ */
+export const demoFinalsConfig: FinalsConfigRow[] = [];
