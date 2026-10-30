@@ -29,6 +29,51 @@
 }
 .promo__qrmain {
   flex: 1;
+  min-width: 0;
+}
+
+/* Pregled cijelog plakata, točno kako se ispisuje. */
+.promo__poster {
+  flex: none;
+  width: 320px;
+  max-width: 100%;
+  border-radius: var(--r-card);
+  overflow: hidden;
+  line-height: 0;
+  border: 1px solid var(--line);
+}
+.promo__poster svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+@media (max-width: 720px) {
+  .promo__qr {
+    flex-direction: column;
+  }
+  .promo__poster {
+    width: 100%;
+  }
+}
+
+/* APK ili druga adresa u polju za Android — upozorenje s brzim ispravkom. */
+.promo__warnbox {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-sm);
+  margin-top: var(--sp-sm);
+}
+.promo__warnbox .promo__warn {
+  margin: 0;
+  flex: 1 1 220px;
+}
+
+.promo__dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-sm);
+  margin-top: var(--sp-md);
 }
 .promo__qrhead {
   font-family: var(--font-head);

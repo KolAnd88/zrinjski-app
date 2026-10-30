@@ -5,13 +5,16 @@ import { useT } from '../i18n/I18nProvider';
 import { Button, Card } from '../components/ui';
 import { useTournamentData } from '../features/tournament/useTournamentData';
 import { usePromo } from '../features/promo/usePromo';
-import { checkPromoUrl, looksLikeApk } from '../features/promo/url';
+import { androidLinkKind, checkPromoUrl, PLAY_URL, WEB_URL } from '../features/promo/url';
 import { autoShortCode, crestColorFor } from '../lib/crest';
 import {
   downloadSvg,
   downloadSvgAsPng,
+  imageDataUrl,
+  posterFontCss,
   posterSvg,
   resultCardSvg,
+  type PosterOpts,
   type ResultCardOpts,
 } from '../features/promo/svg';
 import './Promo.css';
@@ -65,10 +68,22 @@ export function Promo() {
   const tournament = useTournamentData();
   const data = usePromo(tournament.tournament?.id ?? null);
   // Adrese se pamte u pregledniku: organizator ih upiše jednom, a plakat se
-  // ispisuje više puta kroz turnir.
-  const [url, setUrl] = useState(() => localStorage.getItem('promo.url.ios') ?? '');
-  const [apkUrl, setApkUrl] = useState(() => localStorage.getItem('promo.url.apk') ?? '');
+  // ispisuje više puta kroz turnir. Prvi put su već upisane prave: web
+  // verzija za iPhone i Google Play za Android.
+  const [url, setUrl] = useState(() => localStorage.getItem('promo.url.ios') ?? WEB_URL);
+  const [apkUrl, setApkUrl] = useState(() => localStorage.getItem('promo.url.apk') ?? PLAY_URL);
   const [matchId, setMatchId] = useState<string>('');
+  const [crest, setCrest] = useState('');
+  const [preparing, setPreparing] = useState(false);
+
+  // Grb ide u plakat kao data URL: vanjska slika se u preuzetoj datoteci ne bi vidjela.
+  useEffect(() => {
+    let live = true;
+    void imageDataUrl('/grb.png').then((d) => live && setCrest(d));
+    return () => {
+      live = false;
+    };
+  }, []);
 
   const iosState = checkPromoUrl(url);
   const apkState = checkPromoUrl(apkUrl);
@@ -129,16 +144,59 @@ export function Promo() {
   if (tournament.loading || data.loading) return <Card style={{ maxWidth: 560 }}>{t('common.loading')}</Card>;
 
   // Dva koda jer put nije isti: iPhone nema aplikaciju u trgovini pa ide na
-  // web, Android skida APK. Ako je jedna adresa prazna, plakat ima samo drugi
-  // kod i on je onda velik i centriran.
-  const codes = [
-    qr ? { qrDataUrl: qr, label: t('promo.qrIos'), hint: t('promo.qrIosHint') } : null,
-    qrApk ? { qrDataUrl: qrApk, label: t('promo.qrAndroid'), hint: t('promo.qrAndroidHint') } : null,
+  // web verziju, Android na Google Play. Ako je jedna adresa prazna, plakat
+  // ima samo drugi kod, centriran.
+  const codes: PosterOpts['codes'] = [
+    qr
+      ? {
+          qrDataUrl: qr,
+          label: t('promo.qrIos'),
+          kind: t('promo.qrIosKind'),
+          hint: [t('promo.qrIosHint1'), t('promo.qrIosHint2')] as [string, string],
+        }
+      : null,
+    qrApk
+      ? {
+          qrDataUrl: qrApk,
+          label: t('promo.qrAndroid'),
+          kind: t('promo.qrAndroidKind'),
+          hint: [t('promo.qrAndroidHint1'), t('promo.qrAndroidHint2')] as [string, string],
+        }
+      : null,
   ].filter((x): x is NonNullable<typeof x> => !!x);
 
-  const poster = codes.length
-    ? posterSvg({ codes, headline: t('promo.qrHeadline'), sub: t('promo.qrSub'), tournamentName })
-    : '';
+  // Adresa web verzije, bez "https://" i "www." — za one koji ne skeniraju.
+  const footerUrl = iosState.key === 'ok' ? new URL(iosState.url).host.replace(/^www\./, '') : undefined;
+
+  const posterOpts = (fontCss?: string): PosterOpts => ({
+    codes,
+    tournamentName,
+    headline: t('promo.qrHeadline'),
+    tagline: t('promo.posterTag'),
+    tip: qr ? t('promo.posterTip') : undefined,
+    footerUrl,
+    club: t('promo.posterClub'),
+    crestDataUrl: crest || undefined,
+    fontCss,
+  });
+  // Pregled na stranici koristi fontove koje je stranica već učitala.
+  const poster = codes.length ? posterSvg(posterOpts()) : '';
+
+  /** Preuzimanje s ugrađenim fontovima, da datoteka izgleda kao pregled. */
+  async function download(kind: 'svg' | 'png') {
+    if (!poster || preparing) return;
+    setPreparing(true);
+    try {
+      const svg = posterSvg(posterOpts(await posterFontCss()));
+      if (kind === 'svg') downloadSvg(svg, 'ponos-hercegovine-plakat.svg');
+      // Dvostruka razlučivost: 1600×2260 je dovoljno oštro za A4 i A3.
+      else downloadSvgAsPng(svg, 'ponos-hercegovine-plakat.png', 1600, 2260);
+    } finally {
+      setPreparing(false);
+    }
+  }
+
+  const apkKind = androidLinkKind(apkUrl);
 
   /** Poruka ispod polja: greška adrese ili greška izrade koda. */
   const problem = (state: ReturnType<typeof checkPromoUrl>, failed: boolean): string | null => {
@@ -160,18 +218,14 @@ export function Promo() {
       <h2 className="section-label">{t('promo.qrTitle')}</h2>
       <Card>
         <div className="promo__qr">
-          <div className="promo__codes">
-            <div className="promo__code">
-              <div className="promo__qrbox">{qr ? <img src={qr} alt="QR iPhone" /> : null}</div>
-              <div className="promo__codelabel">{t('promo.qrIos')}</div>
-            </div>
-            <div className="promo__code">
-              <div className="promo__qrbox">{qrApk ? <img src={qrApk} alt="QR Android" /> : null}</div>
-              <div className="promo__codelabel">{t('promo.qrAndroid')}</div>
-            </div>
-          </div>
+          {/* Cijeli plakat, točno kako će se ispisati. */}
+          <div
+            className="promo__poster"
+            role="img"
+            aria-label={t('promo.qrTitle')}
+            dangerouslySetInnerHTML={{ __html: poster }}
+          />
           <div className="promo__qrmain">
-            <div className="promo__qrhead">{t('promo.qrHeadline')}</div>
             <div className="promo__qrsub">{t('promo.qrSub')}</div>
 
             <label className="field-label" style={{ marginTop: 'var(--sp-md)' }}>
@@ -192,24 +246,30 @@ export function Promo() {
             <input
               className={`input${apkProblem ? ' input--bad' : ''}`}
               value={apkUrl}
-              placeholder="https://…/app.apk"
+              placeholder="https://play.google.com/store/apps/details?id=…"
               aria-invalid={!!apkProblem}
               onChange={(e) => setApkUrl(e.target.value)}
             />
             {apkProblem && <p className="promo__bad">{apkProblem}</p>}
-            {!apkProblem && !looksLikeApk(apkUrl) && (
-              <p className="promo__warn">{t('promo.apkNotFile')}</p>
+            {(apkKind === 'apk' || apkKind === 'other') && (
+              <div className="promo__warnbox">
+                <p className="promo__warn">{t(apkKind === 'apk' ? 'promo.isApk' : 'promo.notPlay')}</p>
+                <Button onClick={() => setApkUrl(PLAY_URL)}>{t('promo.usePlay')}</Button>
+              </div>
             )}
-            <p className="promo__warn">{t('promo.qrApkWarn')}</p>
 
-            <Button
-              variant="primary"
-              style={{ marginTop: 'var(--sp-md)' }}
-              disabled={!poster || blocked}
-              onClick={() => downloadSvg(poster, 'ponos-hercegovine-plakat.svg')}
-            >
-              {t('promo.download')}
-            </Button>
+            <div className="promo__dl">
+              <Button
+                variant="primary"
+                disabled={!poster || blocked || preparing}
+                onClick={() => void download('png')}
+              >
+                {preparing ? t('promo.preparing') : t('promo.downloadPng')}
+              </Button>
+              <Button disabled={!poster || blocked || preparing} onClick={() => void download('svg')}>
+                {t('promo.download')}
+              </Button>
+            </div>
           </div>
         </div>
       </Card>

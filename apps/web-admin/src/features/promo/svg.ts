@@ -61,29 +61,45 @@ export function resultCardSvg(o: ResultCardOpts): string {
 </svg>`;
 }
 
-/** Jedan kod na plakatu — svoj naslov i svoje objašnjenje. */
+/** Jedan kod na plakatu — za koga je, što je i što se dogodi kad ga skenira. */
 export type PosterCode = {
   qrDataUrl: string;
   /** Kome je namijenjen: "iPhone", "Android". */
   label: string;
-  /** Što se dogodi kad ga skenira. */
-  hint: string;
+  /** Što dobiva: "Web aplikacija", "Aplikacija s Google Playa". */
+  kind: string;
+  /** Dva kratka retka ispod koda. */
+  hint: [string, string];
 };
 
 export type PosterOpts = {
-  /** Jedan kod → velik i centriran. Dva → jedan uz drugi. */
+  /** Jedan kod → centriran. Dva → jedan uz drugi. */
   codes: PosterCode[];
-  headline: string;
-  sub: string;
   tournamentName: string;
+  /** Glavna poruka, npr. "PRATI TURNIR UŽIVO". */
+  headline: string;
+  /** Što se u aplikaciji nalazi, jednim retkom. */
+  tagline: string;
+  /** Savjet ispod kodova (iPhone: dodaj na početni zaslon). */
+  tip?: string;
+  /** Adresa za one koji ne skeniraju, npr. "ponoshercegovine.com". */
+  footerUrl?: string;
+  club?: string;
+  /** Grb kao data URL — vanjska slika se u preuzetoj datoteci ne bi vidjela. */
+  crestDataUrl?: string;
+  /** @font-face pravila s ugrađenim fontovima, da preuzeta datoteka izgleda kao pregled. */
+  fontCss?: string;
 };
 
 /**
- * QR plakat za ispis (800×1130, blizu A4).
+ * QR plakat za ispis (800×1130, omjer A4).
  *
- * Dva koda jer put nije isti za sve: iPhone nema aplikaciju u trgovini pa ide
- * na web, Android skida APK. Jedan plakat s oba je bolji od dva plakata —
- * ljudi u dvorani gledaju jedno mjesto i biraju svoj.
+ * Dva koda jer put nije isti za sve: iPhone nema aplikaciju u trgovini pa
+ * ide na web verziju, Android ide na Google Play. Jedan plakat s oba je bolji
+ * od dva plakata — ljudi u dvorani gledaju jedno mjesto i biraju svoj.
+ *
+ * Na plakatu nema uputa organizatoru ("zalijepi po dvorani") — to stoji u
+ * adminu, ne na papiru koji čitaju gledatelji.
  */
 export function posterSvg(o: PosterOpts): string {
   const W = 800;
@@ -91,37 +107,115 @@ export function posterSvg(o: PosterOpts): string {
   const codes = o.codes.filter((c) => !!c.qrDataUrl);
   const dvostruko = codes.length > 1;
 
-  // Jedan kod ostaje velik kao i prije; dva se dijele u dva stupca.
-  const CARD = dvostruko ? 330 : 460;
+  const CARD_W = 340;
+  const CARD_H = 500;
+  const TOP = 410;
+  const TILE = 270;
   // Bijeli rub oko koda: čitači ga trebaju da razaznaju rubove.
-  const QR = CARD - 40;
-  const TOP = dvostruko ? 360 : 320;
-  const centri = dvostruko ? [W / 2 - 180, W / 2 + 180] : [W / 2];
+  const QR = 240;
+  const centri = dvostruko ? [W / 2 - 190, W / 2 + 190] : [W / 2];
 
-  const blok = (c: PosterCode, cx: number) => `
-  <text x="${cx}" y="${TOP - 28}" fill="#fff" font-family="Oswald, sans-serif" font-weight="700"
-        font-size="${dvostruko ? 30 : 34}" text-anchor="middle">${esc(c.label)}</text>
-  <rect x="${cx - CARD / 2}" y="${TOP}" width="${CARD}" height="${CARD}" rx="24" fill="#fff"/>
-  <image x="${cx - QR / 2}" y="${TOP + (CARD - QR) / 2}" width="${QR}" height="${QR}" href="${c.qrDataUrl}"/>
-  <text x="${cx}" y="${TOP + CARD + 42}" fill="${colors.sub}" font-family="Inter, sans-serif"
-        font-size="${dvostruko ? 22 : 26}" text-anchor="middle">${esc(c.hint)}</text>`;
+  const kartica = (c: PosterCode, cx: number) => {
+    const x = cx - CARD_W / 2;
+    const tileY = TOP + 118;
+    return `
+  <rect x="${x}" y="${TOP}" width="${CARD_W}" height="${CARD_H}" rx="28" fill="${colors.card}" stroke="${colors.line}" stroke-width="2"/>
+  <text x="${cx}" y="${TOP + 58}" fill="#fff" font-family="Oswald, sans-serif" font-weight="700"
+        font-size="38" letter-spacing="1" text-anchor="middle">${esc(c.label)}</text>
+  <text x="${cx}" y="${TOP + 92}" fill="${colors.redLt}" font-family="Inter, sans-serif" font-weight="600"
+        font-size="19" text-anchor="middle">${esc(c.kind)}</text>
+  <rect x="${cx - TILE / 2}" y="${tileY}" width="${TILE}" height="${TILE}" rx="20" fill="#fff"/>
+  <image x="${cx - QR / 2}" y="${tileY + (TILE - QR) / 2}" width="${QR}" height="${QR}" href="${c.qrDataUrl}"/>
+  <text x="${cx}" y="${TOP + 432}" fill="${colors.txt2}" font-family="Inter, sans-serif"
+        font-size="18" text-anchor="middle">${esc(c.hint[0])}</text>
+  <text x="${cx}" y="${TOP + 460}" fill="${colors.txt2}" font-family="Inter, sans-serif"
+        font-size="18" text-anchor="middle">${esc(c.hint[1])}</text>`;
+  };
 
-  const dno = TOP + CARD + (dvostruko ? 110 : 100);
-  // Lenta prolazi iza naziva turnira pri vrhu plakata.
-  const lenta = lentaSvg({ w: W, h: H, cy: 195 / H, id: 'pl' });
+  // Lenta prolazi iza grba i naziva turnira pri vrhu plakata.
+  const lenta = lentaSvg({ w: W, h: H, cy: 150 / H, id: 'pl' });
+  const crest = o.crestDataUrl
+    ? `<image x="${W / 2 - 56}" y="40" width="112" height="112" href="${o.crestDataUrl}" preserveAspectRatio="xMidYMid meet"/>`
+    : '';
+  const naslovY = o.crestDataUrl ? 212 : 170;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-  <defs>${lenta.defs}</defs>
+  <defs>${o.fontCss ? `<style>${o.fontCss}</style>` : ''}${lenta.defs}</defs>
   <rect width="${W}" height="${H}" fill="${colors.bg}"/>
   ${lenta.body}
-  <text x="${W / 2}" y="150" fill="#fff" font-family="Oswald, sans-serif" font-weight="700"
-        font-size="48" text-anchor="middle">${esc(o.tournamentName)}</text>
-${codes.map((c, i) => blok(c, centri[i] ?? W / 2)).join('\n')}
-  <text x="${W / 2}" y="${dno}" fill="#fff" font-family="Oswald, sans-serif" font-weight="700"
-        font-size="${dvostruko ? 40 : 46}" text-anchor="middle">${esc(o.headline)}</text>
-  <text x="${W / 2}" y="${dno + 56}" fill="${colors.sub}" font-family="Inter, sans-serif"
-        font-size="28" text-anchor="middle">${esc(o.sub)}</text>
+  ${crest}
+  <text x="${W / 2}" y="${naslovY}" fill="#fff" font-family="Oswald, sans-serif" font-weight="700"
+        font-size="50" letter-spacing="1.5" text-anchor="middle">${esc(o.tournamentName.toUpperCase())}</text>
+  <text x="${W / 2}" y="${naslovY + 42}" fill="${colors.txt2}" font-family="Inter, sans-serif"
+        font-size="20" text-anchor="middle">${esc(o.tagline)}</text>
+
+  <text x="${W / 2}" y="350" fill="#fff" font-family="Oswald, sans-serif" font-weight="700"
+        font-size="58" letter-spacing="2" text-anchor="middle">${esc(o.headline)}</text>
+  <rect x="${W / 2 - 40}" y="370" width="80" height="5" rx="2.5" fill="${colors.red}"/>
+${codes.map((c, i) => kartica(c, centri[i] ?? W / 2)).join('\n')}
+  ${o.tip ? `<text x="${W / 2}" y="${TOP + CARD_H + 54}" fill="${colors.sub}" font-family="Inter, sans-serif"
+        font-size="19" text-anchor="middle">${esc(o.tip)}</text>` : ''}
+  ${o.footerUrl ? `<text x="${W / 2}" y="1046" fill="#fff" font-family="Oswald, sans-serif" font-weight="600"
+        font-size="34" letter-spacing="1" text-anchor="middle">${esc(o.footerUrl)}</text>` : ''}
+  ${o.club ? `<text x="${W / 2}" y="1084" fill="${colors.mut}" font-family="Inter, sans-serif"
+        font-size="17" letter-spacing="2" text-anchor="middle">${esc(o.club.toUpperCase())}</text>` : ''}
 </svg>`;
+}
+
+/** ArrayBuffer → base64, u komadima da veliki font ne prepuni stog. */
+function toBase64(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(s);
+}
+
+/**
+ * Fontovi plakata (Oswald, Inter) kao @font-face s ugrađenim datotekama.
+ *
+ * Admin ih učitava s Google Fonts, a preuzeta SVG datoteka ih nema: otvorena
+ * u pregledniku ili poslana u tiskaru pala bi na Arial. Uzima se samo
+ * latinica i proširena latinica (č, ć, đ, š, ž). Ne uspije li dohvat,
+ * vraća prazno — plakat se preuzme s rezervnim fontom, umjesto da se ne
+ * preuzme nikako.
+ */
+export async function posterFontCss(): Promise<string> {
+  try {
+    const css = await (
+      await fetch('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@600;700&display=swap')
+    ).text();
+    const blocks = css
+      .split('/* ')
+      .filter((b) => b.startsWith('latin */') || b.startsWith('latin-ext */'))
+      .map((b) => b.slice(b.indexOf('*/') + 2));
+    let out = '';
+    for (const b of blocks) {
+      const m = /url\((https:[^)]+)\)/.exec(b);
+      if (!m) continue;
+      const buf = await (await fetch(m[1]!)).arrayBuffer();
+      out += b.replace(m[1]!, `data:font/woff2;base64,${toBase64(buf)}`);
+    }
+    return out;
+  } catch {
+    return '';
+  }
+}
+
+/** Slika s iste domene kao data URL (grb za plakat); prazno ako ne uspije. */
+export async function imageDataUrl(src: string): Promise<string> {
+  try {
+    const blob = await (await fetch(src)).blob();
+    return await new Promise<string>((resolve) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result));
+      r.onerror = () => resolve('');
+      r.readAsDataURL(blob);
+    });
+  } catch {
+    return '';
+  }
 }
 
 /** Preuzmi SVG niz kao .svg datoteku. */

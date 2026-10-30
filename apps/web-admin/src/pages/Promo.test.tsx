@@ -37,57 +37,74 @@ const view = () =>
   );
 
 const iosField = () => screen.getByPlaceholderText('https://…netlify.app');
-const apkField = () => screen.getByPlaceholderText('https://…/app.apk');
+const apkField = () => screen.getByPlaceholderText('https://play.google.com/store/apps/details?id=…');
 const downloadBtn = () => screen.getByRole('button', { name: /preuzmi plakat/i });
 
 beforeEach(() => localStorage.clear());
 
 describe('Promo — provjera adrese', () => {
-  it('bez adresa se plakat ne može preuzeti', () => {
+  // Prvi put su već upisane prave adrese: web za iPhone, Google Play za Android.
+  it('zadane adrese su web verzija i Google Play, plakat se može preuzeti', async () => {
     view();
-    expect(downloadBtn()).toBeDisabled();
+    expect((iosField() as HTMLInputElement).value).toBe('https://ponoshercegovine.com');
+    expect((apkField() as HTMLInputElement).value).toContain('play.google.com/store/apps/details');
+    await waitFor(() => expect(downloadBtn()).not.toBeDisabled());
+  });
+
+  it('bez adresa se plakat ne može preuzeti', async () => {
+    view();
+    await userEvent.clear(iosField());
+    await userEvent.clear(apkField());
+    await waitFor(() => expect(downloadBtn()).toBeDisabled());
   });
 
   // Ovo je slučaj koji je prošao prije: tekst je davao uredan QR kod.
   it('tekst koji nije adresa javlja grešku i zaključava preuzimanje', async () => {
     view();
+    await userEvent.clear(iosField());
     await userEvent.type(iosField(), 'ovo-nije-adresa');
     expect(await screen.findByText(/nije web adresa/i)).toBeTruthy();
     expect(downloadBtn()).toBeDisabled();
   });
 
-  it('ispravna adresa otključava preuzimanje', async () => {
-    view();
-    await userEvent.type(iosField(), 'https://ponos.netlify.app');
-    await waitFor(() => expect(downloadBtn()).not.toBeDisabled());
-    expect(screen.queryByText(/nije web adresa/i)).toBeNull();
-  });
-
   // Jedna kriva adresa kvari cijeli plakat, pa je i druga zaključana.
   it('kriva druga adresa zaključava plakat i kad je prva dobra', async () => {
     view();
-    await userEvent.type(iosField(), 'https://ponos.netlify.app');
     await waitFor(() => expect(downloadBtn()).not.toBeDisabled());
+    await userEvent.clear(apkField());
     await userEvent.type(apkField(), 'htp://krivo');
     await waitFor(() => expect(downloadBtn()).toBeDisabled());
   });
 
-  it('upozorava kad Android adresa ne vodi na .apk, ali ne blokira', async () => {
+  // APK s GitHuba Play nikad ne ažurira — plakat s njim ostavio bi ljude na
+  // staroj verziji. Upozorava, nudi ispravak, ali ne blokira.
+  it('APK poveznica dobiva upozorenje i gumb za Play', async () => {
     view();
-    await userEvent.type(apkField(), 'https://ponos.netlify.app');
-    expect(await screen.findByText(/ne završava na \.apk/i)).toBeTruthy();
+    await userEvent.clear(apkField());
+    await userEvent.type(apkField(), 'https://primjer.ba/app.apk');
+    expect(await screen.findByText(/skida APK/i)).toBeTruthy();
     await waitFor(() => expect(downloadBtn()).not.toBeDisabled());
+    await userEvent.click(screen.getByRole('button', { name: /upiši play poveznicu/i }));
+    expect((apkField() as HTMLInputElement).value).toContain('play.google.com');
+    expect(screen.queryByText(/skida APK/i)).toBeNull();
   });
 
-  it('adresa na .apk ne izaziva upozorenje', async () => {
+  it('web adresa u polju za Android upozorava da ne vodi na Play', async () => {
     view();
-    await userEvent.type(apkField(), 'https://primjer.ba/app.apk');
-    await waitFor(() => expect(downloadBtn()).not.toBeDisabled());
-    expect(screen.queryByText(/ne završava na \.apk/i)).toBeNull();
+    await userEvent.clear(apkField());
+    await userEvent.type(apkField(), 'https://ponos.netlify.app');
+    expect(await screen.findByText(/ne vodi na Google Play/i)).toBeTruthy();
+  });
+
+  it('Play poveznica nema upozorenja', () => {
+    view();
+    expect(screen.queryByText(/skida APK/i)).toBeNull();
+    expect(screen.queryByText(/ne vodi na Google Play/i)).toBeNull();
   });
 
   it('adrese se pamte u pregledniku', async () => {
     view();
+    await userEvent.clear(iosField());
     await userEvent.type(iosField(), 'https://ponos.netlify.app');
     await waitFor(() => expect(localStorage.getItem('promo.url.ios')).toBe('https://ponos.netlify.app'));
   });

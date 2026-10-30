@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkPromoUrl, looksLikeApk } from './url';
+import { androidLinkKind, checkPromoUrl, PLAY_URL } from './url';
 
 describe('checkPromoUrl', () => {
   it('prazno polje nije greška — kod se jednostavno ne radi', () => {
@@ -46,17 +46,25 @@ describe('checkPromoUrl', () => {
   });
 });
 
-describe('looksLikeApk', () => {
-  it('prepoznaje .apk', () => {
-    expect(looksLikeApk('https://primjer.ba/app.apk')).toBe(true);
-    expect(looksLikeApk('https://expo.dev/artifacts/eas/abc.apk')).toBe(true);
+describe('androidLinkKind', () => {
+  it('Google Play je ispravno odredište', () => {
+    expect(androidLinkKind(PLAY_URL)).toBe('play');
+    expect(androidLinkKind('https://play.google.com/store/apps/details?id=ba.vhmrkzrinjski.app&hl=hr')).toBe('play');
   });
 
-  it('upozorava kad je upisana web adresa umjesto datoteke', () => {
-    expect(looksLikeApk('https://ponos.netlify.app')).toBe(false);
+  // APK s GitHuba Play nikad ne ažurira — zato zaseban slučaj, ne "u redu".
+  it('prepoznaje APK', () => {
+    expect(androidLinkKind('https://github.com/KolAnd88/zrinjski-app/releases/latest/download/app.apk')).toBe('apk');
+    expect(androidLinkKind('https://expo.dev/artifacts/eas/abc.apk')).toBe('apk');
   });
 
-  it('ne dodaje svoje upozorenje na nevaljanu adresu', () => {
-    expect(looksLikeApk('ovo-nije-adresa')).toBe(true);
+  it('web adresa u polju za Android', () => {
+    expect(androidLinkKind('https://ponos.netlify.app')).toBe('other');
+    expect(androidLinkKind('https://play.google.com/')).toBe('other');
+  });
+
+  it('ne dodaje svoje upozorenje na praznu ili nevaljanu adresu', () => {
+    expect(androidLinkKind('')).toBeNull();
+    expect(androidLinkKind('ovo-nije-adresa')).toBeNull();
   });
 });

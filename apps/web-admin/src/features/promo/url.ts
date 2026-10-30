@@ -45,19 +45,32 @@ export function checkPromoUrl(raw: string): PromoUrlState {
   return { key: 'ok', url: s };
 }
 
+/** Aplikacija na Google Playu — kamo vodi Android kod na plakatu. */
+export const PLAY_URL = 'https://play.google.com/store/apps/details?id=ba.vhmrkzrinjski.app';
+
+/** Web verzija za iPhone. */
+export const WEB_URL = 'https://ponoshercegovine.com';
+
 /**
- * Vodi li adresa na APK?
+ * Kamo vodi Android poveznica.
  *
- * Ne blokira ništa — samo upozorava, jer je najlakša zamjena upisati web
- * adresu u polje za Android. Poveznice s posrednika (skraćivači, Drive)
- * legitimno ne završavaju na `.apk`, pa ovo ostaje savjet, ne pravilo.
+ * Aplikacija je na Google Playu, pa plakat mora voditi onamo. APK s GitHuba
+ * se i dalje može upisati, ali je zamka: Play aplikaciju potpisuje svojim
+ * ključem, pa telefon APK smatra drugom aplikacijom i Play je NIKAD ne
+ * ažurira — čovjek ostaje na staroj verziji do kraja turnira.
+ *
+ * Ništa od ovoga ne blokira preuzimanje — samo upozorava. Null za praznu
+ * ili nevaljanu adresu (ona ima svoju poruku).
  */
-export function looksLikeApk(raw: string): boolean {
+export function androidLinkKind(raw: string): 'play' | 'apk' | 'other' | null {
   const st = checkPromoUrl(raw);
-  if (st.key !== 'ok') return true; // nevaljana adresa ima svoju poruku
+  if (st.key !== 'ok') return null;
   try {
-    return new URL(st.url).pathname.toLowerCase().endsWith('.apk');
+    const u = new URL(st.url);
+    if (u.hostname === 'play.google.com' && u.pathname.startsWith('/store/apps/details')) return 'play';
+    if (u.pathname.toLowerCase().endsWith('.apk')) return 'apk';
+    return 'other';
   } catch {
-    return true;
+    return null;
   }
 }
