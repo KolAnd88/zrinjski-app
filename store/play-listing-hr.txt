@@ -21,7 +21,7 @@ Tijek utakmice
 Golovi, obrane i isključenja, minutu po minutu.
 
 Ljestvice i završnica
-Poredak u skupinama i put do polufinala i finala.
+Poredak u skupinama, polufinala i finale, a gdje se tako igra i završna skupina u kojoj svi igraju međusobno. Ispod tablica piše kako se slaže poredak.
 
 Statistika
 Najbolji strijelci i najbolji vratari turnira.

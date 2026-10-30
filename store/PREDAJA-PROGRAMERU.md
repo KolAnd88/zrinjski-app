@@ -18,6 +18,7 @@ osobne račune.
 | Naslovna 1024×500 | `store/play-naslovna-1024x500.png` |
 | Snimke zaslona | `store/snimke/telefon`, `/tablet-7`, `/tablet-10` |
 | Tekstovi za trgovinu | `store/play-listing-hr.txt` (i `-en.txt`) |
+| Bilješke o izdanju 1.2.0 | `store/play-release-1.2.0.txt` (hr i en) |
 | Odgovori o podacima | `store/sigurnost-podataka.md` |
 
 ### Mjere i format — provjereno u samim datotekama
@@ -57,9 +58,13 @@ Provjereno čitanjem manifesta iz same `.aab` datoteke, ne iz konfiguracije.
 > tablica, kraj pauze u rasporedu. Učitava se kao novo izdanje u produkciji,
 > preko verzije 8.
 >
-> Bilješke o izdanju (`hr-HR`): *Završna skupina ženske konkurencije,
-> prolaz iz grupe posebno za muške i ženske, pravilo poretka ispod tablica i
-> kraj pauze u rasporedu.*
+> **Bilješke o izdanju** na hrvatskom i engleskom su u
+> `store/play-release-1.2.0.txt` (309 i 328 od 500 znakova).
+>
+> **Puni opis** u trgovini je za ovo izdanje dopunjen na oba jezika: odlomak
+> „Ljestvice i završnica" sada spominje i završnu skupinu. Treba ga
+> zamijeniti u konzoli (`play-listing-hr.txt` i `-en.txt`); naslov i kratki
+> opis su isti.
 
 ### Potpis
 

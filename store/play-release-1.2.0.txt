@@ -1,0 +1,5 @@
+=== BILJEŠKE O IZDANJU 1.2.0 — hr-HR (najviše 500 znakova) ===
+Završnica se sada igra onako kako je organizator postavi za svaku konkurenciju: ženska konkurencija ima završnu skupinu u kojoj svi igraju međusobno, s vlastitom tablicom. Uz svaku grupu piše koliko ekipa prolazi, a ispod tablica kako se slaže poredak. Pauze u dvorani vide se u rasporedu s vremenom nastavka.
+
+=== RELEASE NOTES 1.2.0 — en-US (max 500 characters) ===
+The finals now follow the format the organiser sets for each competition: the women's competition has a final group in which everyone plays everyone, with its own table. Each group shows how many teams advance, and the ranking rule is shown under the tables. Breaks in the hall appear in the schedule with the time play resumes.
