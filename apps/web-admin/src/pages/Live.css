@@ -6,6 +6,15 @@
   gap: var(--sp-lg);
   align-items: start;
 }
+/* Uži laptop: tijek ide ispod sastava, da sastavi ne ostanu stisnuti. */
+@media (max-width: 1440px) {
+  .live {
+    grid-template-columns: 360px minmax(0, 1fr);
+  }
+  .live__feed {
+    grid-column: 2;
+  }
+}
 .live__control {
   display: flex;
   flex-direction: column;
@@ -145,7 +154,13 @@
   border-color: var(--mut);
 }
 
-/* Sastavi */
+/* Sastavi (s porukom o zaključanom unosu iznad njih) */
+.live__middle {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+  min-width: 0;
+}
 .live__rosters {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -332,25 +332,27 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
         )}
       </div>
 
-      {!canEnter && (
-        <div className="banner" style={{ marginBottom: 'var(--sp-md)' }}>
-          {m.status === 'finished' ? t('live.finishedLocked') : t('live.notStarted')}
-        </div>
-      )}
+      {/* Srednji stupac. Poruke moraju biti UNUTAR njega: kao zasebna djeca
+          mreze zauzele bi srednji stupac i gurnule sastave u uski desni. */}
+      <div className="live__middle">
+        {!canEnter && (
+          <div className="banner">
+            {m.status === 'finished' ? t('live.finishedLocked') : t('live.notStarted')}
+          </div>
+        )}
 
-      {/* Admin smije ispravljati odigranu utakmicu, ali dosad nije bilo nikakve
-          naznake da mijenja objavljen rezultat — sastavi su izgledali isto kao
-          uživo. Rezultat je vec na korisnickim uredajima i na slici za mreze. */}
-      {canEnter && m.status === 'finished' && (
-        <div className="banner banner--info" style={{ marginBottom: 'var(--sp-md)' }}>
-          {t('live.finishedEditing')}
-        </div>
-      )}
+        {/* Admin smije ispravljati odigranu utakmicu, ali dosad nije bilo nikakve
+            naznake da mijenja objavljen rezultat — sastavi su izgledali isto kao
+            uživo. Rezultat je vec na korisnickim uredajima i na slici za mreze. */}
+        {canEnter && m.status === 'finished' && (
+          <div className="banner banner--info">{t('live.finishedEditing')}</div>
+        )}
 
-      {/* Sastavi */}
-      <div className="live__rosters">
-        <Roster team={live.home} canEnter={canEnter} onPlus={(p) => live.home && handlePlus(live.home.id, p)} />
-        <Roster team={live.away} canEnter={canEnter} onPlus={(p) => live.away && handlePlus(live.away.id, p)} />
+        {/* Sastavi */}
+        <div className="live__rosters">
+          <Roster team={live.home} canEnter={canEnter} onPlus={(p) => live.home && handlePlus(live.home.id, p)} />
+          <Roster team={live.away} canEnter={canEnter} onPlus={(p) => live.away && handlePlus(live.away.id, p)} />
+        </div>
       </div>
 
       {/* Tijek uživo */}
