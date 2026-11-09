@@ -8,6 +8,7 @@ export * from './supabase';
 
 // Domenska logika
 export * from './domain/time';
+export * from './domain/clock';
 export * from './domain/schedule';
 export * from './domain/standings';
 export * from './domain/bracket';

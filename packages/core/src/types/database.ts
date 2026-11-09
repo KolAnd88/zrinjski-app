@@ -88,6 +88,8 @@ export type Database = {
           rules_en: string | null;
           format_en: string | null;
           about_club_en: string | null;
+          /** Jedna slika sa svim sponzorima za sliku rezultata (izrađuje web admin). */
+          share_sponsors_url: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -95,6 +97,7 @@ export type Database = {
           id?: string;
           name: string;
           season_year: number;
+          share_sponsors_url?: string | null;
           match_duration_min?: number;
           gap_min?: number;
           points_win?: number;
@@ -170,6 +173,8 @@ export type Database = {
           group_id: string | null;
           coach_name: string | null;
           logo_url: string | null;
+          /** Umanjen grb (do 192 px) za sliku rezultata; izrađuje ga web admin. */
+          logo_small_url: string | null;
           /** Redoslijed ekipe — određuje i boju grba: crestColorFor(sort_order). */
           sort_order: number;
           created_at: string;
@@ -184,6 +189,7 @@ export type Database = {
           group_id?: string | null;
           coach_name?: string | null;
           logo_url?: string | null;
+          logo_small_url?: string | null;
           sort_order?: number;
           created_at?: string;
         };
@@ -242,6 +248,15 @@ export type Database = {
           current_half: number | null;
           /** Mjesto u završnici (sf1, sf2, third, final, fg1…); null = obična grupna. */
           finals_slot: string | null;
+          /** Sat: vrijeme = clock_base_sec + (clock_running ? sada − clock_started_at : 0). */
+          clock_running: boolean;
+          clock_base_sec: number;
+          clock_started_at: string | null;
+          /** Tekući time-out (1 min); null kad ga nema. */
+          timeout_team_id: string | null;
+          timeout_started_at: string | null;
+          home_timeouts: number;
+          away_timeouts: number;
         };
         Insert: {
           id?: string;
@@ -263,6 +278,13 @@ export type Database = {
           best_player_id?: string | null;
           current_minute?: number | null;
           current_half?: number | null;
+          clock_running?: boolean;
+          clock_base_sec?: number;
+          clock_started_at?: string | null;
+          timeout_team_id?: string | null;
+          timeout_started_at?: string | null;
+          home_timeouts?: number;
+          away_timeouts?: number;
         };
         Update: Partial<Database['public']['Tables']['match']['Insert']>;
         Relationships: [];

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Match, Stage } from '@zrinjski/core';
+import { clockRunning, clockSeconds, formatClock, timeoutLeft } from '@zrinjski/core';
 import { crestPair, LENTA, lentaSvg } from '@zrinjski/ui-tokens';
 import { useT } from '../i18n/I18nProvider';
 import { supabase } from '../lib/supabase';
@@ -45,6 +46,15 @@ export function Tv() {
 
   const m = live.match;
   const tournamentId = m?.tournament_id ?? null;
+
+  // Semafor pokazuje pravi sat (mm:ss), ne samo minutu — kucka svake sekunde.
+  const [now, setNow] = useState(() => Date.now());
+  const ticking = m?.status === 'live';
+  useEffect(() => {
+    if (!ticking) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [ticking]);
 
   useEffect(() => {
     if (!supabase || !tournamentId) return;
@@ -91,6 +101,7 @@ export function Tv() {
   if (!m) return <div className="tv tv--empty">{t('common.loading')}</div>;
 
   const isLive = m.status === 'live';
+  const toLeft = timeoutLeft(m, now);
   const isFinal = m.stage === 'final';
   const crests = crestPair(live.home?.sort_order ?? 0, live.away?.sort_order ?? 1);
 
@@ -149,13 +160,23 @@ export function Tv() {
           </div>
           <div className="tv__statuspill">
             <span className="tv__statustxt">{STAGE_LABEL[m.stage]}</span>
-            {isLive && m.current_minute != null && (
+            {isLive && (
               <>
                 <span className="tv__statusdot" />
-                <span className="tv__minute">{m.current_minute}'</span>
+                <span className={`tv__minute ${clockRunning(m) ? '' : 'is-stopped'}`}>
+                  {formatClock(clockSeconds(m, now))}
+                </span>
               </>
             )}
           </div>
+          {toLeft !== null && (
+            <div className="tv__timeout">
+              <span>
+                TIME-OUT · {(m.timeout_team_id === live.home?.id ? live.home?.name : live.away?.name) ?? ''}
+              </span>
+              <span className="tv__timeout-left">{formatClock(toLeft)}</span>
+            </div>
+          )}
         </div>
 
         <div className="tv__team tv__team--away">

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { EventType, Team } from '@zrinjski/core';
+import { clockRunning, clockSeconds, formatClock, timeoutLeft, timeoutsUsed } from '@zrinjski/core';
 import { crestGradientFor, crestPair } from '@zrinjski/ui-tokens';
 import { useT } from '../i18n/I18nProvider';
 import type { StringKey } from '../i18n/strings';
@@ -13,6 +14,7 @@ import { useData } from '../lib/useData';
 import { useAuth } from '../lib/useAuth';
 import { useMatchSquad } from '../lib/matchSquad';
 import { subscribeOutbox } from '../lib/outbox';
+import { useNow } from '../lib/useNow';
 import { C, F, R, SP } from '../theme';
 import { Crest, Txt } from '../components/base';
 import type { RootStackParamList } from '../navigation/types';
@@ -24,10 +26,6 @@ const ACTIONS: { type: EventType; label: StringKey; sub: StringKey; icon: keyof 
   { type: 'suspension_2min', label: 'live.type.susp', sub: 'admin.subSusp', icon: 'time-outline' },
   { type: 'red_card', label: 'live.type.red', sub: 'admin.subRed', icon: 'square' },
 ];
-
-function pad(n: number) {
-  return String(n).padStart(2, '0');
-}
 
 export function AdminLiveScreen() {
   const { t } = useT();
@@ -51,20 +49,15 @@ export function AdminLiveScreen() {
   // Koliko akcija još nije stiglo u bazu — zapisničar mora znati stoji li nešto.
   const [sync, setSync] = useState({ pending: 0, failing: false });
   useEffect(() => subscribeOutbox(setSync), []);
-  const running = m?.status === 'live';
-  const [sec, setSec] = useState(0);
-
-  useEffect(() => {
-    setSec(running ? (m?.current_minute ?? 0) * 60 : 0);
-  }, [running, m?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!running) return;
-    const id = setInterval(() => setSec((s) => s + 1), 1000);
-    return () => clearInterval(id);
-  }, [running]);
+  // Sat se računa iz stanja u bazi (core/clock) — isti kao na laptopu, i
+  // nakon pauze i time-outa. Ovdje samo kucka sekunda za prikaz.
+  const now = useNow(m?.status === 'live');
+  const sec = m ? clockSeconds(m, now) : 0;
+  const running = !!m && clockRunning(m);
+  const toLeft = m ? timeoutLeft(m, now) : null;
 
   const minute = Math.floor(sec / 60);
+  // Minuta i dalje ide u bazu: verzija 1.2.0 i starije čitaju samo nju.
   useEffect(() => {
     if (running && m) d.setMinute(m.id, minute);
   }, [minute, running]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -255,24 +248,33 @@ export function AdminLiveScreen() {
         <View style={styles.center}>
           <Txt style={styles.scoreNum}>{m.home_score}</Txt>
           <View style={styles.clockCol}>
-            {/* Sat pokreće SAMO najavljenu i zaustavlja SAMO tekuću utakmicu.
-                Bez ovoga je dodir na završenoj zvao `startMatch`, koji je vraćao
-                status na "uživo" i brisao zabilježeno poluvrijeme i minutu —
-                jednim dodirom, bez pitanja, na rezultatu koji je već objavljen. */}
+            {/* Dodir na sat: najavljena → počinje; uživo → pauza / nastavak.
+                Završena utakmica se ne dira (ponovno pokretanje bi obrisalo
+                objavljen rezultat). Kraj ide posebnim gumbom s potvrdom —
+                ranije je dodir na sat ZAVRŠAVAO utakmicu, a sad bi ga se lako
+                pobrkalo s pauzom. */}
             <Pressable
               style={[styles.clockBtn, !clockActive && styles.clockBtnOff]}
               disabled={!clockActive}
-              onPress={() => (isLive ? d.finishMatch(m.id) : d.startMatch(m.id))}
+              onPress={() =>
+                !isLive ? d.startMatch(m.id) : running ? d.pauseClock(m.id) : d.resumeClock(m.id)
+              }
             >
-              <Txt style={[styles.clockTxt, isLive && { color: C.redLt }]}>
-                {pad(minute)}:{pad(sec % 60)}
-              </Txt>
+              <Txt style={[styles.clockTxt, running && { color: C.redLt }]}>{formatClock(sec)}</Txt>
               {clockActive && (
-                <Ionicons name={isLive ? 'stop' : 'play'} size={17} color={isLive ? C.redLt : C.green} />
+                <Ionicons
+                  name={!isLive ? 'play' : running ? 'pause' : 'play'}
+                  size={17}
+                  color={running ? C.redLt : C.green}
+                />
               )}
             </Pressable>
             <Txt style={styles.halfTxt}>
-              {isLive ? t('home.halfN', { n: m.current_half ?? 1 }).toUpperCase() : t('admin.scheduledBadge')}
+              {isLive
+                ? running
+                  ? t('home.halfN', { n: m.current_half ?? 1 }).toUpperCase()
+                  : t('admin.clockStopped')
+                : t('admin.scheduledBadge')}
             </Txt>
           </View>
           <Txt style={styles.scoreNum}>{m.away_score}</Txt>
@@ -290,6 +292,59 @@ export function AdminLiveScreen() {
         <Txt style={styles.lockNote}>
           {m.status === 'finished' ? t('admin.finishedLocked') : t('admin.notStarted')}
         </Txt>
+      )}
+
+      {/* Time-out, nastavak i kraj — samo dok se igra. */}
+      {isLive && (
+        <View style={styles.clockBar}>
+          {toLeft !== null ? (
+            <View style={[styles.toBanner, toLeft === 0 && styles.toBannerOver]}>
+              <Txt style={styles.toBannerTxt} numberOfLines={1}>
+                {t('admin.timeoutRunning', {
+                  team: (m.timeout_team_id === home?.id ? home?.name : away?.name) ?? '—',
+                })}
+              </Txt>
+              <Txt style={styles.toBannerLeft}>{formatClock(toLeft)}</Txt>
+            </View>
+          ) : null}
+          {toLeft === 0 && <Txt style={styles.toHint}>{t('admin.timeoutOver')}</Txt>}
+
+          <View style={styles.clockRow}>
+            {[home, away].map((team) =>
+              team ? (
+                <Pressable
+                  key={team.id}
+                  style={[styles.toBtn, toLeft !== null && styles.actOff]}
+                  disabled={toLeft !== null}
+                  onPress={() => d.callTimeout(m.id, team.id)}
+                >
+                  <Txt style={styles.toBtnTxt} numberOfLines={1}>
+                    T-O · {team.short_code || team.name}
+                  </Txt>
+                  <Txt style={styles.toBtnSub}>{t('admin.timeoutUsed', { n: timeoutsUsed(m, team.id) })}</Txt>
+                </Pressable>
+              ) : null
+            )}
+            {!running && (
+              <Pressable style={[styles.toBtn, styles.toBtnInline, styles.resumeBtn]} onPress={() => d.resumeClock(m.id)}>
+                <Ionicons name="play" size={16} color="#fff" />
+                <Txt style={[styles.toBtnTxt, { color: '#fff' }]}>{t('admin.resume')}</Txt>
+              </Pressable>
+            )}
+            <Pressable
+              style={[styles.toBtn, styles.toBtnInline]}
+              onPress={() =>
+                Alert.alert(t('admin.finishTitle'), t('admin.finishBody'), [
+                  { text: t('common.cancel'), style: 'cancel' },
+                  { text: t('admin.finish'), style: 'destructive', onPress: () => d.finishMatch(m.id) },
+                ])
+              }
+            >
+              <Ionicons name="stop" size={14} color={C.redLt} />
+              <Txt style={styles.toBtnTxt}>{t('admin.finish')}</Txt>
+            </Pressable>
+          </View>
+        </View>
       )}
 
       {/* Kontrole + tijek */}
@@ -568,6 +623,44 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: SP.gap,
   },
+  // Time-out / nastavak / kraj
+  clockBar: { paddingHorizontal: 20, paddingBottom: SP.gap, gap: 8 },
+  clockRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  toBtn: {
+    flexGrow: 1,
+    flexBasis: 90,
+    minHeight: 48,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    columnGap: 6,
+    paddingHorizontal: 10,
+    borderRadius: R.chip,
+    backgroundColor: C.card2,
+    borderWidth: 1,
+    borderColor: C.line,
+  },
+  // Ikona i tekst u istom retku; prelamanje treba samo gumbima s brojačem.
+  toBtnInline: { flexWrap: 'nowrap' },
+  resumeBtn: { backgroundColor: C.red, borderColor: C.red },
+  toBtnTxt: { fontFamily: F.headSemi, fontSize: 14, letterSpacing: 0.5, color: C.txt, textTransform: 'uppercase' },
+  toBtnSub: { width: '100%', textAlign: 'center', fontFamily: F.body, fontSize: 11, color: C.sub },
+  toBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: R.chip,
+    backgroundColor: C.red,
+  },
+  toBannerOver: { backgroundColor: C.card2, borderWidth: 1, borderColor: C.red },
+  toBannerTxt: { flex: 1, fontFamily: F.head, fontSize: 15, letterSpacing: 0.5, color: '#fff', textTransform: 'uppercase' },
+  toBannerLeft: { fontFamily: F.head, fontSize: 24, color: '#fff' },
+  toHint: { fontFamily: F.body, fontSize: 12, color: C.sub, textAlign: 'center' },
+
   main: { flex: 1, gap: 16, paddingHorizontal: 20, paddingBottom: 20, minHeight: 0 },
   mainWide: { flexDirection: 'row' },
 

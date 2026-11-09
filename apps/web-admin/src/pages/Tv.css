@@ -220,6 +220,30 @@
   letter-spacing: 0.05vw;
   color: #ff5662;
 }
+/* Zaustavljen sat je bijel — crvena znači "teče". */
+.tv__minute.is-stopped {
+  color: var(--txt);
+}
+
+/* Time-out: velik, da ga dvorana vidi s tribine. */
+.tv__timeout {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1.2vw;
+  margin-top: 1.2vw;
+  padding: 0.6vw 1.6vw;
+  border-radius: 999px;
+  background: var(--red);
+  color: #fff;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1.8vw;
+  letter-spacing: 0.1vw;
+  text-transform: uppercase;
+}
+.tv__timeout-left {
+  font-size: 2.6vw;
+}
 
 /* ── Donja ploča ───────────────────────────────────────────────────────── */
 .tv__panelwrap {

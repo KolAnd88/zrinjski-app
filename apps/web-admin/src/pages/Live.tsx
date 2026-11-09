@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { EventType, Match, Player } from '@zrinjski/core';
+import { clockRunning, clockSeconds, formatClock, timeoutLeft, timeoutsUsed } from '@zrinjski/core';
 import { crestColorFor } from '@zrinjski/ui-tokens';
 import { useT } from '../i18n/I18nProvider';
 import { useAuth } from '../auth/AuthProvider';
@@ -26,22 +27,25 @@ const EVENT_LABEL: Record<EventType, StringKey> = {
   suspension_2min: 'live.ev.susp',
 };
 
+/**
+ * Sat se računa iz stanja u bazi (core/clock), ne broji se na ekranu. Ovdje
+ * samo kucka sekunda da se prikaz osvježava; zaustavljen sat pokazuje isto.
+ */
 function useLiveClock(match: Match | null) {
-  const running = match?.status === 'live';
-  const [sec, setSec] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
+  const live = match?.status === 'live';
   useEffect(() => {
-    setSec(running ? (match?.current_minute ?? 0) * 60 : 0);
-  }, [running, match?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (!running) return;
-    const t = setInterval(() => setSec((s) => s + 1), 1000);
+    if (!live) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
-  }, [running]);
-  const minute = Math.floor(sec / 60);
+  }, [live]);
+  if (!match) return { minute: 0, running: false, mmss: '00:00', timeoutLeft: null };
+  const sec = clockSeconds(match, now);
   return {
-    minute,
-    running,
-    mmss: `${String(minute).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`,
+    minute: Math.floor(sec / 60),
+    running: clockRunning(match),
+    mmss: formatClock(sec),
+    timeoutLeft: timeoutLeft(match, now),
   };
 }
 
@@ -53,6 +57,73 @@ function useLiveClock(match: Match | null) {
 function crestClash(a: number | undefined, b: number | undefined): boolean {
   if (a == null || b == null) return false;
   return crestColorFor(a) === crestColorFor(b);
+}
+
+/**
+ * Pauza, nastavak i time-out. Gumb „Nastavi” je velik i crven dok sat stoji —
+ * zaboravljen zaustavljen sat je najčešća greška zapisničara.
+ */
+function ClockControls({
+  clock,
+  timeoutTeam,
+  teams,
+  used,
+  onPause,
+  onResume,
+  onTimeout,
+}: {
+  clock: ReturnType<typeof useLiveClock>;
+  timeoutTeam: LiveTeam | null;
+  teams: (LiveTeam | null)[];
+  used: (teamId: string) => number;
+  onPause: () => void;
+  onResume: () => void;
+  onTimeout: (teamId: string) => void;
+}) {
+  const { t } = useT();
+  const inTimeout = clock.timeoutLeft !== null;
+  return (
+    <div className="live__clockctl">
+      {inTimeout ? (
+        <div className={`live__timeout ${clock.timeoutLeft === 0 ? 'is-over' : ''}`}>
+          <span>{t('live.timeoutRunning', { team: timeoutTeam?.name ?? '—' })}</span>
+          <span className="live__timeout-left">{formatClock(clock.timeoutLeft ?? 0)}</span>
+          {clock.timeoutLeft === 0 && <span className="live__timeout-hint">{t('live.timeoutOver')}</span>}
+        </div>
+      ) : (
+        !clock.running && <p className="live__hint">{t('live.pausedHint')}</p>
+      )}
+
+      {clock.running ? (
+        <Button variant="secondary" onClick={onPause}>
+          {t('live.pause')}
+        </Button>
+      ) : (
+        <Button variant="primary" onClick={onResume}>
+          {t('live.resume')}
+        </Button>
+      )}
+
+      <div className="live__timeouts">
+        {teams.map((team) =>
+          team ? (
+            <button
+              key={team.id}
+              type="button"
+              className="live__tobtn"
+              disabled={inTimeout}
+              onClick={() => onTimeout(team.id)}
+            >
+              <span className="live__tobtn-main">
+                {t('live.timeout')} · {team.short_code || team.name}
+              </span>
+              <span className="live__tobtn-sub">{t('live.timeoutUsed', { n: used(team.id) })}</span>
+            </button>
+          ) : null
+        )}
+      </div>
+    </div>
+  );
 }
 
 function Roster({
@@ -197,8 +268,14 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
       <div className="live__control">
         <Card accent={isLive}>
           <div className="live__status">
-            <span className={`badge ${isLive ? 'live__livebadge' : 'live__schedbadge'}`}>
-              {isLive ? `● ${t('live.live')}` : m.status === 'finished' ? t('live.finishedBadge') : t('live.scheduledBadge')}
+            <span className={`badge ${isLive && clock.running ? 'live__livebadge' : 'live__schedbadge'}`}>
+              {isLive
+                ? clock.running
+                  ? `● ${t('live.live')}`
+                  : t('live.pausedBadge')
+                : m.status === 'finished'
+                  ? t('live.finishedBadge')
+                  : t('live.scheduledBadge')}
             </span>
             <span className="live__clock">{isLive ? clock.mmss : isoToLocalHHMM(m.scheduled_time)}</span>
           </div>
@@ -217,6 +294,20 @@ function Scorer({ matchId, tournamentId }: { matchId: string; tournamentId: stri
             </div>
           </div>
 
+
+          {isLive && (
+            <ClockControls
+              clock={clock}
+              timeoutTeam={
+                m.timeout_team_id === live.home?.id ? live.home : m.timeout_team_id === live.away?.id ? live.away : null
+              }
+              teams={[live.home, live.away]}
+              used={(id) => timeoutsUsed(m, id)}
+              onPause={() => void live.pause()}
+              onResume={() => void live.resume()}
+              onTimeout={(id) => void live.timeout(id)}
+            />
+          )}
 
           <div className="live__startfinish">
             <Button variant="primary" disabled={m.status !== 'scheduled'} onClick={() => void live.start()}>

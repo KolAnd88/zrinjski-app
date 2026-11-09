@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { shareCardSvg, type ShareCardOpts, type ShareSponsor } from './sharecard';
+import {
+  SHARE_STRIP_H,
+  SHARE_STRIP_W,
+  shareCardSvg,
+  sponsorStripBody,
+  sponsorStripSvg,
+  type ShareCardOpts,
+  type ShareSponsor,
+} from './sharecard';
 
 const base: ShareCardOpts = {
   home: { name: 'VHMRK Zrinjski', code: 'ZRI', crestIndex: 0, score: 5 },
@@ -132,8 +140,8 @@ describe('shareCardSvg — strijelci', () => {
     for (const n of [1, 2, 3, 4, 5, 6, 7, 8]) expect(svg).toContain(`Igrac ${n}`);
   });
 
-  // Sponzori počinju na 1139 (srebrni red, visina 62, sredina 1170). Popis
-  // strijelaca se skuplja da stane iznad — inače bi im pisao preko logotipa.
+  // Traka sponzora počinje crtom na 992. Popis strijelaca se skuplja da stane
+  // iznad — inače bi im pisao preko logotipa.
   const lastScorerY = (svg: string) => {
     const ys = [...svg.matchAll(/<text x="250" y="(\d+)"[^>]*>Igrac /g)].map((m) => Number(m[1]));
     return Math.max(...ys);
@@ -147,13 +155,13 @@ describe('shareCardSvg — strijelci', () => {
         away: [],
       },
     });
-    expect(lastScorerY(svg)).toBeLessThan(1139);
+    expect(lastScorerY(svg)).toBeLessThan(992);
   });
 
   it('kod uobičajena tri strijelca raspored ostaje nepromijenjen', () => {
     const svg = shareCardSvg(sa);
-    // Prvi redak na 972 uz slova 26 — vrijednosti od prije prilagodljivog popisa.
-    expect(svg).toMatch(/y="972"[^>]*font-size="26"/);
+    // Prvi redak na 826 uz puna slova (26).
+    expect(svg).toMatch(/y="826"[^>]*font-size="26"/);
   });
 
   // Jedan stupac s deset imena pao bi na 13 px i ne bi se pročitao na telefonu.
@@ -163,7 +171,7 @@ describe('shareCardSvg — strijelci', () => {
     const scorerFonts = (svg: string) =>
       [...svg.matchAll(/<text x="(-?\d+)" y="(\d+)"[^>]*?font-size="(\d+)"[^>]*>[^<]*<tspan/gs)]
         .map((m) => ({ x: Number(m[1]), y: Number(m[2]), fs: Number(m[3]) }))
-        .filter((r) => r.y > 880);
+        .filter((r) => r.y > 760);
 
     const rows = scorerFonts(shareCardSvg({ ...sa, scorers: { home: many(10), away: [] } }));
     expect(rows).toHaveLength(10);
@@ -186,89 +194,90 @@ describe('shareCardSvg — strijelci', () => {
   });
 });
 
-describe('shareCardSvg — sponzori', () => {
+describe('shareCardSvg — grbovi', () => {
+  const LOGO = 'data:image/png;base64,iVBORw0KGgo=';
+
+  it('ekipa s grbom dobiva svoj grb, a ne znak s kraticom', () => {
+    const svg = shareCardSvg({ ...base, home: { ...base.home, logo: LOGO } });
+    expect(svg).toContain(`href="${LOGO}"`);
+    expect(svg).not.toContain('>ZRI<');
+    // Druga ekipa nema grb — ona i dalje ima znak.
+    expect(svg).toContain('>POS<');
+  });
+});
+
+describe('sponzori', () => {
   const s = (name: string, tier: ShareSponsor['tier'], logo?: string): ShareSponsor => ({
     name,
     tier,
     logo: logo ?? null,
   });
   const LOGO = 'data:image/png;base64,iVBORw0KGgo=';
+  const STRIP = 'data:image/jpeg;base64,/9j/4AAQ';
 
-  it('zlatni ide u vrpcu u zaglavlju', () => {
-    const svg = shareCardSvg({ ...base, sponsors: [s('Livno-Bus', 'gold')] });
-    expect(svg).toContain('ZLATNI SPONZOR');
-    expect(svg).toContain('LIVNO-BUS');
+  /** Pravi turnir: 10 zlatnih, 7 srebrnih, 1 partner. */
+  const turnir = [
+    ...Array.from({ length: 10 }, (_, i) => s(`Zlatni ${i + 1}`, 'gold')),
+    ...Array.from({ length: 7 }, (_, i) => s(`Srebrni ${i + 1}`, 'silver')),
+    s('Partner', 'partner'),
+  ];
+
+  it('unaprijed složena traka ide u sliku kao JEDNA slika', () => {
+    const svg = shareCardSvg({ ...base, sponsorStrip: STRIP, sponsors: turnir });
+    expect(svg).toContain(`href="${STRIP}"`);
+    // Kad traka postoji, sponzori se ne slažu iznova.
+    expect(svg).not.toContain('Zlatni 1');
+    expect(svg.match(/<image /g)).toHaveLength(1);
   });
 
-  it('sponzor s logotipom dobiva sliku, bez logotipa ime', () => {
-    const svg = shareCardSvg({
-      ...base,
-      sponsors: [s('Lager', 'silver', LOGO), s('Konzum', 'partner')],
-    });
-    expect(svg).toContain(`href="${LOGO}"`);
-    expect(svg).toContain('>Konzum<');
-  });
-
-  it('razredi se slažu u tri reda, odozgo prema dolje', () => {
-    const svg = shareCardSvg({
-      ...base,
-      sponsors: [s('Srebro', 'silver'), s('Bronca', 'bronze'), s('Partner', 'partner')],
-    });
+  it('bez trake se svi sponzori slože na licu mjesta, zlatni prvi', () => {
+    const svg = shareCardSvg({ ...base, sponsors: turnir });
+    for (const x of turnir) expect(svg).toContain(`>${x.name}<`);
     const at = (n: string) => Number(new RegExp(`y="([\\d.]+)"[^>]*>${n}<`).exec(svg)![1]);
-    expect(at('Srebro')).toBeLessThan(at('Bronca'));
-    expect(at('Bronca')).toBeLessThan(at('Partner'));
+    expect(at('Zlatni 1')).toBeLessThan(at('Srebrni 1'));
+    expect(at('Srebrni 1')).toBeLessThan(at('Partner'));
   });
 
-  it('puno sponzora u jednom razredu se smanji, ne iscuri izvan slike', () => {
-    const puno = Array.from({ length: 9 }, (_, i) => s(`Sponzor ${i}`, 'silver'));
-    const svg = shareCardSvg({ ...base, sponsors: puno });
-    const lefts = numbersOf(svg, 'x').filter((n) => n < 2000);
-    expect(Math.min(...lefts)).toBeGreaterThanOrEqual(0);
-    // Desni rub zadnje pločice mora ostati unutar 1080.
-    const rects = [...svg.matchAll(/<rect x="([\d.]+)" y="[\d.]+" width="([\d.]+)"/g)];
-    for (const [, x, w] of rects) expect(Number(x) + Number(w)).toBeLessThanOrEqual(1080.5);
+  it('svi sponzori stanu u traku, ne iscure izvan slike', () => {
+    const body = sponsorStripBody(turnir);
+    const rects = [...body.matchAll(/<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/g)];
+    expect(rects).toHaveLength(turnir.length);
+    for (const [, x, y, w, h] of rects) {
+      expect(Number(x)).toBeGreaterThanOrEqual(0);
+      expect(Number(y)).toBeGreaterThanOrEqual(0);
+      expect(Number(x) + Number(w)).toBeLessThanOrEqual(SHARE_STRIP_W + 0.5);
+      expect(Number(y) + Number(h)).toBeLessThanOrEqual(SHARE_STRIP_H + 0.5);
+    }
+  });
+
+  it('zlatni su veći od srebrnih, srebrni od partnera', () => {
+    const body = sponsorStripBody(turnir);
+    const hOf = (n: string) =>
+      Number(new RegExp(`height="([\\d.]+)"[^>]*/>\\s*<text[^>]*>${n}<`).exec(body)![1]);
+    expect(hOf('Zlatni 1')).toBeGreaterThan(hOf('Srebrni 1'));
+    expect(hOf('Srebrni 1')).toBeGreaterThan(hOf('Partner'));
+  });
+
+  it('deset zlatnih ide u dva jednaka reda (5 + 5), ne 7 + 3', () => {
+    const body = sponsorStripBody(turnir.filter((x) => x.tier === 'gold'));
+    const ys = [...body.matchAll(/<rect x="[\d.]+" y="([\d.]+)"/g)].map((m) => m[1]);
+    const perRow = [...new Set(ys)].map((y) => ys.filter((v) => v === y).length);
+    expect(perRow).toEqual([5, 5]);
+  });
+
+  it('jedan sponzor ne postaje golem', () => {
+    const body = sponsorStripBody([s('Jedini', 'gold', LOGO)]);
+    const h = Number(/height="([\d.]+)"/.exec(body)![1]);
+    expect(h).toBeLessThanOrEqual(80);
+  });
+
+  it('samostalna traka ima pozadinu slike i dvostruku razlučivost', () => {
+    const svg = sponsorStripSvg(turnir);
+    expect(svg).toContain(`width="${SHARE_STRIP_W * 2}"`);
+    expect(svg).toContain(`viewBox="0 0 ${SHARE_STRIP_W} ${SHARE_STRIP_H}"`);
   });
 
   it('bez sponzora se blok uopće ne crta', () => {
     expect(shareCardSvg(base)).not.toContain('SPONZORI');
-  });
-});
-
-describe('shareCardSvg — više zlatnih sponzora', () => {
-  const gold = (name: string): ShareSponsor => ({ name, tier: 'gold' });
-  const TRI = [gold('Alfa'), gold('Beta'), gold('Gama')];
-
-  const zaUtakmicu = (h: string, a: string, sponsors: ShareSponsor[]) =>
-    shareCardSvg({ ...base, home: { ...base.home, name: h }, away: { ...base.away, name: a }, sponsors });
-
-  const kojiZlatni = (svg: string) => TRI.map((s) => s.name).filter((n) => svg.includes(n.toUpperCase()));
-
-  it('jedan zlatni je uvijek taj', () => {
-    const svg = zaUtakmicu('Zrinjski', 'Posušje', [gold('Alfa')]);
-    expect(svg).toContain('ALFA');
-  });
-
-  // Pločica u zaglavlju je jedna, pa se ne smiju pojaviti dva imena odjednom.
-  it('na jednoj slici je točno jedan zlatni', () => {
-    expect(kojiZlatni(zaUtakmicu('Zrinjski', 'Posušje', TRI))).toHaveLength(1);
-  });
-
-  // Dvije slike iste utakmice moraju biti jednake — inače bi sponzor
-  // "nestao" pri ponovnom dijeljenju.
-  it('ista utakmica uvijek daje istog zlatnog', () => {
-    const a = kojiZlatni(zaUtakmicu('Zrinjski', 'Posušje', TRI));
-    const b = kojiZlatni(zaUtakmicu('Zrinjski', 'Posušje', TRI));
-    expect(a).toEqual(b);
-  });
-
-  // Smisao rotacije: kroz turnir svi zlatni dođu na red, a ne samo prvi.
-  it('kroz više utakmica se izmjenjuju svi', () => {
-    const parovi: [string, string][] = [
-      ['Zrinjski', 'Posušje'], ['Grude', 'Čapljina'], ['Ljubuški', 'Mostar'],
-      ['Široki', 'Livno'], ['Neum', 'Stolac'], ['Metković', 'Imotski'],
-      ['Vitez', 'Travnik'], ['Jajce', 'Bugojno'], ['Konjic', 'Prozor'],
-    ];
-    const vidjeni = new Set(parovi.flatMap(([h, a]) => kojiZlatni(zaUtakmicu(h, a, TRI))));
-    expect(vidjeni.size).toBe(3);
   });
 });

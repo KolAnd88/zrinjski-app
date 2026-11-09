@@ -4,7 +4,7 @@
 // crtež je u @zrinjski/core (shareCardSvg) da ga mobilna app može dijeliti.
 import type { Match, MatchEvent, Player, Team } from '@zrinjski/core';
 import { shareCardSvg, type ShareScorer } from '@zrinjski/core';
-import { fetchShareSponsors } from '../../lib/data';
+import { fetchActiveTournament, fetchShareSponsors, sponsorLogoDataUri } from '../../lib/data';
 
 const STAGE_LABEL: Record<string, string> = {
   group: 'Grupa',
@@ -28,8 +28,8 @@ function scorersOf(events: MatchEvent[], players: Player[], teamId: string | nul
 
 export type ShareInput = {
   match: Match;
-  home: Pick<Team, 'name' | 'short_code' | 'sort_order'> | undefined;
-  away: Pick<Team, 'name' | 'short_code' | 'sort_order'> | undefined;
+  home: (Pick<Team, 'name' | 'short_code' | 'sort_order'> & { logo_url?: string | null }) | undefined;
+  away: (Pick<Team, 'name' | 'short_code' | 'sort_order'> & { logo_url?: string | null }) | undefined;
   events: MatchEvent[];
   players: Player[];
   tournamentId: string;
@@ -39,7 +39,17 @@ export type ShareInput = {
 };
 
 export async function buildShareCard(i: ShareInput): Promise<string> {
-  const sponsors = await fetchShareSponsors(i.tournamentId);
+  // Traka sponzora je ista kao na mobitelu (složena u Sponzorima); dok je
+  // nema, sponzori se slažu na licu mjesta. Grbovi idu puni — preglednik na
+  // računalu nema mobitelovih ograničenja memorije.
+  const tournament = await fetchActiveTournament();
+  const stripUrl = tournament?.id === i.tournamentId ? tournament.share_sponsors_url : null;
+  const [sponsorStrip, homeLogo, awayLogo] = await Promise.all([
+    sponsorLogoDataUri(stripUrl),
+    sponsorLogoDataUri(i.home?.logo_url ?? null),
+    sponsorLogoDataUri(i.away?.logo_url ?? null),
+  ]);
+  const sponsors = sponsorStrip ? [] : await fetchShareSponsors(i.tournamentId);
   const stage =
     i.match.stage === 'group' ? i.groupName || STAGE_LABEL.group! : STAGE_LABEL[i.match.stage] ?? '';
 
@@ -49,12 +59,14 @@ export async function buildShareCard(i: ShareInput): Promise<string> {
       code: i.home?.short_code ?? null,
       crestIndex: i.home?.sort_order ?? 0,
       score: i.match.home_score,
+      logo: homeLogo,
     },
     away: {
       name: i.away?.name ?? i.match.away_placeholder ?? '—',
       code: i.away?.short_code ?? null,
       crestIndex: i.away?.sort_order ?? 1,
       score: i.match.away_score,
+      logo: awayLogo,
     },
     stageLabel: stage,
     dateLabel: i.dateLabel,
@@ -63,6 +75,7 @@ export async function buildShareCard(i: ShareInput): Promise<string> {
       home: scorersOf(i.events, i.players, i.match.home_team_id),
       away: scorersOf(i.events, i.players, i.match.away_team_id),
     },
+    sponsorStrip,
     sponsors,
     isFinal: i.match.stage === 'final',
   });

@@ -9,6 +9,13 @@
 // rezultat golem i u sredini, grbovi su veliki i jedan nasuprot drugom, a
 // pobjednika nosi svjetliji naziv ekipe (gubitnik je prigušen).
 //
+// SPONZORI: svi, redom zlatni → srebrni → brončani → partneri, u traci na dnu
+// (odluka organizatora — ne jedan zlatni u zaglavlju). Traka je STALAN dio
+// slike: admin je složi jednom kao jednu malu sliku (sponsorStripSvg), a pri
+// dijeljenju se mijenjaju samo grbovi, rezultat i strijelci. Ranije su se u
+// svaku sliku ugrađivali logotipi svih sponzora u punoj veličini (~2,9 MB), što
+// je na Androidu rušilo aplikaciju.
+//
 // Napomena: adresa aplikacije se NE utiskuje (odluka organizatora). Instagram
 // uz sliku ne prosljeđuje ni tekst ni poveznicu, pa slika nema puta natrag —
 // jedini trag je naziv turnira u zaglavlju.
@@ -35,17 +42,22 @@ export type ShareSide = {
   /** Indeks za gradijent grba (team.sort_order). */
   crestIndex: number;
   score: number;
+  /**
+   * Pravi grb ekipe kao data URI — UMANJEN (team.logo_small_url, do 192 px).
+   * Bez njega se crta znak s kraticom u boji ekipe.
+   */
+  logo?: string | null;
 };
 
 export type ShareScorer = { name: string; goals: number };
 
 /**
- * Sponzor na slici; zlatni ide u zaglavlje, ostali dolje.
+ * Sponzor u traci.
  *
  * `logo` MORA biti data URI (`data:image/png;base64,…`), ne poveznica na
- * Storage. Slika se dijeli dalje i otvara na tuđim uređajima — vanjska
- * poveznica ondje ne bi bila dohvatljiva, a pri pretvorbi u PNG kroz canvas
- * bi ga i "zatrovala" pa se ne bi dala izvesti. Tko nema logo, dobiva ime.
+ * Storage: slika se dijeli dalje i otvara na tuđim uređajima, a vanjska slika
+ * bi pri pretvorbi u PNG kroz canvas "zatrovala" platno pa se ne bi dala
+ * izvesti. Tko nema logo, dobiva ime.
  */
 export type ShareSponsor = {
   name: string;
@@ -63,27 +75,26 @@ export type ShareCardOpts = {
   tournamentName: string;
   /** Strijelci odvojeno po ekipama — inače se ne zna tko je čiji. */
   scorers?: { home: ShareScorer[]; away: ShareScorer[] };
+  /**
+   * Unaprijed složena traka sponzora (tournament.share_sponsors_url) kao data
+   * URI. Ima prednost pred `sponsors`.
+   */
+  sponsorStrip?: string | null;
+  /** Kad trake nema: sponzori se slažu ovdje (bez logotipa je to lagano). */
   sponsors?: ShareSponsor[];
   isFinal?: boolean;
   /** Natpisi — core ne zna jezik sučelja. */
-  labels?: { scorers?: string; sponsors?: string; goldSponsor?: string };
+  labels?: { scorers?: string; sponsors?: string };
 };
-
-/**
- * Stalan indeks iz teksta — ista utakmica uvijek daje isti izbor.
- *
- * Namjerno NIJE slučajan: dvije slike iste utakmice moraju izgledati jednako,
- * inače bi sponzor "nestao" pri ponovnom dijeljenju.
- */
-function stableIndex(key: string, n: number): number {
-  if (n <= 0) return 0;
-  let h = 0;
-  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
-  return h % n;
-}
 
 const W = 1080;
 const H = 1350;
+
+/** Traka sponzora: dimenzije u slici rezultata (i u slici koju admin složi). */
+export const SHARE_STRIP_W = 1000;
+export const SHARE_STRIP_H = 290;
+const STRIP_X = (W - SHARE_STRIP_W) / 2;
+const STRIP_Y = 1036;
 
 /**
  * Kratica za grb kad ekipa nema upisan `short_code`.
@@ -106,8 +117,21 @@ function fallbackCode(name: string): string {
 
 const codeOf = (s: ShareSide) => (s.code || fallbackCode(s.name)).slice(0, 3).toUpperCase();
 
-/** Grb: zaobljeni kvadrat s gradijentom i tri slova — isti kao u aplikaciji. */
+/**
+ * Grb: pravi grb ekipe ako ga ima, inače zaobljeni kvadrat s gradijentom i
+ * tri slova — isti kao u aplikaciji.
+ */
 function crest(s: ShareSide, cx: number, cy: number, size: number, key: string): string {
+  const x = cx - size / 2;
+  const y = cy - size / 2;
+  if (s.logo) {
+    const pad = Math.round(size * 0.08);
+    return `
+  <rect x="${x}" y="${y}" width="${size}" height="${size}" rx="${size * 0.22}"
+        fill="#FFFFFF" fill-opacity="0.06" stroke="${colors.line}" stroke-width="2"/>
+  <image x="${x + pad}" y="${y + pad}" width="${size - 2 * pad}" height="${size - 2 * pad}"
+         preserveAspectRatio="xMidYMid meet" href="${s.logo}"/>`;
+  }
   const [c1, c2] = crestGradientFor(s.crestIndex);
   return `
   <defs>
@@ -116,11 +140,116 @@ function crest(s: ShareSide, cx: number, cy: number, size: number, key: string):
       <stop offset="1" stop-color="${c2}"/>
     </linearGradient>
   </defs>
-  <rect x="${cx - size / 2}" y="${cy - size / 2}" width="${size}" height="${size}" rx="${size * 0.22}"
+  <rect x="${x}" y="${y}" width="${size}" height="${size}" rx="${size * 0.22}"
         fill="url(#${key})"/>
   <text x="${cx}" y="${cy}" fill="#fff" font-family="Oswald, sans-serif" font-weight="700"
         font-size="${Math.round(size * 0.34)}" text-anchor="middle"
         dominant-baseline="central">${esc(codeOf(s))}</text>`;
+}
+
+// ── Traka sponzora ─────────────────────────────────────────────────────────
+
+const TIERS = [
+  { tier: 'gold' as const, ratio: 1, stroke: colors.gold, text: colors.gold },
+  { tier: 'silver' as const, ratio: 0.8, stroke: colors.silver, text: colors.silverTxt },
+  { tier: 'bronze' as const, ratio: 0.68, stroke: colors.bronze, text: colors.bronzeTxt },
+  { tier: 'partner' as const, ratio: 0.58, stroke: colors.line, text: colors.sub },
+];
+/** Logotipi u adminu su 900×408. */
+const TILE_ASPECT = 2.2;
+const GAP = 10;
+const ROW_GAP = 10;
+const TIER_GAP = 16;
+/** Ni jedan sponzor ne smije biti velik — traka je potpis, ne reklama. */
+const MAX_GOLD_H = 80;
+
+type TierPlan = { spec: (typeof TIERS)[number]; list: ShareSponsor[]; th: number; tw: number; rows: number; perRow: number };
+
+function planTiers(sponsors: ShareSponsor[], w: number, goldH: number): { tiers: TierPlan[]; height: number } {
+  const tiers: TierPlan[] = [];
+  for (const spec of TIERS) {
+    const list = sponsors.filter((s) => s.tier === spec.tier);
+    if (list.length === 0) continue;
+    const th = goldH * spec.ratio;
+    const tw = th * TILE_ASPECT;
+    const fit = Math.max(1, Math.floor((w + GAP) / (tw + GAP)));
+    const rows = Math.ceil(list.length / fit);
+    // Redovi jednake duljine (10 → 5+5, ne 7+3) — izgleda složeno, ne ostatak.
+    const perRow = Math.ceil(list.length / rows);
+    tiers.push({ spec, list, th, tw, rows, perRow });
+  }
+  const height =
+    tiers.reduce((sum, t) => sum + t.rows * t.th + (t.rows - 1) * ROW_GAP, 0) +
+    Math.max(0, tiers.length - 1) * TIER_GAP;
+  return { tiers, height };
+}
+
+/**
+ * Unutrašnjost trake (bez pozadine), u koordinatama 0..w × 0..h.
+ *
+ * Veličina pločica se bira najvećom koja stane: deset zlatnih idu u dva reda
+ * po pet, srebrni ispod, manji, i tako dalje. Pločica nosi rub u boji razreda.
+ */
+export function sponsorStripBody(sponsors: ShareSponsor[], w = SHARE_STRIP_W, h = SHARE_STRIP_H): string {
+  if (sponsors.length === 0) return '';
+
+  // Najveća visina zlatne pločice s kojom sve stane (binarna pretraga).
+  let lo = 8;
+  let hi = MAX_GOLD_H;
+  for (let i = 0; i < 24; i++) {
+    const mid = (lo + hi) / 2;
+    if (planTiers(sponsors, w, mid).height <= h) lo = mid;
+    else hi = mid;
+  }
+  const { tiers, height } = planTiers(sponsors, w, lo);
+
+  let y = (h - height) / 2;
+  const out: string[] = [];
+  for (const t of tiers) {
+    for (let r = 0; r < t.rows; r++) {
+      const row = t.list.slice(r * t.perRow, (r + 1) * t.perRow);
+      const rowW = row.length * t.tw + (row.length - 1) * GAP;
+      let x = (w - rowW) / 2;
+      for (const s of row) {
+        out.push(tile(s, t, x, y));
+        x += t.tw + GAP;
+      }
+      y += t.th + (r < t.rows - 1 ? ROW_GAP : 0);
+    }
+    y += TIER_GAP;
+  }
+  return out.join('\n  ');
+}
+
+function tile(s: ShareSponsor, t: TierPlan, x: number, y: number): string {
+  const f = (n: number) => n.toFixed(1);
+  const rx = Math.max(4, t.th * 0.14);
+  if (s.logo) {
+    const px = t.th * 0.1;
+    return `<rect x="${f(x)}" y="${f(y)}" width="${f(t.tw)}" height="${f(t.th)}" rx="${f(rx)}"
+        fill="#FFFFFF" stroke="${t.spec.stroke}" stroke-width="2"/>
+  <image x="${f(x + px)}" y="${f(y + px)}" width="${f(t.tw - 2 * px)}" height="${f(t.th - 2 * px)}"
+         preserveAspectRatio="xMidYMid meet" href="${s.logo}"/>`;
+  }
+  const fs = Math.max(9, t.th * 0.3);
+  return `<rect x="${f(x)}" y="${f(y)}" width="${f(t.tw)}" height="${f(t.th)}" rx="${f(rx)}"
+        fill="${colors.card}" stroke="${t.spec.stroke}" stroke-width="1.5"/>
+  <text x="${f(x + t.tw / 2)}" y="${f(y + t.th / 2)}" fill="${t.spec.text}" dominant-baseline="central"
+        font-family="Oswald, sans-serif" font-weight="600" font-size="${f(fs)}"
+        text-anchor="middle">${esc(clip(s.name, 14))}</text>`;
+}
+
+/**
+ * Samostalna slika trake — admin je pretvori u JPEG i spremi jednom
+ * (tournament.share_sponsors_url). `scale` daje oštrinu za sitne logotipe.
+ */
+export function sponsorStripSvg(sponsors: ShareSponsor[], scale = 2): string {
+  const w = SHARE_STRIP_W;
+  const h = SHARE_STRIP_H;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w * scale}" height="${h * scale}" viewBox="0 0 ${w} ${h}">
+  <rect width="${w}" height="${h}" fill="${colors.bg}"/>
+  ${sponsorStripBody(sponsors, w, h)}
+</svg>`;
 }
 
 /**
@@ -134,20 +263,19 @@ export function shareCardSvg(o: ShareCardOpts): string {
 
   const L = {
     scorers: o.labels?.scorers ?? 'STRIJELCI',
-    goldSponsor: o.labels?.goldSponsor ?? 'ZLATNI SPONZOR',
     sponsors: o.labels?.sponsors ?? 'SPONZORI',
   };
 
   const CX = W / 2;
-  const CREST_Y = 455;
-  const CREST = 230;
+  const CREST_Y = 360;
+  const CREST = 200;
   const COL_L = 250;
   const COL_R = W - 250;
 
   // Ime ekipe ispod grba. Pobjednikovo je bijelo, gubitnikovo prigušeno —
   // kod neriješenog su oba bijela, inače slika sugerira poraz obojici.
   const teamName = (s: ShareSide, cx: number) =>
-    `<text x="${cx}" y="${CREST_Y + CREST / 2 + 62}" fill="${draw || s === winner ? '#FFFFFF' : colors.mut}"
+    `<text x="${cx}" y="${CREST_Y + CREST / 2 + 52}" fill="${draw || s === winner ? '#FFFFFF' : colors.mut}"
         font-family="Oswald, sans-serif" font-weight="600" font-size="34" text-anchor="middle"
         >${esc(clip(s.name, 16).toUpperCase())}</text>`;
 
@@ -168,14 +296,13 @@ export function shareCardSvg(o: ShareCardOpts): string {
   const split = longest > 6;
   const scorerRows = split ? Math.ceil(longest / 2) : longest;
 
-  // Popis mora stati između rezultata i prvog reda sponzora (vrh mu je na
-  // 1139). Kod uobičajena tri do četiri strijelca ostaje točno kako je i bilo.
-  const BAND_BOTTOM = 1128;
+  // Popis mora stati između rezultata i trake sponzora (crta je na 992).
+  const BAND_BOTTOM = 972;
   // Kod dugog popisa blok kreće više — ispod rezultata ionako stoji prazan
   // prostor koji se drukčije ne koristi.
   const tight = scorerRows > 5;
-  const HEAD_Y = tight ? 890 : 928;
-  const START_Y = tight ? 928 : 972;
+  const HEAD_Y = tight ? 765 : 785;
+  const START_Y = tight ? 798 : 826;
   const step = Math.min(34, Math.floor((BAND_BOTTOM - START_Y) / scorerRows));
   const fs = Math.max(12, Math.min(26, step - 7));
   /** Razmak pod-stupaca; u dva stupca ime mora biti kraće da ne naliježu. */
@@ -220,114 +347,30 @@ export function shareCardSvg(o: ShareCardOpts): string {
   ${scorerColumn(awayScorers, COL_R)}`
     : '';
 
-  // ── Sponzori ─────────────────────────────────────────────────────────────
-  // Zlatni ide GORE, uz naziv turnira: to je najgledaniji dio slike. Ostali razredi idu dolje, svaki u boji svog razreda — iste
-  // boje kao na Početnoj.
-  const all = o.sponsors ?? [];
+  // ── Sponzori: unaprijed složena traka, ili slaganje na licu mjesta ────────
+  const stripContent = o.sponsorStrip
+    ? `<image x="${STRIP_X}" y="${STRIP_Y}" width="${SHARE_STRIP_W}" height="${SHARE_STRIP_H}"
+         preserveAspectRatio="xMidYMid meet" href="${o.sponsorStrip}"/>`
+    : o.sponsors?.length
+      ? `<g transform="translate(${STRIP_X} ${STRIP_Y})">
+  ${sponsorStripBody(o.sponsors)}
+  </g>`
+      : '';
 
-  // Zlatnih sponzora može biti više, a pločica u zaglavlju je jedna — najbolje
-  // mjesto na slici i ne da se podijeliti a da ostane čitljivo.
-  //
-  // Zato se bira po utakmici, a ne uvijek prvi: svaka utakmica dobiva SVOG
-  // zlatnog sponzora, uvijek istog za istu utakmicu (izbor je izveden iz imena
-  // ekipa, ne iz slučaja). Kroz turnir se tako izloženost ravnomjerno podijeli,
-  // umjesto da jedan sponzor pokupi sve slike a ostali nijednu.
-  const golds = all.filter((s) => s.tier === 'gold');
-  const gold = golds.length ? (golds[stableIndex(o.home.name + o.away.name, golds.length)] ?? null) : null;
-
-  // Podloga je bijela kad ima logotipa — logotipi dolaze i kao JPEG s bijelim
-  // rubom, pa bi na tamnom izgledali kao zakrpa. Bez logotipa ostaje ime na
-  // tamnom, zlatnim slovima.
-  const goldName = gold ? clip(gold.name, 18).toUpperCase() : '';
-  const plaqueW = gold?.logo ? 330 : Math.max(300, goldName.length * 25 + 80);
-  const plaqueX = W - 72 - plaqueW;
-
-  // Pločica: zlatna vrpca s natpisom razreda gore, sadržaj ispod. Vrpca je
-  // čitljivija od sitnog zlatnog teksta na bijelom, a i "zaključava" pločicu
-  // uz zaglavlje. Sjena je odvaja od podloge preko koje prelazi.
-  const PY = 132;
-  const PH = 132;
-  const RIBBON = 40;
-  const plaqueFrame = `
-  <g filter="url(#drop)">
-    <rect x="${plaqueX}" y="${PY}" width="${plaqueW}" height="${PH}" rx="18"
-          fill="${gold?.logo ? '#FFFFFF' : colors.card}" stroke="url(#gold)" stroke-width="3"/>
-  </g>
-  <path d="M${plaqueX} ${PY + RIBBON} V${PY + 18} a18 18 0 0 1 18 -18 H${plaqueX + plaqueW - 18}
-           a18 18 0 0 1 18 18 V${PY + RIBBON} Z" fill="url(#gold)"/>
-  <text x="${plaqueX + plaqueW / 2}" y="${PY + 28}" fill="#2A1F05" font-family="Oswald, sans-serif"
-        font-weight="700" font-size="18" letter-spacing="4" text-anchor="middle"
-        >${esc(L.goldSponsor)}</text>`;
-
-  const goldBlock = !gold
-    ? ''
-    : gold.logo
-      ? `${plaqueFrame}
-  <image x="${plaqueX + 22}" y="${PY + RIBBON + 12}" width="${plaqueW - 44}" height="${PH - RIBBON - 24}"
-         preserveAspectRatio="xMidYMid meet" href="${gold.logo}"/>`
-      : `${plaqueFrame}
-  <text x="${plaqueX + plaqueW / 2}" y="${PY + RIBBON + 52}" fill="${colors.gold}"
-        font-family="Oswald, sans-serif" font-weight="700" font-size="36" letter-spacing="1"
-        text-anchor="middle">${esc(goldName)}</text>`;
+  const sponsorBlock = stripContent
+    ? `
+  <rect x="72" y="992" width="${W - 144}" height="1" fill="${colors.line}"/>
+  <text x="${CX}" y="1022" fill="${colors.mut}" font-family="Oswald, sans-serif"
+        font-weight="600" font-size="20" letter-spacing="5" text-anchor="middle">${esc(L.sponsors)}</text>
+  ${stripContent}`
+    : '';
 
   // Naziv turnira se NE reže — ime turnira mora biti čitljivo cijelo, inače
-  // slika nema čemu pripada. Umjesto toga se slova smanje toliko da stanu do
-  // pločice pokrovitelja. Oswald Bold je širok otprilike 0.54 × visina slova.
+  // slika nema čemu pripada. Umjesto toga se slova smanje toliko da stanu u
+  // širinu slike. Oswald Bold je širok otprilike 0.54 × visina slova.
   const titleRoom = W - 144;
   const titleLen = Math.max(o.tournamentName.length, 1);
   const titleSize = Math.max(26, Math.min(46, Math.floor(titleRoom / (titleLen * 0.54 + titleLen * 0.05))));
-
-  // ── Ostali sponzori: po jedan red za svaki razred ────────────────────────
-  // Srebrni gore, brončani ispod, partneri na dnu. Razred se čita i iz
-  // položaja i iz veličine pločice — kao i na Početnoj. Tko nema logo, dobiva
-  // ime u boji svog razreda na tamnoj pločici.
-  const TIERS = [
-    { tier: 'silver' as const, w: 150, h: 62, mid: 1170, color: colors.silverTxt },
-    { tier: 'bronze' as const, w: 126, h: 54, mid: 1240, color: colors.bronzeTxt },
-    { tier: 'partner' as const, w: 108, h: 46, mid: 1302, color: colors.sub },
-  ];
-
-  const GAP = 18;
-  const tierRow = (spec: (typeof TIERS)[number]) => {
-    const list = all.filter((s) => s.tier === spec.tier);
-    if (list.length === 0) return '';
-
-    const rawW = list.length * spec.w + (list.length - 1) * GAP;
-    // Puno sponzora u jednom razredu ne smije iscuriti izvan slike — taj se
-    // red proporcionalno smanji, ostali ostaju kakvi jesu.
-    const fit = Math.min(1, (W - 144) / rawW);
-    const w = spec.w * fit;
-    const h = spec.h * fit;
-    let x = (W - rawW * fit) / 2;
-    const y = spec.mid - h / 2;
-
-    return list
-      .map((s) => {
-        const at = x;
-        x += w + GAP * fit;
-        return s.logo
-          ? `<rect x="${at.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}"
-        rx="10" fill="#FFFFFF"/>
-  <image x="${(at + 9).toFixed(1)}" y="${(y + 7).toFixed(1)}" width="${(w - 18).toFixed(1)}"
-         height="${(h - 14).toFixed(1)}" preserveAspectRatio="xMidYMid meet" href="${s.logo}"/>`
-          : `<rect x="${at.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}"
-        rx="10" fill="${colors.card}" stroke="${spec.color}" stroke-width="1.5"/>
-  <text x="${(at + w / 2).toFixed(1)}" y="${(spec.mid + 6).toFixed(1)}" fill="${spec.color}"
-        font-family="Oswald, sans-serif" font-weight="600" font-size="${(19 * fit).toFixed(1)}"
-        text-anchor="middle">${esc(clip(s.name, 12))}</text>`;
-      })
-      .join('\n  ');
-  };
-
-  const rows = TIERS.map(tierRow).filter(Boolean).join('\n  ');
-
-  const sponsorBlock = rows
-    ? `
-  <rect x="72" y="1090" width="${W - 144}" height="1" fill="${colors.line}"/>
-  <text x="${CX}" y="1124" fill="${colors.mut}" font-family="Oswald, sans-serif"
-        font-weight="600" font-size="20" letter-spacing="5" text-anchor="middle">${esc(L.sponsors)}</text>
-  ${rows}`
-    : '';
 
   // Ishod se NE piše riječima (traka je smetala) — pobjednika nosi svjetliji
   // naziv ekipe, gubitnika prigušen. Kod neriješenog su oba svijetla.
@@ -342,9 +385,6 @@ export function shareCardSvg(o: ShareCardOpts): string {
       <stop offset="0" stop-color="#8A6E1F"/>
       <stop offset="1" stop-color="${colors.gold}"/>
     </linearGradient>
-    <filter id="drop" x="-30%" y="-30%" width="160%" height="180%">
-      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.45"/>
-    </filter>
     <filter id="soft" x="-10%" y="-30%" width="120%" height="180%">
       <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.35"/>
     </filter>
@@ -358,32 +398,30 @@ export function shareCardSvg(o: ShareCardOpts): string {
 
   <!-- Zaglavlje: puni blok u boji, ne blijeda lenta. Slika mora imati težinu
        na vrhu da se u pregledu objave odmah vidi čije je. -->
-  <path d="M0 0 H${W} V216 L0 276 Z" fill="url(#${o.isFinal ? 'gold' : 'hdr'})"/>
+  <path d="M0 0 H${W} V176 L0 226 Z" fill="url(#${o.isFinal ? 'gold' : 'hdr'})"/>
   <!-- Tanka zlatna nit uz sam vrh — ista gesta kao na kartici pokrovitelja
        u aplikaciji, veže sliku uz ostatak. -->
   <rect x="0" y="0" width="${W}" height="5" fill="${colors.gold}"/>
-  <text x="72" y="112" fill="#FFFFFF" font-family="Oswald, sans-serif" font-weight="700"
+  <text x="72" y="92" fill="#FFFFFF" font-family="Oswald, sans-serif" font-weight="700"
         font-size="${titleSize}" letter-spacing="2" filter="url(#soft)"
         >${esc(o.tournamentName.toUpperCase())}</text>
-  <rect x="72" y="130" width="86" height="5" rx="2.5" fill="#FFFFFF" fill-opacity="0.55"/>
-  <text x="72" y="180" fill="#FFFFFF" fill-opacity="0.86" font-family="Inter, sans-serif"
+  <rect x="72" y="108" width="86" height="5" rx="2.5" fill="#FFFFFF" fill-opacity="0.55"/>
+  <text x="72" y="154" fill="#FFFFFF" fill-opacity="0.86" font-family="Inter, sans-serif"
         font-size="28">${esc(o.stageLabel)} · ${esc(o.dateLabel)}</text>
 
-  ${goldBlock}
-
   <!-- Sjaj iza rezultata: daje dubinu i vuče oko u sredinu. -->
-  <ellipse cx="${CX}" cy="770" rx="520" ry="250" fill="url(#glow)"/>
+  <ellipse cx="${CX}" cy="620" rx="520" ry="250" fill="url(#glow)"/>
 
   ${crest(o.home, COL_L, CREST_Y, CREST, 'ch')}
   ${crest(o.away, COL_R, CREST_Y, CREST, 'ca')}
   ${teamName(o.home, COL_L)}
   ${teamName(o.away, COL_R)}
 
-  <text x="${CX}" y="${CREST_Y + 22}" fill="${colors.mut}" font-family="Oswald, sans-serif"
+  <text x="${CX}" y="${CREST_Y + 16}" fill="${colors.mut}" font-family="Oswald, sans-serif"
         font-weight="600" font-size="44" text-anchor="middle">VS</text>
 
   <!-- Rezultat: najveći element na slici, u sredini. -->
-  <text x="${CX}" y="840" fill="#FFFFFF" font-family="Oswald, sans-serif" font-weight="700"
+  <text x="${CX}" y="725" fill="#FFFFFF" font-family="Oswald, sans-serif" font-weight="700"
         font-size="230" text-anchor="middle" letter-spacing="-4"
         >${o.home.score}<tspan fill="${accent}"> : </tspan>${o.away.score}</text>
 

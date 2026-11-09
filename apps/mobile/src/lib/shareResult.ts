@@ -2,6 +2,12 @@
 //
 // Sastavljanje (koja ekipa, koji strijelci, koji sponzori) je ovdje; sam crtež
 // je u @zrinjski/core (shareCardSvg), isti koji koristi i web admin.
+//
+// MEMORIJA: u sliku idu samo MALE slike koje je admin unaprijed složio —
+// traka sponzora (tournament.share_sponsors_url) i umanjeni grbovi
+// (team.logo_small_url). Ranije su se ugrađivali logotipi svih sponzora u
+// punoj veličini (~2,9 MB), pa je Android pri izradi slike rušio aplikaciju.
+// Puni logotipi se ovdje NE smiju vratiti.
 import { Directory, File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import type { Match, MatchEvent, Player, Sponsor, Team } from '@zrinjski/core';
@@ -16,13 +22,13 @@ import { shareCardSvg, type ShareCardOpts, type ShareScorer, type ShareSponsor }
  */
 const logoCache = new Map<string, string | null>();
 
-async function logoDataUri(url: string | null): Promise<string | null> {
+async function imageDataUri(url: string | null): Promise<string | null> {
   if (!url) return null;
   const hit = logoCache.get(url);
   if (hit !== undefined) return hit;
 
   try {
-    const dir = new Directory(Paths.cache, 'sponzori');
+    const dir = new Directory(Paths.cache, 'slika-rezultata');
     if (!dir.exists) dir.create({ intermediates: true });
 
     // Ime iz putanje; različiti sponzori tako ne pišu preko istog spremišta.
@@ -37,8 +43,9 @@ async function logoDataUri(url: string | null): Promise<string | null> {
     logoCache.set(url, data);
     return data;
   } catch {
-    // Sponzor bez dohvatljivog logotipa pada na ime — slika se svejedno radi.
-    logoCache.set(url, null);
+    // Nedohvatljiva slika: grb pada na znak s kraticom, traka na imena
+    // sponzora — slika se svejedno radi. Neuspjeh se NE pamti: bez mreže
+    // bi inače traka izostala sve do ponovnog pokretanja aplikacije.
     return null;
   }
 }
@@ -63,16 +70,24 @@ export type BuildInput = {
   events: MatchEvent[];
   players: Player[];
   sponsors: Sponsor[];
+  /** Unaprijed složena traka sponzora (tournament.share_sponsors_url). */
+  stripUrl: string | null;
   tournamentName: string;
   stageLabel: string;
   dateLabel: string;
 };
 
 export async function buildShareCard(i: BuildInput): Promise<string> {
-  const active = i.sponsors.filter((s) => s.is_active);
-  const sponsors: ShareSponsor[] = await Promise.all(
-    active.map(async (s) => ({ name: s.name, tier: s.tier, logo: await logoDataUri(s.logo_url) }))
-  );
+  const [sponsorStrip, homeLogo, awayLogo] = await Promise.all([
+    imageDataUri(i.stripUrl),
+    imageDataUri(i.home?.logo_small_url ?? null),
+    imageDataUri(i.away?.logo_small_url ?? null),
+  ]);
+  // Dok admin ne složi traku, sponzori idu imenima — bez logotipa, jer su
+  // upravo puni logotipi rušili aplikaciju.
+  const sponsors: ShareSponsor[] = sponsorStrip
+    ? []
+    : i.sponsors.filter((s) => s.is_active).map((s) => ({ name: s.name, tier: s.tier }));
 
   const opts: ShareCardOpts = {
     home: {
@@ -80,12 +95,14 @@ export async function buildShareCard(i: BuildInput): Promise<string> {
       code: i.home?.short_code ?? null,
       crestIndex: i.home?.sort_order ?? 0,
       score: i.match.home_score,
+      logo: homeLogo,
     },
     away: {
       name: i.away?.name ?? i.match.away_placeholder ?? '—',
       code: i.away?.short_code ?? null,
       crestIndex: i.away?.sort_order ?? 1,
       score: i.match.away_score,
+      logo: awayLogo,
     },
     stageLabel: i.stageLabel,
     dateLabel: i.dateLabel,
@@ -94,6 +111,7 @@ export async function buildShareCard(i: BuildInput): Promise<string> {
       home: scorersOf(i.events, i.players, i.match.home_team_id),
       away: scorersOf(i.events, i.players, i.match.away_team_id),
     },
+    sponsorStrip,
     sponsors,
     isFinal: i.match.stage === 'final',
   };

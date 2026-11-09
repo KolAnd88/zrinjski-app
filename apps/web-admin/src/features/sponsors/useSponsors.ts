@@ -8,6 +8,7 @@ import {
   updateSponsor,
   uploadPublicAsset,
 } from '../../lib/data';
+import { scheduleSponsorStrip } from '../share/shareAssets';
 
 export type SponsorInput = {
   id?: string;
@@ -86,19 +87,29 @@ export function useSponsors(tournamentId: string | null): SponsorsData {
         });
         setSponsors((xs) => [...xs, created]);
       }
+      // Slika rezultata nosi traku svih sponzora — složi je ponovno.
+      scheduleSponsorStrip(tournamentId);
     },
     [tournamentId, sponsors.length]
   );
 
-  const removeSponsor = useCallback(async (id: string) => {
-    await deleteSponsor(id);
-    setSponsors((xs) => xs.filter((s) => s.id !== id));
-  }, []);
+  const removeSponsor = useCallback(
+    async (id: string) => {
+      await deleteSponsor(id);
+      setSponsors((xs) => xs.filter((s) => s.id !== id));
+      if (tournamentId) scheduleSponsorStrip(tournamentId);
+    },
+    [tournamentId]
+  );
 
-  const setActive = useCallback(async (id: string, active: boolean) => {
-    await updateSponsor(id, { is_active: active });
-    setSponsors((xs) => xs.map((s) => (s.id === id ? { ...s, is_active: active } : s)));
-  }, []);
+  const setActive = useCallback(
+    async (id: string, active: boolean) => {
+      await updateSponsor(id, { is_active: active });
+      setSponsors((xs) => xs.map((s) => (s.id === id ? { ...s, is_active: active } : s)));
+      if (tournamentId) scheduleSponsorStrip(tournamentId);
+    },
+    [tournamentId]
+  );
 
   // Zlatnih sponzora može biti više. Ranije se uzimao samo prvi pronađeni, pa
   // se ostali nisu vidjeli ni u adminu ni u aplikaciji.

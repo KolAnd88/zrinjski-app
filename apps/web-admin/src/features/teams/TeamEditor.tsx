@@ -8,8 +8,10 @@ import {
   LogoValidationError,
   setTeamContact,
   uploadTeamLogo,
+  saveTeamLogoSmall,
 } from '../../lib/data';
 import { ImageEditor } from '../../components/ImageEditor';
+import { smallCrestPng } from '../share/shareAssets';
 import type { TeamsData } from './useTeamsData';
 
 function PlayerRow({
@@ -129,6 +131,13 @@ function LogoField({ team, onChanged }: { team: Team; onChanged: () => void }) {
     setBusy(true);
     try {
       await uploadTeamLogo(team.id, file);
+      // Umanjeni grb za sliku rezultata. Ako ne uspije, logo je ipak spremljen —
+      // slika rezultata tada crta znak s kraticom, a grb se može složiti kasnije.
+      try {
+        await saveTeamLogoSmall(team.id, await smallCrestPng(file));
+      } catch (e) {
+        console.warn('[umanjeni grb]', e);
+      }
       onChanged();
     } catch (e) {
       if (e instanceof LogoValidationError) {

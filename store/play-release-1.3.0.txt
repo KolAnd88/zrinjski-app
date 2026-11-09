@@ -1,0 +1,5 @@
+=== BILJEŠKE O IZDANJU 1.3.0 — hr-HR (najviše 500 znakova) ===
+Zapisničar sada može zaustaviti sat i dati time-out, a gledatelji vide kad sat stoji i koliko traje time-out. Slika rezultata za dijeljenje nosi prave grbove ekipa i sve sponzore, a dijeljenje više ne ruši aplikaciju. Početna je preglednija: najbolji strijelac i golman obje konkurencije na jednom mjestu, a rezultati i program dana odmah ispod brojki turnira.
+
+=== RELEASE NOTES 1.3.0 — en-US (max 500 characters) ===
+The scorekeeper can now stop the clock and call a time-out, and spectators see when the clock is stopped and how long the time-out lasts. The shareable result image shows the teams' real crests and all sponsors, and sharing no longer crashes the app. The home screen is clearer: the top scorer and goalkeeper of both competitions in one place, with results and the day's programme right below the tournament numbers.

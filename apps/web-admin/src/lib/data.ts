@@ -28,6 +28,7 @@ import type {
   TablesInsert,
   TablesUpdate,
 } from '@zrinjski/core';
+import { MATCH_CLOCK_DEFAULTS } from '@zrinjski/core';
 import { DEMO, supabase } from './supabase';
 import { db, genId } from './demoDb';
 
@@ -330,6 +331,7 @@ export async function createTeam(row: TablesInsert<'team'>): Promise<Team> {
       group_id: row.group_id ?? null,
       coach_name: row.coach_name ?? null,
       logo_url: row.logo_url ?? null,
+      logo_small_url: row.logo_small_url ?? null,
       // Nova ekipa ide na kraj → dobiva sljedeću boju iz palete.
       sort_order:
         row.sort_order ??
@@ -526,6 +528,7 @@ export async function syncFinalsMatches(
           home_placeholder: w.home, away_placeholder: w.away, home_score: 0, away_score: 0,
           scheduled_time: null, status: 'scheduled', sort_order: order++,
           best_player_id: null, current_minute: null, current_half: null,
+          ...MATCH_CLOCK_DEFAULTS,
         });
         created += 1;
       }
@@ -762,15 +765,63 @@ export async function uploadTeamLogo(teamId: string, file: File): Promise<string
   return url;
 }
 
-/** Ukloni logotip ekipe (datoteka + logo_url). */
+/** Ukloni logotip ekipe (datoteka + logo_url, i umanjeni grb). */
 export async function deleteTeamLogo(teamId: string): Promise<void> {
   if (DEMO) {
-    patch(db.teams, teamId, { logo_url: null });
+    patch(db.teams, teamId, { logo_url: null, logo_small_url: null });
     return;
   }
   const c = client();
-  await c.storage.from(TEAM_LOGOS_BUCKET).remove([`${teamId}.png`]);
-  await updateTeam(teamId, { logo_url: null });
+  await c.storage.from(TEAM_LOGOS_BUCKET).remove([`${teamId}.png`, `${teamId}-sm.png`]);
+  await updateTeam(teamId, { logo_url: null, logo_small_url: null });
+}
+
+/**
+ * Umanjeni grb za sliku rezultata (team.logo_small_url).
+ *
+ * Mobitel ga ugrađuje u sliku umjesto punog grba (do 440 kB) — vidi
+ * features/share/shareAssets.ts.
+ */
+export async function saveTeamLogoSmall(teamId: string, png: Blob): Promise<string> {
+  if (DEMO) {
+    const url = URL.createObjectURL(png);
+    patch(db.teams, teamId, { logo_small_url: url });
+    return url;
+  }
+  const c = client();
+  const path = `${teamId}-sm.png`;
+  const { error } = await c.storage
+    .from(TEAM_LOGOS_BUCKET)
+    .upload(path, png, { cacheControl: '3600', upsert: true, contentType: 'image/png' });
+  if (error) throw error;
+  const url = `${c.storage.from(TEAM_LOGOS_BUCKET).getPublicUrl(path).data.publicUrl}?v=${Date.now()}`;
+  await updateTeam(teamId, { logo_small_url: url });
+  return url;
+}
+
+/**
+ * Traka sponzora za sliku rezultata (tournament.share_sponsors_url).
+ * `null` briše traku — npr. kad turnir više nema aktivnih sponzora.
+ */
+export async function saveShareSponsorStrip(tournamentId: string, jpeg: Blob | null): Promise<string | null> {
+  if (DEMO) {
+    const url = jpeg ? URL.createObjectURL(jpeg) : null;
+    await updateTournament(tournamentId, { share_sponsors_url: url });
+    return url;
+  }
+  if (!jpeg) {
+    await updateTournament(tournamentId, { share_sponsors_url: null });
+    return null;
+  }
+  const c = client();
+  const path = `share/sponsors-${tournamentId}.jpg`;
+  const { error } = await c.storage
+    .from(ASSETS_BUCKET)
+    .upload(path, jpeg, { cacheControl: '3600', upsert: true, contentType: 'image/jpeg' });
+  if (error) throw error;
+  const url = `${c.storage.from(ASSETS_BUCKET).getPublicUrl(path).data.publicUrl}?v=${Date.now()}`;
+  await updateTournament(tournamentId, { share_sponsors_url: url });
+  return url;
 }
 
 // ── Igrači ───────────────────────────────────────────────────────────────
@@ -876,6 +927,7 @@ export async function insertMatches(rows: TablesInsert<'match'>[]): Promise<numb
         current_minute: r.current_minute ?? null,
         current_half: r.current_half ?? null,
         finals_slot: r.finals_slot ?? null,
+        ...MATCH_CLOCK_DEFAULTS,
       });
     }
     return rows.length;

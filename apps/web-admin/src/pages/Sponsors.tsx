@@ -6,6 +6,7 @@ import { Button, Card } from '../components/ui';
 import { useTournamentData } from '../features/tournament/useTournamentData';
 import { useSponsors } from '../features/sponsors/useSponsors';
 import { SponsorModal } from '../features/sponsors/SponsorModal';
+import { ShareAssetsCard } from '../features/share/ShareAssetsCard';
 import './Sponsors.css';
 
 const TIER_LABEL: Record<SponsorTier, StringKey> = {
@@ -118,6 +119,14 @@ export function Sponsors() {
       <Button variant="primary" size="lg" block onClick={() => setEditing({ sponsor: null })}>
         {t('sponsors.add')}
       </Button>
+
+      {tournament.tournament && (
+        <ShareAssetsCard
+          tournamentId={tournament.tournament.id}
+          stripUrl={tournament.tournament.share_sponsors_url}
+          onDone={() => void tournament.reload()}
+        />
+      )}
 
       {editing && (
         <SponsorModal

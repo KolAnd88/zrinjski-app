@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { EventType, Match, MatchEvent, Player } from '@zrinjski/core';
-import { applyChange, type RowChange } from '@zrinjski/core';
+import {
+  applyChange,
+  clockFinishPatch,
+  clockPausePatch,
+  clockResumePatch,
+  clockStartPatch,
+  timeoutPatch,
+  type ClockPatch,
+  type RowChange,
+} from '@zrinjski/core';
 import { HAS_DATA, supabase } from '../../lib/supabase';
 import {
   deleteEvent,
@@ -40,6 +49,12 @@ export type LiveMatchState = {
   feed: FeedEntry[];
   start: () => Promise<void>;
   finish: () => Promise<void>;
+  /** Zaustavi sat (ozljeda, prekid). */
+  pause: () => Promise<void>;
+  /** Nastavi sat; završava i time-out. */
+  resume: () => Promise<void>;
+  /** Time-out ekipe: sat staje, odbrojava se minuta. */
+  timeout: (teamId: string) => Promise<void>;
   addEvent: (teamId: string, playerId: string | null, type: EventType, minute: number) => Promise<void>;
   undoLast: () => Promise<void>;
   persistMinute: (minute: number) => Promise<void>;
@@ -159,16 +174,27 @@ export function useLiveMatch(matchId: string | null): LiveMatchState {
     };
   }, [matchId]);
 
-  const start = useCallback(async () => {
-    if (!match) return;
-    await updateMatch(match.id, { status: 'live', current_half: 1, current_minute: 0 });
-    setMatch((m) => (m ? { ...m, status: 'live', current_half: 1, current_minute: 0 } : m));
-  }, [match]);
+  // Sve promjene sata idu kroz istu zakrpu (core/clock) — iste koje šalje i
+  // mobilni admin, pa oba ekrana i gledatelji računaju isto vrijeme.
+  const applyClock = useCallback(async (make: (m: Match, now: number) => ClockPatch) => {
+    const m = matchRef.current;
+    if (!m) return;
+    const patch = make(m, Date.now());
+    await updateMatch(m.id, patch);
+    setMatch((cur) => (cur ? { ...cur, ...patch } : cur));
+  }, []);
+
+  const start = useCallback(() => applyClock((_, now) => clockStartPatch(now)), [applyClock]);
+  const pause = useCallback(() => applyClock(clockPausePatch), [applyClock]);
+  const resume = useCallback(() => applyClock(clockResumePatch), [applyClock]);
+  const timeout = useCallback(
+    (teamId: string) => applyClock((m, now) => timeoutPatch(m, teamId, now)),
+    [applyClock]
+  );
 
   const finish = useCallback(async () => {
     if (!match) return;
-    await updateMatch(match.id, { status: 'finished' });
-    setMatch((m) => (m ? { ...m, status: 'finished' } : m));
+    await applyClock(clockFinishPatch);
 
     // Obavijest ide TEK nakon što je završetak zapisan, i to bez čekanja:
     // zapisničar ne smije stajati zbog pusha. Naslov nosi konačan rezultat,
@@ -182,7 +208,7 @@ export function useLiveMatch(matchId: string | null): LiveMatchState {
         body: null,
       });
     }
-  }, [match, home, away]);
+  }, [match, home, away, applyClock]);
 
   const addEvent = useCallback(
     async (teamId: string, playerId: string | null, type: EventType, minute: number) => {
@@ -253,6 +279,9 @@ export function useLiveMatch(matchId: string | null): LiveMatchState {
     feed,
     start,
     finish,
+    pause,
+    resume,
+    timeout,
     addEvent,
     undoLast,
     persistMinute,

@@ -20,6 +20,7 @@ import type {
   Tournament,
   MvpVote,
 } from '@zrinjski/core';
+import { MATCH_CLOCK_DEFAULTS } from '@zrinjski/core';
 
 let seq = 0;
 export function genId(prefix = 'id'): string {
@@ -33,6 +34,7 @@ const D3 = 'd3';
 
 const tournament: Tournament = {
   id: T,
+  share_sponsors_url: null,
   name: 'Ponos Hercegovine 2026',
   season_year: 2026,
   match_duration_min: 15,
@@ -83,7 +85,7 @@ let zIdx = 0;
 function team(id: string, name: string, code: string, color: string, gender: 'm' | 'z', group: string | null, coach: string): Team {
   return {
     id, tournament_id: T, name, short_code: code, color, gender, group_id: group,
-    coach_name: coach, logo_url: null,
+    coach_name: coach, logo_url: null, logo_small_url: null,
     sort_order: gender === 'm' ? mIdx++ : zIdx++,
     created_at: '2026-01-01T00:00:00Z',
   };
@@ -146,6 +148,7 @@ function match(p: Partial<Match> & Pick<Match, 'id' | 'gender' | 'stage'>): Matc
     current_minute: null,
     current_half: null,
     finals_slot: null,
+    ...MATCH_CLOCK_DEFAULTS,
     ...p,
   } as Match;
 }

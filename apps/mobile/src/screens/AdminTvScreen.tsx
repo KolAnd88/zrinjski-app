@@ -4,6 +4,8 @@ import type { Stage } from '@zrinjski/core';
 import { isFinalGroupMatch } from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import { useData } from '../lib/useData';
+import { useNow } from '../lib/useNow';
+import { clockLabel } from '../lib/clockLabel';
 import { C, F, S } from '../theme';
 import { Crest, LiveDot, Txt } from '../components/base';
 import { Lenta } from '../components/lenta';
@@ -26,6 +28,7 @@ export function AdminTvScreen() {
   const { params } = useRoute<RouteProp<RootStackParamList, 'AdminTv'>>();
   const d = useData();
   const m = d.matchById(params.matchId);
+  const now = useNow(m?.status === 'live');
   if (!m) return <View style={styles.tv} />;
 
   const home = d.teamById(m.home_team_id);
@@ -67,7 +70,7 @@ export function AdminTvScreen() {
           </Txt>
           <Txt style={styles.meta}>
             {stageOf(m)}
-            {isLive && m.current_minute != null ? ` · ${m.current_minute}'` : ''}
+            {isLive ? ` · ${clockLabel(m, now, t, (id) => d.teamById(id)?.name)}` : ''}
           </Txt>
         </View>
         <View style={styles.team}>

@@ -16,9 +16,11 @@ import type {
   Team,
   Tournament,
 } from '@zrinjski/core';
+import { MATCH_CLOCK_DEFAULTS } from '@zrinjski/core';
 
 export const demoTournament: Tournament = {
   id: 'T',
+  share_sponsors_url: null,
   name: 'Ponos Hercegovine 2026',
   season_year: 2026,
   match_duration_min: 15,
@@ -81,6 +83,7 @@ function team(
     group_id: group,
     coach_name: coach,
     logo_url: null,
+    logo_small_url: null,
     sort_order: gender === 'm' ? demoMIdx++ : demoZIdx++,
     created_at: '2026-01-01T00:00:00+01:00',
   };
@@ -194,6 +197,8 @@ function m(
     current_minute: extra?.current_minute ?? null,
     current_half: extra?.current_half ?? null,
     finals_slot: extra?.finals_slot ?? null,
+    ...MATCH_CLOCK_DEFAULTS,
+    ...extra,
   };
 }
 

@@ -68,6 +68,76 @@
   white-space: nowrap;
 }
 
+/* Sat: pauza, nastavak, time-out */
+.live__clockctl {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+  margin-top: var(--sp-md);
+}
+.live__timeout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-xs) var(--sp-sm);
+  padding: var(--sp-sm) var(--sp-md);
+  border-radius: var(--r-chip);
+  border: 1px solid var(--red);
+  background: rgba(225, 29, 42, 0.12);
+  font-family: var(--font-head);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.live__timeout-left {
+  font-size: 28px;
+  color: var(--red);
+}
+.live__timeout.is-over .live__timeout-left {
+  color: var(--txt);
+}
+.live__timeout-hint {
+  flex-basis: 100%;
+  font-family: var(--font-body);
+  font-weight: 400;
+  text-transform: none;
+  font-size: 13px;
+  color: var(--sub);
+}
+.live__timeouts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-sm);
+}
+.live__tobtn {
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: var(--sp-xs) var(--sp-sm);
+  border-radius: var(--r-chip);
+  border: 1px solid var(--line);
+  background: var(--card2);
+  color: var(--txt);
+  cursor: pointer;
+}
+.live__tobtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.live__tobtn-main {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+.live__tobtn-sub {
+  font-size: 11px;
+  color: var(--sub);
+}
+
 .live__startfinish {
   display: grid;
   grid-template-columns: 1fr 1fr;

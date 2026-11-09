@@ -11,6 +11,8 @@ import { useT } from '../i18n/I18nProvider';
 import type { StringKey } from '../i18n/strings';
 import { useData } from '../lib/useData';
 import { isoToHHMM } from '../lib/dates';
+import { useNow } from '../lib/useNow';
+import { clockLabel } from '../lib/clockLabel';
 import { C, F, R, SP } from '../theme';
 import { Crest, HeroCard, SectionLabel, Txt } from '../components/base';
 import { PrimaryButton } from '../components/buttons';
@@ -46,6 +48,7 @@ export function LiveScreen() {
   const m = d.matchById(route.params.matchId);
   const home = d.teamById(m?.home_team_id);
   const away = d.teamById(m?.away_team_id);
+  const now = useNow(m?.status === 'live');
 
   // Maketa ima vlastito zaglavlje (natrag + faza + status) pa nativno gasimo.
   useLayoutEffect(() => {
@@ -120,6 +123,7 @@ export function LiveScreen() {
         events: asc,
         players: d.players,
         sponsors: d.sponsors,
+        stripUrl: d.tournament?.share_sponsors_url ?? null,
         tournamentName: d.tournament?.name ?? t('appName'),
         stageLabel: stageTitle,
         dateLabel: m.scheduled_time ? formatDayLabel(m.scheduled_time.slice(0, 10), locale) : '',
@@ -140,7 +144,7 @@ export function LiveScreen() {
   }
 
   const statusLine = isLive
-    ? `${t('home.halfN', { n: m.current_half ?? 1 }).toUpperCase()} · ${m.current_minute ?? 0}'`
+    ? clockLabel(m, now, t, (id) => d.teamById(id)?.name)
     : isDone
       ? t('common.finished')
       : isoToHHMM(m.scheduled_time);

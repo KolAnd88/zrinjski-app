@@ -23,7 +23,17 @@ import type {
   Team,
   Tournament,
 } from '@zrinjski/core';
-import { applyChange, finalsConfigFromRow, type RowChange } from '@zrinjski/core';
+import {
+  applyChange,
+  clockFinishPatch,
+  clockPausePatch,
+  clockResumePatch,
+  clockStartPatch,
+  finalsConfigFromRow,
+  timeoutPatch,
+  type ClockPatch,
+  type RowChange,
+} from '@zrinjski/core';
 import { useT } from '../i18n/I18nProvider';
 import { isSupabaseConfigured, supabase } from './supabase';
 import { enqueue, flushOutbox, loadOutbox } from './outbox';
@@ -81,6 +91,12 @@ export type DataStore = {
   eventsOf: (matchId: string) => MatchEvent[];
   startMatch: (id: string) => void;
   finishMatch: (id: string) => void;
+  /** Zaustavi sat (ozljeda, prekid). */
+  pauseClock: (id: string) => void;
+  /** Nastavi sat; završava i time-out. */
+  resumeClock: (id: string) => void;
+  /** Time-out ekipe: sat staje, odbrojava se minuta. */
+  callTimeout: (id: string, teamId: string) => void;
   setMinute: (id: string, minute: number) => void;
   addEvent: (matchId: string, teamId: string, playerId: string | null, type: EventType, minute: number) => void;
   undoLastEvent: (matchId: string) => void;
@@ -384,6 +400,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const patchMatchLocal = (id: string, patch: Partial<Match>) =>
       postavi((d) => ({ ...d, matches: d.matches.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
 
+    /**
+     * Promjena sata: zakrpa iz core/clock (ista kao na web adminu), lokalno
+     * odmah, u bazu kroz red čekanja — radi i kad delegat nakratko nema mreže.
+     */
+    const applyClock = (id: string, make: (m: Match, now: number) => ClockPatch) => {
+      const m = matches.find((x) => x.id === id);
+      if (!m) return;
+      const patch = make(m, Date.now());
+      patchMatchLocal(id, patch);
+      if (LIVE && sb) enqueue({ kind: 'match.update', id, patch });
+    };
+
     // Provjeri je li upis stvarno prošao. VAŽNO: RLS blokada na UPDATE/DELETE ne
     // vraća grešku nego "uspjeh" s 0 redova — zato upiti nose .select('id') pa
     // prazan rezultat također tretiramo kao neuspjeh.
@@ -413,15 +441,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
       matchById: (id) => matches.find((mm) => mm.id === id),
       eventsOf: (matchId) => events.filter((e) => e.match_id === matchId),
 
-      startMatch: (id) => {
-        const patch = { status: 'live' as const, current_half: 1, current_minute: 0 };
-        patchMatchLocal(id, patch);
-        if (LIVE && sb) enqueue({ kind: 'match.update', id, patch });
-      },
+      startMatch: (id) => applyClock(id, (_, now) => clockStartPatch(now)),
+      pauseClock: (id) => applyClock(id, clockPausePatch),
+      resumeClock: (id) => applyClock(id, clockResumePatch),
+      callTimeout: (id, teamId) => applyClock(id, (m, now) => timeoutPatch(m, teamId, now)),
       finishMatch: (id) => {
-        patchMatchLocal(id, { status: 'finished' });
+        applyClock(id, clockFinishPatch);
         if (!LIVE || !sb) return;
-        enqueue({ kind: 'match.update', id, patch: { status: 'finished' } });
 
         // Obavijest je dosad slao samo web admin, pa utakmica zavrsena s
         // mobilnog nikoga nije obavijestila. Ide kroz red cekanja, iza upisa

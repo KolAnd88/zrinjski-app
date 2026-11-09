@@ -1,5 +1,33 @@
 /* Sponsors.css — sponzori (po hifi_admin_sponsors). */
 
+.share-assets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+  margin-top: var(--sp-lg);
+}
+.share-assets__hint,
+.share-assets__ok {
+  font-size: 13px;
+  color: var(--sub);
+}
+.share-assets__err {
+  font-size: 13px;
+  color: var(--red);
+}
+.share-assets__strip {
+  width: 100%;
+  border-radius: var(--r-chip);
+  border: 1px solid var(--line);
+}
+.share-assets__none {
+  padding: var(--sp-md);
+  border: 1px dashed var(--line);
+  border-radius: var(--r-chip);
+  color: var(--sub);
+  font-size: 13px;
+}
+
 .sponsors {
   display: flex;
   flex-direction: column;

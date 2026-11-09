@@ -5,11 +5,14 @@ import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Match } from '@zrinjski/core';
 import { crestPair } from '@zrinjski/ui-tokens';
-import { isFinalGroupMatch, pickCurrentDayId } from '@zrinjski/core';
+import { isFinalGroupMatch, pickCurrentDayId, rankByEvent, winnerOf } from '@zrinjski/core';
+import type { StringKey } from '../i18n/strings';
+import { useGender } from '../lib/useGender';
 import { useT } from '../i18n/I18nProvider';
 import { useData } from '../lib/useData';
+import { useNow } from '../lib/useNow';
+import { clockLabel } from '../lib/clockLabel';
 import { useFollow } from '../lib/useFollow';
-import { GALERIJA } from '../lib/features';
 import { isoToHHMM, shortDayLabel, timeToHHMM } from '../lib/dates';
 import { openMaps } from '../lib/maps';
 import { C, F, R, S, SP } from '../theme';
@@ -112,15 +115,6 @@ export function HomeScreen() {
   const brandTitle = (d.tournament?.name ?? t('appName')).toUpperCase();
   const brandSize = brandTitle.length > 28 ? 15 : brandTitle.length > 16 ? 17 : 21;
 
-  const shortcuts = [
-    { icon: 'calendar-outline', label: t('nav.schedule'), screen: 'Schedule' },
-    { icon: 'trophy-outline', label: t('nav.standings'), screen: 'Standings' },
-    { icon: 'stats-chart-outline', label: t('nav.stats'), screen: 'Stats' },
-    // Precac prati isti prekidac kao kartica — inace bi vodio na karticu
-    // koje nema, i aplikacija bi izgledala pokvareno.
-    ...(GALERIJA ? ([{ icon: 'images-outline', label: t('nav.gallery'), screen: 'Gallery' }] as const) : []),
-  ] as const;
-
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <BrandStripe />
@@ -190,55 +184,8 @@ export function HomeScreen() {
           ))}
         </View>
 
-        {/* ── PREČACI ──────────────────────────────────────────────────── */}
-        <View style={styles.shortRow}>
-          {shortcuts.map((s) => (
-            <Pressable
-              key={s.screen}
-              style={styles.shortTile}
-              onPress={() => nav.navigate('Tabs', { screen: s.screen } as never)}
-            >
-              <Ionicons name={s.icon} size={19} color={C.redLt} />
-              <Txt style={styles.shortLabel} numberOfLines={1}>
-                {s.label}
-              </Txt>
-            </Pressable>
-          ))}
-        </View>
-
-        {/* ── PRATIŠ ───────────────────────────────────────────────────── */}
-        <SectionLabel>{t('home.following')}</SectionLabel>
-        <Pressable
-          style={styles.followCard}
-          onPress={() =>
-            followedTeam ? nav.navigate('Team', { teamId: followedTeam.id }) : nav.navigate('Search')
-          }
-        >
-          {followedTeam ? (
-            <>
-              <Crest
-                code={followedTeam.short_code}
-                index={followedTeam.sort_order}
-                logoUrl={followedTeam.logo_url}
-                size={42}
-              />
-              <View style={{ flex: 1 }}>
-                <Txt style={styles.followName}>{followedTeam.name}</Txt>
-                <Txt style={styles.followMeta}>
-                  {d.groups.find((g) => g.id === followedTeam.group_id)?.name ?? ''}
-                </Txt>
-              </View>
-              <LinkTxt>{t('home.change')}</LinkTxt>
-            </>
-          ) : (
-            <>
-              <View style={{ flex: 1 }}>
-                <Txt style={styles.followName}>{t('home.followCta')}</Txt>
-              </View>
-              <LinkTxt>{t('home.change')}</LinkTxt>
-            </>
-          )}
-        </Pressable>
+        {/* ── NAJBOLJI ─────────────────────────────────────────────────── */}
+        <BestCard />
 
         {/* ── ZADNJI REZULTATI ─────────────────────────────────────────── */}
         {recent.length > 0 && (
@@ -280,43 +227,6 @@ export function HomeScreen() {
                 );
               })}
             </View>
-          </>
-        )}
-
-        {/* ── SPONZORI PO RAZREDU ──────────────────────────────────────── */}
-        {/* Srebrni su veći i dvoje u redu, brončani manji i troje, partneri
-            u traci koja klizi. Razlika je namjerno u veličini, a ne samo u
-            boji — vidi se i na crno-bijelom snimku zaslona. */}
-        {hasSponsors && (
-          <>
-            <SectionLabel>{t('home.sponsors')}</SectionLabel>
-
-            {silver.length > 0 && (
-              <>
-                <Txt style={[styles.tierLabel, { color: C.silverTxt }]}>
-                  {t('home.tierSilver').toUpperCase()}
-                </Txt>
-                <SponsorMarquee sponsors={silver} tier="silver" />
-              </>
-            )}
-
-            {bronze.length > 0 && (
-              <>
-                <Txt style={[styles.tierLabel, { color: C.bronzeTxt }]}>
-                  {t('home.tierBronze').toUpperCase()}
-                </Txt>
-                <SponsorMarquee sponsors={bronze} tier="bronze" />
-              </>
-            )}
-
-            {partners.length > 0 && (
-              <>
-                <Txt style={[styles.tierLabel, { color: C.sub }]}>
-                  {t('home.tierPartner').toUpperCase()}
-                </Txt>
-                <SponsorMarquee sponsors={partners} />
-              </>
-            )}
           </>
         )}
 
@@ -446,8 +356,151 @@ export function HomeScreen() {
             </View>
           </>
         )}
+        {/* ── PRATIŠ ───────────────────────────────────────────────────── */}
+        <SectionLabel>{t('home.following')}</SectionLabel>
+        <Pressable
+          style={styles.followCard}
+          onPress={() =>
+            followedTeam ? nav.navigate('Team', { teamId: followedTeam.id }) : nav.navigate('Search')
+          }
+        >
+          {followedTeam ? (
+            <>
+              <Crest
+                code={followedTeam.short_code}
+                index={followedTeam.sort_order}
+                logoUrl={followedTeam.logo_url}
+                size={42}
+              />
+              <View style={{ flex: 1 }}>
+                <Txt style={styles.followName}>{followedTeam.name}</Txt>
+                <Txt style={styles.followMeta}>
+                  {d.groups.find((g) => g.id === followedTeam.group_id)?.name ?? ''}
+                </Txt>
+              </View>
+              <LinkTxt>{t('home.change')}</LinkTxt>
+            </>
+          ) : (
+            <>
+              <View style={{ flex: 1 }}>
+                <Txt style={styles.followName}>{t('home.followCta')}</Txt>
+              </View>
+              <LinkTxt>{t('home.change')}</LinkTxt>
+            </>
+          )}
+        </Pressable>
+
+        {/* ── SPONZORI PO RAZREDU ──────────────────────────────────────── */}
+        {/* Srebrni su veći i dvoje u redu, brončani manji i troje, partneri
+            u traci koja klizi. Razlika je namjerno u veličini, a ne samo u
+            boji — vidi se i na crno-bijelom snimku zaslona. */}
+        {hasSponsors && (
+          <>
+            <SectionLabel>{t('home.sponsors')}</SectionLabel>
+
+            {silver.length > 0 && (
+              <>
+                <Txt style={[styles.tierLabel, { color: C.silverTxt }]}>
+                  {t('home.tierSilver').toUpperCase()}
+                </Txt>
+                <SponsorMarquee sponsors={silver} tier="silver" />
+              </>
+            )}
+
+            {bronze.length > 0 && (
+              <>
+                <Txt style={[styles.tierLabel, { color: C.bronzeTxt }]}>
+                  {t('home.tierBronze').toUpperCase()}
+                </Txt>
+                <SponsorMarquee sponsors={bronze} tier="bronze" />
+              </>
+            )}
+
+            {partners.length > 0 && (
+              <>
+                <Txt style={[styles.tierLabel, { color: C.sub }]}>
+                  {t('home.tierPartner').toUpperCase()}
+                </Txt>
+                <SponsorMarquee sponsors={partners} />
+              </>
+            )}
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+type BestCat = { cat: 'scorers' | 'goalkeepers'; label: StringKey; unit: StringKey };
+const BEST: BestCat[] = [
+  { cat: 'scorers', label: 'home.bestScorer', unit: 'stats.unit.goals' },
+  { cat: 'goalkeepers', label: 'home.bestKeeper', unit: 'stats.unit.saves' },
+];
+
+/**
+ * Najbolji strijelac i golman (po obranama) u obje konkurencije. Dodir vodi na
+ * Statistiku s već odabranom konkurencijom. Prije prvog gola se ne prikazuje —
+ * četiri prazne pločice ne govore ništa.
+ */
+function BestCard() {
+  const { t } = useT();
+  const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const d = useData();
+  const { setGender } = useGender();
+
+  const genderOf = new Map(d.matches.map((m) => [m.id, m.gender] as const));
+  const cells = (['m', 'z'] as const).flatMap((g) => {
+    const events = d.events.filter((e) => genderOf.get(e.match_id) === g);
+    return BEST.map((b) => ({ g, ...b, w: winnerOf(rankByEvent(events, b.cat)) }));
+  });
+  if (cells.every((c) => !c.w)) return null;
+
+  const openStats = (g: 'm' | 'z') => {
+    setGender(g);
+    nav.navigate('Tabs', { screen: 'Stats' } as never);
+  };
+
+  return (
+    <>
+      <SectionLabel
+        right={
+          <Pressable onPress={() => nav.navigate('Tabs', { screen: 'Stats' } as never)}>
+            <LinkTxt size={11}>{t('home.allStats')}</LinkTxt>
+          </Pressable>
+        }
+      >
+        {t('home.best')}
+      </SectionLabel>
+      <View style={styles.bestGrid}>
+        {cells.map((c) => {
+          const p = c.w ? d.players.find((x) => x.id === c.w!.playerId) : undefined;
+          const team = p ? d.teamById(p.team_id) : undefined;
+          return (
+            <Pressable key={c.g + c.cat} style={styles.bestTile} onPress={() => openStats(c.g)}>
+              <Txt style={styles.bestLabel} numberOfLines={1}>
+                {t(c.label)} · {t(c.g === 'm' ? 'common.men' : 'common.women')}
+              </Txt>
+              {c.w && p ? (
+                <View style={styles.bestRow}>
+                  <Crest code={team?.short_code} index={team?.sort_order} logoUrl={team?.logo_url} size={26} />
+                  <View style={{ flex: 1 }}>
+                    <Txt style={styles.bestName} numberOfLines={1}>
+                      {p.name}
+                      {c.w.tied.length > 1 ? ` +${c.w.tied.length - 1}` : ''}
+                    </Txt>
+                    <Txt style={styles.bestVal}>
+                      {c.w.count} {t(c.unit)}
+                    </Txt>
+                  </View>
+                </View>
+              ) : (
+                <Txt style={styles.bestNone}>—</Txt>
+              )}
+            </Pressable>
+          );
+        })}
+      </View>
+    </>
   );
 }
 
@@ -460,6 +513,7 @@ function LiveHero({ match }: { match: Match }) {
   const away = d.teamById(match.away_team_id);
   const crests = crestPair(home?.sort_order ?? 0, away?.sort_order ?? 0);
   const goals = d.eventsOf(match.id).filter((e) => e.type === 'goal');
+  const now = useNow(true);
 
   return (
     <Pressable onPress={() => nav.navigate('Live', { matchId: match.id })}>
@@ -501,8 +555,8 @@ function LiveHero({ match }: { match: Match }) {
 
         <View style={styles.heroFoot}>
           <Txt style={styles.heroFootTxt}>
-            {t('home.halfN', { n: match.current_half ?? 1 }).toUpperCase()}
-            {match.current_minute != null ? ` · ${match.current_minute}'` : ''}
+            {t('home.halfN', { n: match.current_half ?? 1 }).toUpperCase()} ·{' '}
+            {clockLabel(match, now, t, (id) => d.teamById(id)?.name)}
           </Txt>
           <Pill bg="rgba(225,29,42,.16)" border="rgba(225,29,42,.45)" style={{ paddingHorizontal: 14, paddingVertical: 7 }}>
             <Ionicons name="play-circle-outline" size={13} color={C.redLt} />
@@ -733,20 +787,31 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // ── Prečaci ─────────────────────────────────────────────────────────────
-  shortRow: { flexDirection: 'row', gap: SP.gap, marginTop: SP.gap },
-  shortTile: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 5,
-    minHeight: 62,
-    justifyContent: 'center',
-    backgroundColor: C.card2,
+  // ── Najbolji ────────────────────────────────────────────────────────────
+  bestGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SP.gap },
+  bestTile: {
+    // Dvije u redu: polovica širine minus pola razmaka.
+    flexBasis: '47%',
+    flexGrow: 1,
+    minHeight: 76,
+    gap: 6,
+    padding: 12,
+    backgroundColor: C.card,
     borderWidth: 1,
     borderColor: C.line,
     borderRadius: R.chip,
   },
-  shortLabel: { fontFamily: F.bodySemi, fontSize: 11, color: C.sub },
+  bestLabel: {
+    fontFamily: F.body,
+    fontSize: 10,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: C.sub,
+  },
+  bestRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  bestName: { fontFamily: F.bodySemi, fontSize: 13, color: C.txt },
+  bestVal: { fontFamily: F.head, fontSize: 14, color: C.redLt },
+  bestNone: { fontFamily: F.head, fontSize: 18, color: C.mut },
 
   // ── Zadnji rezultati ────────────────────────────────────────────────────
   resRow: {
